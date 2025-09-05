@@ -1,0 +1,28 @@
+{
+  "extends": ["next/core-web-vitals"],
+  "rules": {
+    // 🚫 REGRAS RÍGIDAS - NÃO PODEM SER QUEBRADAS
+    "no-console": "warn",
+    "no-debugger": "error",
+    "no-alert": "error",
+    "prefer-const": "error",
+    "no-var": "error",
+
+    // React Rules
+    "react/prop-types": "off",
+    "react/react-in-jsx-scope": "off",
+
+    // DOM v2 Specific Rules
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["@mui/*", "antd", "react-bootstrap"],
+            "message": "🚫 PROIBIDO: Use apenas styled-components para UI"
+          }
+        ]
+      }
+    ]
+  }
+}

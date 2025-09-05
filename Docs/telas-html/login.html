@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema DOM - Login</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Symbols+Outlined" />
+    <style>
+        body { font-family: 'Roboto', sans-serif; margin: 0; background: linear-gradient(to bottom, #f0f0f0, #fff); display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .login-container { background: #fff; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.15); padding: 2rem; width: 100%; max-width: 400px; text-align: center; }
+        .login-title { font-size: 2.5rem; font-weight: bold; color: #29ABE2; margin-bottom: 1.5rem; text-transform: uppercase; }
+        .input-wrapper { position: relative; margin-bottom: 1.5rem; }
+        .floating-label { position: absolute; left: 0.75rem; top: -0.6rem; background: #fff; padding: 0 0.25rem; font-size: 0.8rem; color: #666; }
+        .login-input { width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1.1rem; outline: none; transition: border-color 0.3s ease; }
+        .login-input:focus { border-color: #29ABE2; }
+        .login-links { display: flex; justify-content: space-between; font-size: 0.9rem; margin: 0.75rem 0 1.25rem; }
+        .login-links a { color: #29ABE2; text-decoration: none; transition: color 0.3s ease; }
+        .login-links a:hover { color: #4FC3F7; }
+        .login-button { background: linear-gradient(to right, #29ABE2, #4FC3F7); color: #fff; border: none; border-radius: 8px; padding: 1rem 2rem; font-size: 1.2rem; cursor: pointer; width: 100%; transition: background-color 0.3s ease, transform 0.3s ease; }
+        .login-button:hover { background: linear-gradient(to right, #4FC3F7, #29ABE2); transform: translateY(-3px); }
+
+        /* Additional Styles */
+        .input-wrapper .material-symbols-outlined {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+        /* Motivational Phrases Carousel */
+        .carousel-container {
+            margin-bottom: 1.5rem;
+            /* Add more styling for the carousel here */
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1 class="login-title">Sistema DOM</h1>
+        
+        <div class="input-wrapper">
+            <label class="floating-label" for="cpf">CPF</label>
+            <input type="text" id="cpf" class="login-input" placeholder="000.000.000-00">
+            <span class="material-symbols-outlined">person</span>
+        </div>
+        <div class="input-wrapper">
+            <label class="floating-label" for="password">Senha</label>
+            <input type="password" id="password" class="login-input" placeholder="••••••••">
+             <span class="material-symbols-outlined">lock</span>
+        </div>
+        <div class="login-links">
+            <a href="#">Esqueci minha senha</a>
+            <a href="#">Criar conta</a>
+        </div>
+        <button class="login-button">Entrar</button>
+    </div>
+</body>
+</html>
