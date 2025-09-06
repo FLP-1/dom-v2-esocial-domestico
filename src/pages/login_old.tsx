@@ -214,6 +214,8 @@ export default function Login() {
               type='checkbox'
               checked={rememberMe}
               onChange={e => setRememberMe(e.target.checked)}
+              aria-label='Lembrar de mim'
+              title='Lembrar de mim'
             />
             Lembrar de mim
           </CheckboxLabel>
@@ -228,6 +230,8 @@ export default function Login() {
               type='checkbox'
               checked={accepted}
               onChange={e => setAccepted(e.target.checked)}
+              aria-label='Aceitar termos de uso'
+              title='Aceitar termos de uso'
             />
             Li e aceito os <StyledLink href='/terms'>Termos de Uso</StyledLink>{' '}
             e <StyledLink href='/privacy'>Políticas de Privacidade</StyledLink>

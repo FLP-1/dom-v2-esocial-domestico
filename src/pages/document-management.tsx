@@ -1,4 +1,6 @@
+import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/document-management.tsx
+
 import { useRouter } from 'next/router';
 import { useRef, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
@@ -34,7 +36,7 @@ interface DocumentCategory {
   id: string;
   name: string;
   color: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 // Styled Components
@@ -248,6 +250,36 @@ const DocumentDescription = styled.p`
   margin: 0.5rem 0;
 `;
 
+const DocumentHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const DocumentIconSmall = styled.span`
+  font-size: 1.5rem;
+`;
+
+const CategoryBadge = styled.span<{ $color: string }>`
+  color: ${props => props.$color};
+  font-weight: 600;
+`;
+
+const DeleteButton = styled.button`
+  color: #e74c3c;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+  }
+`;
+
 const UploadProgressContainer = styled.div`
   margin-bottom: 1rem;
 `;
@@ -330,11 +362,31 @@ export default function DocumentManagement() {
   const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
 
   const categories: DocumentCategory[] = [
-    { id: '1', name: 'Contratos', color: '#3498db', icon: '📄' },
+    {
+      id: '1',
+      name: 'Contratos',
+      color: '#3498db',
+      icon: <AccessibleEmoji emoji='📄' label='Documento' />,
+    },
     { id: '2', name: 'Recibos', color: '#2ecc71', icon: '🧾' },
-    { id: '3', name: 'Certidões', color: '#f39c12', icon: '📜' },
-    { id: '4', name: 'Fotos', color: '#e74c3c', icon: '📸' },
-    { id: '5', name: 'Outros', color: '#95a5a6', icon: '📁' },
+    {
+      id: '3',
+      name: 'Certidões',
+      color: '#f39c12',
+      icon: <AccessibleEmoji emoji='📜' label='Documento' />,
+    },
+    {
+      id: '4',
+      name: 'Fotos',
+      color: '#e74c3c',
+      icon: <AccessibleEmoji emoji='📸' label='Câmera' />,
+    },
+    {
+      id: '5',
+      name: 'Outros',
+      color: '#95a5a6',
+      icon: <AccessibleEmoji emoji='📁' label='Pasta' />,
+    },
   ];
 
   const [documents, setDocuments] = useState<Document[]>([
@@ -510,7 +562,7 @@ export default function DocumentManagement() {
     return (
       categories.find(cat => cat.name === categoryName) || {
         color: '#95a5a6',
-        icon: '📁',
+        icon: <AccessibleEmoji emoji='📁' label='Pasta' />,
       }
     );
   };
@@ -555,7 +607,9 @@ export default function DocumentManagement() {
           onClick={() => fileInputRef.current?.click()}
         >
           <UploadContent>
-            <UploadIcon $theme={theme}>📁</UploadIcon>
+            <UploadIcon $theme={theme}>
+              <AccessibleEmoji emoji='📁' label='Pasta' />
+            </UploadIcon>
             <UploadText>
               <h3>Enviar Documento</h3>
               <p>Arraste e solte arquivos aqui ou clique para selecionar</p>
@@ -567,7 +621,7 @@ export default function DocumentManagement() {
                 fileInputRef.current?.click();
               }}
             >
-              📤 Selecionar Arquivo
+              <AccessibleEmoji emoji='📤' label='Exportar' /> Selecionar Arquivo
             </ActionButton>
           </UploadContent>
           <HiddenFileInput
@@ -594,8 +648,9 @@ export default function DocumentManagement() {
             </FormGroup>
 
             <FormGroup>
-              <Label>Filtrar por Categoria</Label>
+              <Label htmlFor='filter-category'>Filtrar por Categoria</Label>
               <Select
+                id='filter-category'
                 $theme={theme}
                 value={filters.category}
                 onChange={e =>
@@ -614,8 +669,9 @@ export default function DocumentManagement() {
             </FormGroup>
 
             <FormGroup>
-              <Label>Mostrar apenas</Label>
+              <Label htmlFor='filter-expiring'>Mostrar apenas</Label>
               <Select
+                id='filter-expiring'
                 $theme={theme}
                 value={filters.expiring ? 'expiring' : 'all'}
                 onChange={e =>
@@ -645,20 +701,10 @@ export default function DocumentManagement() {
                 onClick={() => openModal('view', document)}
               >
                 <div className='document-header'>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                    }}
-                  >
-                    <span style={{ fontSize: '1.5rem' }}>
-                      {categoryInfo.icon}
-                    </span>
-                    <h4 style={{ margin: 0, color: '#2c3e50' }}>
-                      {document.name}
-                    </h4>
-                  </div>
+                  <DocumentHeader>
+                    <DocumentIconSmall>{categoryInfo.icon}</DocumentIconSmall>
+                    <DocumentTitle>{document.name}</DocumentTitle>
+                  </DocumentHeader>
                   <PermissionBadge $permission={document.permissions}>
                     {document.permissions === 'public'
                       ? 'Público'
@@ -669,24 +715,22 @@ export default function DocumentManagement() {
                 </div>
 
                 <div className='document-meta'>
-                  <span
-                    style={{
-                      color: categoryInfo.color,
-                      fontWeight: '600',
-                    }}
-                  >
+                  <CategoryBadge $color={categoryInfo.color}>
                     {document.category}
-                  </span>
+                  </CategoryBadge>
                   {document.dueDate && (
                     <div className='document-due-date'>
-                      📅 Vence em:{' '}
+                      <AccessibleEmoji emoji='📅' label='Calendário' /> Vence
+                      em:{' '}
                       {new Date(document.dueDate).toLocaleDateString('pt-BR')}
                     </div>
                   )}
                 </div>
 
                 <DocumentMeta>
-                  📊 {document.fileSize} • 📅{' '}
+                  <AccessibleEmoji emoji='📊' label='Dashboard' />{' '}
+                  {document.fileSize} •{' '}
+                  <AccessibleEmoji emoji='📅' label='Calendário' />{' '}
                   {new Date(document.uploadDate).toLocaleDateString('pt-BR')}
                 </DocumentMeta>
 
@@ -695,7 +739,7 @@ export default function DocumentManagement() {
                 </DocumentDescription>
 
                 <div className='document-actions'>
-                  <button
+                  <DeleteButton
                     className='action-button'
                     onClick={e => {
                       e.stopPropagation();
@@ -703,9 +747,9 @@ export default function DocumentManagement() {
                     }}
                     title='Editar documento'
                   >
-                    ✏️
-                  </button>
-                  <button
+                    <AccessibleEmoji emoji='✏' label='Editar' />
+                  </DeleteButton>
+                  <DeleteButton
                     className='action-button'
                     onClick={e => {
                       e.stopPropagation();
@@ -713,19 +757,18 @@ export default function DocumentManagement() {
                     }}
                     title='Compartilhar documento'
                   >
-                    🔗
-                  </button>
-                  <button
+                    <AccessibleEmoji emoji='🔗' label='Compartilhar' />
+                  </DeleteButton>
+                  <DeleteButton
                     className='action-button'
                     onClick={e => {
                       e.stopPropagation();
                       handleDeleteDocument(document.id);
                     }}
                     title='Excluir documento'
-                    style={{ color: '#e74c3c' }}
                   >
-                    🗑️
-                  </button>
+                    <AccessibleEmoji emoji='❌' label='Excluir' />
+                  </DeleteButton>
                 </div>
               </DocumentCard>
             );
@@ -814,8 +857,9 @@ export default function DocumentManagement() {
               </FormGroup>
 
               <FormGroup>
-                <Label>Categoria</Label>
+                <Label htmlFor='document-category'>Categoria</Label>
                 <Select
+                  id='document-category'
                   $theme={theme}
                   value={newDocument.category}
                   onChange={e =>
@@ -824,8 +868,8 @@ export default function DocumentManagement() {
                       category: e.target.value,
                     }))
                   }
-                  required
                   aria-label='Selecionar categoria'
+                  required
                   title='Selecionar categoria'
                 >
                   <option value=''>Selecionar categoria</option>
@@ -855,8 +899,9 @@ export default function DocumentManagement() {
               </FormGroup>
 
               <FormGroup>
-                <Label>Permissões</Label>
+                <Label htmlFor='document-permissions'>Permissões</Label>
                 <Select
+                  id='document-permissions'
                   $theme={theme}
                   value={newDocument.permissions}
                   onChange={e =>

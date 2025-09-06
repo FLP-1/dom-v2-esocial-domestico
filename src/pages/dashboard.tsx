@@ -268,7 +268,7 @@ export default function Dashboard() {
     {
       id: 'finances',
       title: 'Resumo Financeiro',
-      icon: '💰',
+      icon: '💵',
       type: 'success' as const,
       theme,
       metric: 'R$ 15.420',

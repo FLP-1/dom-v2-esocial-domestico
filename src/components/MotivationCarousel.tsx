@@ -1,4 +1,5 @@
 // src/components/MotivationCarousel.tsx
+import styled from 'styled-components';
 import 'swiper/css';
 import 'swiper/css/autoplay';
 import { Autoplay } from 'swiper/modules';
@@ -8,39 +9,45 @@ type MotivationCarouselProps = {
   phrases: string[];
 };
 
+const CarouselContainer = styled.div`
+  margin-bottom: 1.5rem;
+  height: 100%;
+`;
+
+const StyledSwiper = styled(Swiper)`
+  height: 100%;
+`;
+
+const MotivationText = styled.p`
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 export default function MotivationCarousel({
   phrases,
 }: MotivationCarouselProps) {
   return (
-    <div style={{ marginBottom: '1.5rem', height: '100%' }}>
-      <Swiper
+    <CarouselContainer>
+      <StyledSwiper
         modules={[Autoplay]}
         spaceBetween={30}
         slidesPerView={1}
         autoplay={{ delay: 3000, disableOnInteraction: false }}
         loop
-        style={{ height: '100%' }}
       >
         {phrases.map((txt, idx) => (
           <SwiperSlide key={idx}>
-            <p
-              style={{
-                fontSize: '0.9rem',
-                color: '#555',
-                textAlign: 'center',
-                margin: '0',
-                lineHeight: '1.4',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {txt}
-            </p>
+            <MotivationText>{txt}</MotivationText>
           </SwiperSlide>
         ))}
-      </Swiper>
-    </div>
+      </StyledSwiper>
+    </CarouselContainer>
   );
 }

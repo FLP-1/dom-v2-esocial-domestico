@@ -1,7 +1,8 @@
 // pages/index.tsx
-import styled, { keyframes } from 'styled-components';
-import { useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import styled, { keyframes } from 'styled-components';
 
 const fadeIn = keyframes`from{opacity:0;}to{opacity:1;}`;
 const SplashContainer = styled.div`
@@ -20,7 +21,7 @@ export default function Splash() {
   }, [router]);
   return (
     <SplashContainer>
-      <img src='/logo.png' alt='DOM Logo' width={200} />
+      <Image src='/logo.png' alt='DOM Logo' width={200} height={200} />
     </SplashContainer>
   );
 }

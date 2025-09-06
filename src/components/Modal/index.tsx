@@ -123,4 +123,21 @@ export const Modal: React.FC<ModalProps> = ({
   );
 };
 
+// Export sub-components for external use
+export const ModalBody = styled.div`
+  margin-bottom: 1.5rem;
+`;
+
+export const ModalFooter = styled.div`
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+`;
+
+// Re-export existing components
+export { ModalContent, ModalHeader };
+
 export default Modal;

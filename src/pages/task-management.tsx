@@ -1,3 +1,6 @@
+import AccessibleEmoji from '../components/AccessibleEmoji';
+// task-management.tsx
+
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
@@ -365,6 +368,11 @@ const ChecklistItem = styled.div<{ $theme: any }>`
   }
 `;
 
+const CommentAuthor = styled.div<{ $theme: any }>`
+  font-weight: 600;
+  color: ${props => props.$theme.colors.text};
+`;
+
 // Mock data
 const mockTasks: Task[] = [
   {
@@ -617,8 +625,9 @@ const TaskManagement: React.FC = () => {
             </FormGroup>
 
             <FormGroup>
-              <Label>Prioridade</Label>
+              <Label htmlFor='task-priority'>Prioridade</Label>
               <Select
+                id='task-priority'
                 $theme={theme}
                 value={newTask.priority}
                 onChange={e =>
@@ -637,8 +646,9 @@ const TaskManagement: React.FC = () => {
             </FormGroup>
 
             <FormGroup>
-              <Label>Responsável</Label>
+              <Label htmlFor='task-assignee'>Responsável</Label>
               <Select
+                id='task-assignee'
                 $theme={theme}
                 value={newTask.assignee}
                 onChange={e =>
@@ -675,7 +685,7 @@ const TaskManagement: React.FC = () => {
 
         <FilterSection theme={theme} title='Filtros e Ordenação'>
           <FormGroup>
-            <Label>Status</Label>
+            <Label htmlFor='filter-status-select'>Status</Label>
             <Select
               id='filter-status-select'
               $theme={theme}
@@ -694,7 +704,7 @@ const TaskManagement: React.FC = () => {
           </FormGroup>
 
           <FormGroup>
-            <Label>Prioridade</Label>
+            <Label htmlFor='filter-priority-select'>Prioridade</Label>
             <Select
               id='filter-priority-select'
               $theme={theme}
@@ -713,7 +723,7 @@ const TaskManagement: React.FC = () => {
           </FormGroup>
 
           <FormGroup>
-            <Label>Responsável</Label>
+            <Label htmlFor='filter-assignee-select'>Responsável</Label>
             <Select
               id='filter-assignee-select'
               $theme={theme}
@@ -774,7 +784,8 @@ const TaskManagement: React.FC = () => {
                         handleTaskClick(task, 'comments');
                       }}
                     >
-                      💬 {task.comments.length}
+                      <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
+                      {task.comments.length}
                     </button>
                     <button
                       onClick={e => {
@@ -782,7 +793,8 @@ const TaskManagement: React.FC = () => {
                         handleTaskClick(task, 'checklist');
                       }}
                     >
-                      ✅ {task.checklist.length}
+                      <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
+                      {task.checklist.length}
                     </button>
                   </div>
                 </TaskMeta>
@@ -831,7 +843,8 @@ const TaskManagement: React.FC = () => {
                         handleTaskClick(task, 'comments');
                       }}
                     >
-                      💬 {task.comments.length}
+                      <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
+                      {task.comments.length}
                     </button>
                     <button
                       onClick={e => {
@@ -839,7 +852,8 @@ const TaskManagement: React.FC = () => {
                         handleTaskClick(task, 'checklist');
                       }}
                     >
-                      ✅ {task.checklist.length}
+                      <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
+                      {task.checklist.length}
                     </button>
                   </div>
                 </TaskMeta>
@@ -888,7 +902,8 @@ const TaskManagement: React.FC = () => {
                         handleTaskClick(task, 'comments');
                       }}
                     >
-                      💬 {task.comments.length}
+                      <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
+                      {task.comments.length}
                     </button>
                     <button
                       onClick={e => {
@@ -896,7 +911,8 @@ const TaskManagement: React.FC = () => {
                         handleTaskClick(task, 'checklist');
                       }}
                     >
-                      ✅ {task.checklist.length}
+                      <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
+                      {task.checklist.length}
                     </button>
                   </div>
                 </TaskMeta>
@@ -949,14 +965,9 @@ const TaskManagement: React.FC = () => {
                         {comment.avatar}
                       </CommentAvatar>
                       <div>
-                        <div
-                          style={{
-                            fontWeight: '600',
-                            color: theme.colors.text,
-                          }}
-                        >
+                        <CommentAuthor $theme={theme}>
                           {comment.author}
-                        </div>
+                        </CommentAuthor>
                         <CommentTime $theme={theme}>
                           {new Date(comment.timestamp).toLocaleString('pt-BR')}
                         </CommentTime>
@@ -996,12 +1007,16 @@ const TaskManagement: React.FC = () => {
                   <ChecklistItem key={item.id} $theme={theme}>
                     <input
                       type='checkbox'
+                      id={`checklist-${item.id}`}
                       checked={item.completed}
                       onChange={() =>
                         toggleChecklistItem(selectedTask.id, item.id)
                       }
                     />
-                    <label className={item.completed ? 'completed' : ''}>
+                    <label
+                      htmlFor={`checklist-${item.id}`}
+                      className={item.completed ? 'completed' : ''}
+                    >
                       {item.text}
                     </label>
                   </ChecklistItem>

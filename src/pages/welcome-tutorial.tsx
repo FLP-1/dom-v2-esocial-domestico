@@ -1,4 +1,6 @@
+import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/welcome-tutorial.tsx
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
@@ -12,11 +14,11 @@ interface TutorialSlide {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
   features: string[];
   benefits: string[];
   color: string;
-  illustration: string;
+  illustration: React.ReactNode;
 }
 
 // Animations
@@ -533,9 +535,9 @@ export default function WelcomeTutorial() {
       title: 'Dashboard Inteligente',
       description:
         'Seu centro de comando para gerenciar toda a rotina doméstica com visão completa e personalizada.',
-      icon: '🏠',
+      icon: <AccessibleEmoji emoji='🏠' label='Home' />,
       color: '#29ABE2',
-      illustration: '📊',
+      illustration: <AccessibleEmoji emoji='📊' label='Dashboard' />,
       features: [
         'Visão geral em tempo real',
         'Widgets personalizáveis',
@@ -556,7 +558,7 @@ export default function WelcomeTutorial() {
         'Sistema anti-fraude com geolocalização, verificação de dispositivo e rede Wi-Fi para registros confiáveis.',
       icon: '⏰',
       color: '#2ECC71',
-      illustration: '🔒',
+      illustration: '<AccessibleEmoji emoji="🔒" label="Privado" />',
       features: [
         'Geolocalização com geofencing',
         'Verificação de dispositivo',
@@ -575,9 +577,9 @@ export default function WelcomeTutorial() {
       title: 'Gestão de Tarefas Colaborativa',
       description:
         'Organize, atribua e acompanhe tarefas com comentários, checklists e notificações em tempo real.',
-      icon: '📋',
+      icon: <AccessibleEmoji emoji='📋' label='Checklist' />,
       color: '#F39C12',
-      illustration: '👥',
+      illustration: <AccessibleEmoji emoji='👥' label='Equipe' />,
       features: [
         'Criação e atribuição de tarefas',
         'Comentários e checklists',
@@ -596,9 +598,9 @@ export default function WelcomeTutorial() {
       title: 'Gestão de Documentos',
       description:
         'Organize, armazene e gerencie todos os documentos importantes com alertas de vencimento e controle de acesso.',
-      icon: '📄',
+      icon: <AccessibleEmoji emoji='📄' label='Documento' />,
       color: '#9B59B6',
-      illustration: '🗂️',
+      illustration: <AccessibleEmoji emoji='🗂' label='Organizador' />,
       features: [
         'Upload e categorização',
         'Alertas de vencimento',
@@ -617,9 +619,9 @@ export default function WelcomeTutorial() {
       title: 'Comunicação Unificada',
       description:
         'Chat em tempo real, grupos colaborativos e notificações instantâneas para manter toda a equipe conectada.',
-      icon: '💬',
+      icon: <AccessibleEmoji emoji='💬' label='Comunicação' />,
       color: '#E67E22',
-      illustration: '📱',
+      illustration: <AccessibleEmoji emoji='📱' label='Aplicativo' />,
       features: [
         'Chat em tempo real',
         'Grupos colaborativos',
@@ -638,9 +640,9 @@ export default function WelcomeTutorial() {
       title: 'Gestão de Compras',
       description:
         'Organize listas de compras por categoria, controle gastos e compartilhe com a família para uma gestão eficiente.',
-      icon: '🛒',
+      icon: <AccessibleEmoji emoji='🛍' label='Compras' />,
       color: '#9B59B6',
-      illustration: '📋',
+      illustration: <AccessibleEmoji emoji='📋' label='Checklist' />,
       features: [
         'Listas por categoria',
         'Controle de preços',
@@ -659,9 +661,9 @@ export default function WelcomeTutorial() {
       title: 'Segurança e Conformidade',
       description:
         'Sistema robusto com criptografia, logs de auditoria e conformidade total com a LGPD.',
-      icon: '🛡️',
+      icon: <AccessibleEmoji emoji='🛡' label='Segurança' />,
       color: '#E74C3C',
-      illustration: '🔐',
+      illustration: <AccessibleEmoji emoji='🔐' label='Criptografia' />,
       features: [
         'Criptografia de dados',
         'Logs de auditoria',
@@ -679,7 +681,9 @@ export default function WelcomeTutorial() {
 
   const handleStartTutorial = () => {
     setCurrentStep('tutorial');
-    toast.success('Bem-vindo ao tutorial do Sistema DOM! 🎉');
+    toast.success(
+      'Bem-vindo ao tutorial do Sistema DOM! <AccessibleEmoji emoji="🎉" label="Parabéns" />'
+    );
   };
 
   const handleSkipTutorial = () => {
@@ -705,7 +709,9 @@ export default function WelcomeTutorial() {
 
   const handleGoToDashboard = () => {
     router.push('/dashboard');
-    toast.success('Bem-vindo ao Sistema DOM! 🚀');
+    toast.success(
+      'Bem-vindo ao Sistema DOM! <AccessibleEmoji emoji="🚀" label="Iniciar" />'
+    );
   };
 
   const handleRevisitTutorial = () => {
@@ -724,7 +730,7 @@ export default function WelcomeTutorial() {
         <WelcomeContent>
           <LogoContainer>
             <Logo $theme={theme}>
-              <img src='/logo.png' alt='Logo DOM' />
+              <Image src='/logo.png' alt='Logo DOM' width={80} height={80} />
             </Logo>
           </LogoContainer>
 
@@ -746,7 +752,7 @@ export default function WelcomeTutorial() {
               theme={theme}
               onClick={handleStartTutorial}
             >
-              🚀 Começar Tour
+              <AccessibleEmoji emoji='🚀' label='Iniciar' /> Começar Tour
             </WelcomeButton>
           </ButtonContainer>
         </WelcomeContent>
@@ -856,7 +862,9 @@ export default function WelcomeTutorial() {
     return (
       <CompletionContainer $theme={theme}>
         <CompletionContent>
-          <CompletionIcon>🎉</CompletionIcon>
+          <CompletionIcon>
+            <AccessibleEmoji emoji='🎉' label='Parabéns' />
+          </CompletionIcon>
 
           <CompletionTitle>Pronto para começar?</CompletionTitle>
 
@@ -891,7 +899,7 @@ export default function WelcomeTutorial() {
               theme={theme}
               onClick={handleGoToDashboard}
             >
-              🏠 Ir para o Dashboard
+              <AccessibleEmoji emoji='🏠' label='Home' /> Ir para o Dashboard
             </WelcomeButton>
 
             <SecondaryButton
@@ -899,7 +907,8 @@ export default function WelcomeTutorial() {
               theme={theme}
               onClick={handleRevisitTutorial}
             >
-              🔄 Revisitar Tutorial
+              <AccessibleEmoji emoji='🔄' label='Sincronizar' /> Revisitar
+              Tutorial
             </SecondaryButton>
           </ButtonContainer>
         </CompletionContent>

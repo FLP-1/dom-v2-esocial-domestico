@@ -3,7 +3,6 @@ import { useRouter } from 'next/router';
 import { ReactNode, useState } from 'react';
 import styled from 'styled-components';
 import { ProfileProps } from '../types';
-import { Button } from './Button';
 import Modal from './Modal';
 
 type MenuItem = {
@@ -166,6 +165,30 @@ const Content = styled.div`
   overflow-y: auto;
 `;
 
+const GroupTitle = styled.h3`
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0;
+`;
+
+const ProfileButton = styled.button<{ $backgroundColor: string }>`
+  margin: 0.5rem;
+  background-color: ${props => props.$backgroundColor};
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+`;
+
 export default function Layout({
   profiles,
   selectedProfile,
@@ -222,16 +245,7 @@ export default function Layout({
           {menuGroups.map((group, groupIndex) => (
             <div key={groupIndex}>
               <InfoDiv $collapsed={collapsed}>
-                <h3
-                  style={{
-                    padding: '0.5rem 1rem',
-                    fontSize: '0.8rem',
-                    color: '#666',
-                    margin: 0,
-                  }}
-                >
-                  {group.title}
-                </h3>
+                <GroupTitle>{group.title}</GroupTitle>
               </InfoDiv>
               {group.items.map((item, itemIndex) => (
                 <MenuItem
@@ -276,13 +290,13 @@ export default function Layout({
         >
           <h2>Selecionar Perfil</h2>
           {profiles.map(profile => (
-            <Button
+            <ProfileButton
               key={profile.id}
               onClick={() => handleProfileSelect(profile.id)}
-              style={{ margin: '0.5rem', backgroundColor: profile.color }}
+              $backgroundColor={profile.color}
             >
               {profile.nickname} - {profile.role}
-            </Button>
+            </ProfileButton>
           ))}
         </Modal>
       )}

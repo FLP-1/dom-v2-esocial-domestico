@@ -65,21 +65,21 @@
 
 ### **Se eu tentar usar bibliotecas proibidas:**
 
-```
+```text
 🚫 ERRO: Biblioteca não aprovada!
 Use apenas: Next.js, React, TypeScript, styled-components
 ```
 
 ### **Se eu tentar usar CSS puro:**
 
-```
+```text
 🚫 ERRO: CSS puro proibido!
 Use apenas styled-components
 ```
 
 ### **Se eu tentar usar JavaScript:**
 
-```
+```text
 🚫 ERRO: JavaScript puro proibido!
 Use apenas TypeScript
 ```

@@ -1,3 +1,4 @@
+import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/login-test.tsx
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -479,7 +480,9 @@ export default function LoginTest() {
         </CarouselWrapper>
 
         <ActionCard as='a' href='/register' $variant='secondary'>
-          <ActionIcon>👤</ActionIcon>
+          <ActionIcon>
+            <AccessibleEmoji emoji='👤' label='Perfil' />
+          </ActionIcon>
           <ActionText>Cadastre-se</ActionText>
         </ActionCard>
 
@@ -527,7 +530,11 @@ export default function LoginTest() {
               type='button'
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
+              {showPassword ? (
+                <AccessibleEmoji emoji='👁' label='Mostrar' />
+              ) : (
+                <AccessibleEmoji emoji='👁' label='Ocultar' />
+              )}
             </PasswordToggle>
             {errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
           </InputGroup>
@@ -557,7 +564,9 @@ export default function LoginTest() {
           {errors.terms && <ErrorMessage>{errors.terms}</ErrorMessage>}
 
           <ActionCard type='submit' $variant='primary' disabled={isLoading}>
-            <ActionIcon>{isLoading ? '⏳' : '🔑'}</ActionIcon>
+            <ActionIcon>
+              {isLoading ? '⏳' : <AccessibleEmoji emoji='🔑' label='Chave' />}
+            </ActionIcon>
             <ActionText>{isLoading ? 'Entrando...' : 'Entrar'}</ActionText>
           </ActionCard>
 
@@ -570,13 +579,17 @@ export default function LoginTest() {
           <BiometricTitle>Ou entre com</BiometricTitle>
           <BiometricOptions>
             <BiometricButton onClick={() => handleBiometricLogin('face')}>
-              <span className='icon'>👤</span>
+              <span className='icon'>
+                <AccessibleEmoji emoji='👤' label='Perfil' />
+              </span>
               <span className='label'>Face ID</span>
             </BiometricButton>
             <BiometricButton
               onClick={() => handleBiometricLogin('fingerprint')}
             >
-              <span className='icon'>👆</span>
+              <span className='icon'>
+                <AccessibleEmoji emoji='👆' label='Dedo' />
+              </span>
               <span className='label'>Digital</span>
             </BiometricButton>
           </BiometricOptions>

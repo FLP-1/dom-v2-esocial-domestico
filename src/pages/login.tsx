@@ -1,3 +1,4 @@
+import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/login-biometric.tsx
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -10,6 +11,12 @@ import { validateCpf } from '../utils/cpfValidator';
 // Carrega o MotivationCarousel dinamicamente
 const MotivationCarousel = dynamic(
   () => import('../components/MotivationCarousel'),
+  { ssr: false }
+);
+
+// Carrega o TermsAcceptanceModal dinamicamente
+const TermsAcceptanceModal = dynamic(
+  () => import('../components/TermsAcceptanceModal'),
   { ssr: false }
 );
 
@@ -245,6 +252,30 @@ const Link = styled.a`
   }
 `;
 
+const CheckboxContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const BiometricContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+`;
+
+const BiometricTitleContainer = styled.div`
+  flex: 3;
+  display: flex;
+  justify-content: center;
+`;
+
+const BiometricOrContainer = styled.div`
+  flex: 1;
+  display: flex;
+  justify-content: center;
+`;
+
 const BiometricSection = styled.div`
   margin-top: 1rem;
   padding-top: 1rem;
@@ -339,6 +370,7 @@ export default function LoginBiometric() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const [errors, setErrors] = useState<{
     cpf?: string;
     password?: string;
@@ -352,6 +384,15 @@ export default function LoginBiometric() {
     'Organização é a chave para uma vida mais tranquila',
     'Seu lar, sua paz, sua gestão perfeita',
   ];
+
+  // Verificar se os termos já foram aceitos
+  const checkTermsAcceptance = () => {
+    const termsAccepted = localStorage.getItem('termsAccepted');
+    const termsVersion = localStorage.getItem('termsVersion');
+    const currentVersion = 'v2.1.0';
+
+    return termsAccepted === 'true' && termsVersion === currentVersion;
+  };
 
   const validateForm = () => {
     const newErrors: { cpf?: string; password?: string; terms?: string } = {};
@@ -368,13 +409,31 @@ export default function LoginBiometric() {
       newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
     }
 
-    if (!acceptedTerms) {
+    // Verificar aceite de termos
+    if (!checkTermsAcceptance()) {
+      setShowTermsModal(true);
       newErrors.terms =
         'Você deve aceitar os Termos de Uso e Políticas de Privacidade';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleTermsAccept = () => {
+    setAcceptedTerms(true);
+    setShowTermsModal(false);
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.terms;
+      return newErrors;
+    });
+    toast.success('Termos aceitos com sucesso!');
+  };
+
+  const handleTermsDecline = () => {
+    setShowTermsModal(false);
+    toast.error('Você deve aceitar os termos para continuar.');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -473,15 +532,17 @@ export default function LoginBiometric() {
               type='button'
               onClick={() => setShowPassword(!showPassword)}
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
+              {showPassword ? (
+                <AccessibleEmoji emoji='👁' label='Mostrar' />
+              ) : (
+                <AccessibleEmoji emoji='👁' label='Ocultar' />
+              )}
             </PasswordToggle>
             {errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
           </InputGroup>
 
           <RememberMeContainer>
-            <div
-              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
-            >
+            <CheckboxContainer>
               <Checkbox
                 id='remember'
                 type='checkbox'
@@ -489,14 +550,12 @@ export default function LoginBiometric() {
                 onChange={e => setRememberMe(e.target.checked)}
               />
               <CheckboxLabel htmlFor='remember'>Lembrar de mim</CheckboxLabel>
-            </div>
+            </CheckboxContainer>
             <Link href='/forgot-password'>Esqueci minha senha</Link>
           </RememberMeContainer>
 
           <RememberMeContainer>
-            <div
-              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
-            >
+            <CheckboxContainer>
               <Checkbox
                 id='terms'
                 type='checkbox'
@@ -504,55 +563,73 @@ export default function LoginBiometric() {
                 onChange={e => setAcceptedTerms(e.target.checked)}
               />
               <CheckboxLabel htmlFor='terms'>
-                Li e aceito os <Link href='/terms'>Termos de Uso</Link> e as{' '}
-                <Link href='/privacy'>Políticas de Privacidade</Link>
+                Li e aceito os{' '}
+                <Link href='/terms-management'>Termos de Uso</Link> e as{' '}
+                <Link href='/terms-management'>Políticas de Privacidade</Link>
               </CheckboxLabel>
-            </div>
+            </CheckboxContainer>
           </RememberMeContainer>
           {errors.terms && <ErrorMessage>{errors.terms}</ErrorMessage>}
         </Form>
 
         <BiometricSection>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '0.5rem',
-            }}
-          >
-            <div style={{ flex: 3, display: 'flex', justifyContent: 'center' }}>
+          <BiometricContainer>
+            <BiometricTitleContainer>
               <BiometricTitle>Escolha sua forma de acesso</BiometricTitle>
-            </div>
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            </BiometricTitleContainer>
+            <BiometricOrContainer>
               <BiometricTitle>Ou</BiometricTitle>
-            </div>
-          </div>
+            </BiometricOrContainer>
+          </BiometricContainer>
           <BiometricOptions>
             <BiometricButton
               $variant='primary'
               onClick={() => handleBiometricLogin('password')}
               disabled={isLoading}
             >
-              <span className='icon'>🔑</span>
+              <span className='icon'>
+                <AccessibleEmoji emoji='🔑' label='Chave' />
+              </span>
               <span className='label'>Entrar</span>
             </BiometricButton>
             <BiometricButton onClick={() => handleBiometricLogin('face')}>
-              <span className='icon'>👤</span>
+              <span className='icon'>
+                <AccessibleEmoji emoji='👤' label='Perfil' />
+              </span>
               <span className='label'>Face ID</span>
             </BiometricButton>
             <BiometricButton
               onClick={() => handleBiometricLogin('fingerprint')}
             >
-              <span className='icon'>👆</span>
+              <span className='icon'>
+                <AccessibleEmoji emoji='👆' label='Dedo' />
+              </span>
               <span className='label'>Digital</span>
             </BiometricButton>
             <BiometricButton as='a' href='/register'>
-              <span className='icon'>📝</span>
+              <span className='icon'>
+                <AccessibleEmoji emoji='📝' label='Formulário' />
+              </span>
               <span className='label'>Cadastre-se</span>
             </BiometricButton>
           </BiometricOptions>
         </BiometricSection>
       </LoginCard>
+
+      {/* Modal de Aceite de Termos */}
+      <TermsAcceptanceModal
+        isOpen={showTermsModal}
+        onAccept={handleTermsAccept}
+        onDecline={handleTermsDecline}
+        theme={{
+          colors: {
+            primary: '#29ABE2',
+            success: '#90EE90',
+            text: '#2C3E50',
+            border: '#E9ECEF',
+          },
+        }}
+      />
 
       <ToastContainer
         position='top-center'

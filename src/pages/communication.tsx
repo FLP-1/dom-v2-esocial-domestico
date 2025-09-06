@@ -1,3 +1,4 @@
+import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/communication.tsx
 import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
@@ -231,16 +232,6 @@ const ConversationContent = styled.div`
   min-width: 0;
 `;
 
-const ConversationName = styled.h3`
-  font-size: 1rem;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 0.25rem 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
 const LastMessage = styled.p`
   font-size: 0.85rem;
   color: #7f8c8d;
@@ -336,6 +327,17 @@ const MessageTime = styled.span<{ $isOwn: boolean }>`
   color: ${props => (props.$isOwn ? 'rgba(255, 255, 255, 0.7)' : '#95a5a6')};
   margin-top: 0.25rem;
   align-self: ${props => (props.$isOwn ? 'flex-end' : 'flex-start')};
+`;
+
+const ConversationName = styled.h3`
+  margin: 0;
+  color: #2c3e50;
+`;
+
+const ConversationStatus = styled.p`
+  margin: 0;
+  font-size: 0.8rem;
+  color: #7f8c8d;
 `;
 
 const MessageInput = styled.div<{ $theme: any }>`
@@ -622,7 +624,8 @@ export default function Communication() {
     {
       id: '2',
       name: 'Família Silva',
-      avatar: '👨‍👩‍👧‍👦',
+      avatar:
+        '<AccessibleEmoji emoji="👨" label="Homem" />‍<AccessibleEmoji emoji="👩" label="Mulher" />‍<AccessibleEmoji emoji="👧" label="Menina" />‍<AccessibleEmoji emoji="👦" label="Menino" />',
       lastMessage: 'Ana: Lembrem-se da reunião de amanhã às 14h',
       lastMessageTime: '09:45',
       unreadCount: 0,
@@ -777,7 +780,7 @@ export default function Communication() {
     const newGroup: Conversation = {
       id: Date.now().toString(),
       name: groupName,
-      avatar: '👥',
+      avatar: '<AccessibleEmoji emoji="👥" label="Equipe" />',
       lastMessage: 'Grupo criado',
       lastMessageTime: new Date().toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -861,9 +864,11 @@ export default function Communication() {
                   $theme={theme}
                   onClick={() => setShowGroupModal(true)}
                 >
-                  👥
+                  <AccessibleEmoji emoji='👥' label='Equipe' />
                 </ActionIcon>
-                <ActionIcon $theme={theme}>⚙️</ActionIcon>
+                <ActionIcon $theme={theme}>
+                  <AccessibleEmoji emoji='⚙' label='Configurações' />
+                </ActionIcon>
               </HeaderActions>
             </SidebarHeader>
 
@@ -896,9 +901,11 @@ export default function Communication() {
 
                   <ConversationContent>
                     <ConversationName>
-                      {conversation.isPinned && '📌 '}
+                      {conversation.isPinned &&
+                        '<AccessibleEmoji emoji="📌" label="Marcador" /> '}
                       {conversation.name}
-                      {conversation.isMuted && ' 🔇'}
+                      {conversation.isMuted &&
+                        ' <AccessibleEmoji emoji="🔇" label="Silenciado" />'}
                     </ConversationName>
                     <LastMessage>{conversation.lastMessage}</LastMessage>
                   </ConversationContent>
@@ -934,29 +941,27 @@ export default function Communication() {
                       )}
                     </AvatarContainer>
                     <div>
-                      <h3 style={{ margin: 0, color: '#2c3e50' }}>
-                        {selectedConv.name}
-                      </h3>
-                      <p
-                        style={{
-                          margin: 0,
-                          fontSize: '0.8rem',
-                          color: '#7f8c8d',
-                        }}
-                      >
+                      <ConversationName>{selectedConv.name}</ConversationName>
+                      <ConversationStatus>
                         {selectedConv.isGroup
                           ? `${selectedConv.participants.length} membros`
                           : selectedConv.onlineStatus === 'online'
                             ? 'Online'
                             : 'Offline'}
-                      </p>
+                      </ConversationStatus>
                     </div>
                   </ChatHeaderInfo>
 
                   <ChatHeaderActions>
-                    <ActionIcon $theme={theme}>📞</ActionIcon>
-                    <ActionIcon $theme={theme}>📹</ActionIcon>
-                    <ActionIcon $theme={theme}>🔍</ActionIcon>
+                    <ActionIcon $theme={theme}>
+                      <AccessibleEmoji emoji='📞' label='Contato' />
+                    </ActionIcon>
+                    <ActionIcon $theme={theme}>
+                      <AccessibleEmoji emoji='📹' label='Vídeo' />
+                    </ActionIcon>
+                    <ActionIcon $theme={theme}>
+                      <AccessibleEmoji emoji='🔍' label='Pesquisa' />
+                    </ActionIcon>
                     <ActionIcon $theme={theme}>⋯</ActionIcon>
                   </ChatHeaderActions>
                 </ChatHeader>
@@ -980,7 +985,9 @@ export default function Communication() {
                 </ChatMessages>
 
                 <MessageInput $theme={theme}>
-                  <AttachmentButton $theme={theme}>📎</AttachmentButton>
+                  <AttachmentButton $theme={theme}>
+                    <AccessibleEmoji emoji='📎' label='Anexo' />
+                  </AttachmentButton>
 
                   <InputContainer>
                     <MessageTextarea
@@ -990,7 +997,9 @@ export default function Communication() {
                       placeholder='Digite sua mensagem...'
                       rows={1}
                     />
-                    <EmojiButton $theme={theme}>😊</EmojiButton>
+                    <EmojiButton $theme={theme}>
+                      <AccessibleEmoji emoji='😊' label='Sorriso' />
+                    </EmojiButton>
                   </InputContainer>
 
                   <SendButton
@@ -999,13 +1008,15 @@ export default function Communication() {
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim()}
                   >
-                    ➤
+                    <AccessibleEmoji emoji='➤' label='Enviar' />
                   </SendButton>
                 </MessageInput>
               </>
             ) : (
               <EmptyState>
-                <EmptyStateIcon>💬</EmptyStateIcon>
+                <EmptyStateIcon>
+                  <AccessibleEmoji emoji='💬' label='Comunicação' />
+                </EmptyStateIcon>
                 <EmptyStateTitle>Selecione uma conversa</EmptyStateTitle>
                 <EmptyStateDescription>
                   Escolha uma conversa da lista ao lado para começar a conversar

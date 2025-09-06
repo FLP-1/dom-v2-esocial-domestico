@@ -1,13 +1,14 @@
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import styled from 'styled-components';
+import AccessibleEmoji from '../AccessibleEmoji';
 
 // slideIn animation removed - not used
 
 interface NavigationItem {
   id: string;
   label: string;
-  icon: string;
+  icon: React.ReactNode;
   path: string;
   active?: boolean;
 }
@@ -322,7 +323,12 @@ export default function Sidebar({
 
   // Navegação centralizada - única fonte da verdade
   const navigationItems: NavigationItem[] = [
-    { id: 'dashboard', icon: '🏠', label: 'Dashboard', path: '/dashboard' },
+    {
+      id: 'dashboard',
+      icon: <AccessibleEmoji emoji='🏠' label='Home' />,
+      label: 'Dashboard',
+      path: '/dashboard',
+    },
     {
       id: 'time-clock',
       icon: '⏰',
@@ -331,38 +337,100 @@ export default function Sidebar({
     },
     {
       id: 'task-management',
-      icon: '📋',
+      icon: <AccessibleEmoji emoji='📋' label='Checklist' />,
       label: 'Gestão de Tarefas',
       path: '/task-management',
     },
-    { id: 'finances', icon: '💰', label: 'Finanças', path: '#' },
+    {
+      id: 'finances',
+      icon: <AccessibleEmoji emoji='💵' label='Pagamento' />,
+      label: 'Finanças',
+      path: '#',
+    },
     {
       id: 'document-management',
-      icon: '📄',
+      icon: <AccessibleEmoji emoji='📄' label='Documento' />,
       label: 'Gestão de Documentos',
       path: '/document-management',
     },
     {
       id: 'communication',
-      icon: '💬',
+      icon: <AccessibleEmoji emoji='💬' label='Comunicação' />,
       label: 'Comunicação',
       path: '/communication',
     },
     {
       id: 'shopping-management',
-      icon: '🛒',
+      icon: <AccessibleEmoji emoji='🛍' label='Compras' />,
       label: 'Gestão de Compras',
       path: '/shopping-management',
     },
     {
+      id: 'alert-management',
+      icon: <AccessibleEmoji emoji='🔔' label='Notificação' />,
+      label: 'Gestão de Alertas',
+      path: '/alert-management',
+    },
+    {
+      id: 'subscription-plans',
+      icon: <AccessibleEmoji emoji='💎' label='Diamante' />,
+      label: 'Planos de Assinatura',
+      path: '/subscription-plans',
+    },
+    {
+      id: 'payroll-management',
+      icon: <AccessibleEmoji emoji='💵' label='Pagamento' />,
+      label: 'Cálculos Salariais',
+      path: '/payroll-management',
+    },
+    {
+      id: 'loan-management',
+      icon: <AccessibleEmoji emoji='💵' label='Dinheiro' />,
+      label: 'Empréstimos',
+      path: '/loan-management',
+    },
+    {
+      id: 'terms-management',
+      icon: <AccessibleEmoji emoji='📜' label='Documento' />,
+      label: 'Termos e Políticas',
+      path: '/terms-management',
+    },
+    {
+      id: 'esocial-integration',
+      icon: <AccessibleEmoji emoji='🏛' label='Governo' />,
+      label: 'eSocial Doméstico',
+      path: '/esocial-integration',
+    },
+    {
+      id: 'monitoring-dashboard',
+      icon: <AccessibleEmoji emoji='📊' label='Dashboard' />,
+      label: 'Monitoramento',
+      path: '/monitoring-dashboard',
+    },
+    {
       id: 'tutorial',
-      icon: '🎓',
+      icon: <AccessibleEmoji emoji='🎓' label='Graduação' />,
       label: 'Tutorial',
       path: '/welcome-tutorial',
     },
-    { id: 'team', icon: '👥', label: 'Equipe', path: '#' },
-    { id: 'reports', icon: '📊', label: 'Relatórios', path: '#' },
-    { id: 'settings', icon: '⚙️', label: 'Configurações', path: '#' },
+    {
+      id: 'team',
+      icon: <AccessibleEmoji emoji='👥' label='Equipe' />,
+      label: 'Equipe',
+      path: '#',
+    },
+    {
+      id: 'reports',
+      icon: <AccessibleEmoji emoji='📊' label='Dashboard' />,
+      label: 'Relatórios',
+      path: '#',
+    },
+    {
+      id: 'settings',
+      icon: <AccessibleEmoji emoji='⚙' label='Configurações' />,
+      label: 'Configurações',
+      path: '#',
+    },
   ];
 
   const handleNavigation = (path: string) => {
@@ -387,7 +455,12 @@ export default function Sidebar({
         {collapsed ? (
           <>
             <Logo src='/logo.png' alt='Logo DOM' $collapsed={collapsed} />
-            <CollapsedToggleButton onClick={onToggle}>☰</CollapsedToggleButton>
+            <CollapsedToggleButton
+              onClick={onToggle}
+              aria-label='Expandir sidebar'
+            >
+              <AccessibleEmoji emoji='☰' label='Menu' />
+            </CollapsedToggleButton>
           </>
         ) : (
           <>
@@ -401,10 +474,14 @@ export default function Sidebar({
                   $collapsed={collapsed}
                   onClick={() => setProfileModalOpen(true)}
                 >
-                  <span className='profile-icon'>👤</span>
+                  <span className='profile-icon'>
+                    <AccessibleEmoji emoji='👤' label='Perfil' />
+                  </span>
                 </ProfileIconButton>
               )}
-              <ToggleButton onClick={onToggle}>✕</ToggleButton>
+              <ToggleButton onClick={onToggle} aria-label='Recolher sidebar'>
+                <AccessibleEmoji emoji='✕' label='Fechar' />
+              </ToggleButton>
             </HeaderActionsContainer>
           </>
         )}
@@ -432,8 +509,9 @@ export default function Sidebar({
             <button
               className='close-button'
               onClick={() => setProfileModalOpen(false)}
+              aria-label='Fechar modal de seleção de perfil'
             >
-              ✕
+              <AccessibleEmoji emoji='✕' label='Fechar' />
             </button>
           </div>
 

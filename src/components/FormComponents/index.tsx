@@ -46,7 +46,26 @@ export const Input = styled.input<{ $theme: any; $hasError?: boolean }>`
 `;
 
 // Select
-export const Select = styled.select<{ $theme: any }>`
+interface SelectProps {
+  $theme: any;
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
+  title?: string;
+  id?: string;
+}
+
+export const Select = styled.select.attrs<SelectProps>(props => {
+  const uniqueId =
+    props.id || `select-${Math.random().toString(36).substr(2, 9)}`;
+  return {
+    'aria-label': props['aria-label'] || 'Selecionar opção',
+    'aria-labelledby': props['aria-labelledby'],
+    title: props.title || 'Selecionar opção',
+    id: uniqueId,
+    role: 'combobox',
+    'aria-expanded': 'false',
+  };
+})<SelectProps>`
   padding: 0.75rem;
   border: 2px solid ${props => props.$theme?.colors?.border || '#e0e0e0'};
   border-radius: 8px;

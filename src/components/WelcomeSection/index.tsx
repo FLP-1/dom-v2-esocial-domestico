@@ -1,3 +1,4 @@
+import AccessibleEmoji from '../AccessibleEmoji';
 // src/components/WelcomeSection/index.tsx
 import styled from 'styled-components';
 
@@ -108,7 +109,7 @@ export default function WelcomeSection({
       {notificationCount > 0 && (
         <NotificationContainer>
           <NotificationButton $theme={theme} onClick={onNotificationClick}>
-            🔔
+            <AccessibleEmoji emoji='🔔' label='Notificação' />
             <span className='notification-badge'>{notificationCount}</span>
           </NotificationButton>
         </NotificationContainer>

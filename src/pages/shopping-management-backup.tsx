@@ -672,16 +672,15 @@ export default function ShoppingManagement() {
               </FormGroupFlex>
 
               <FormGroupFlex>
-                <Label htmlFor='shopping-category'>Categoria</Label>
+                <Label>Categoria</Label>
                 <Select
-                  id='shopping-category'
                   $theme={theme}
                   value={newList.category}
                   onChange={e =>
                     setNewList(prev => ({ ...prev, category: e.target.value }))
                   }
-                  aria-label='Selecionar categoria'
                   required
+                  aria-label='Selecionar categoria'
                   title='Selecionar categoria'
                 >
                   <option value=''>Selecionar categoria</option>
@@ -716,11 +715,8 @@ export default function ShoppingManagement() {
             </FormGroup>
 
             <FormGroup>
-              <Label htmlFor='filter-shopping-category'>
-                Filtrar por Categoria
-              </Label>
+              <Label>Filtrar por Categoria</Label>
               <Select
-                id='filter-shopping-category'
                 $theme={theme}
                 value={filters.category}
                 onChange={e =>
@@ -739,9 +735,8 @@ export default function ShoppingManagement() {
             </FormGroup>
 
             <FormGroup>
-              <Label htmlFor='filter-shopping-status'>Mostrar apenas</Label>
+              <Label>Mostrar apenas</Label>
               <Select
-                id='filter-shopping-status'
                 $theme={theme}
                 value={filters.showCompleted ? 'completed' : 'all'}
                 onChange={e =>
