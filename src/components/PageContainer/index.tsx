@@ -22,10 +22,16 @@ const MainContent = styled.main<{ $sidebarCollapsed: boolean }>`
   flex: 1;
   margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 2rem;
+  padding: 0;
   min-height: 100vh;
   position: relative;
   z-index: 1;
+`;
+
+const ContentWrapper = styled.div`
+  padding: 2rem;
+  max-width: 100%;
+  box-sizing: border-box;
 `;
 
 interface PageContainerPropsWithSidebar extends PageContainerProps {
@@ -40,7 +46,9 @@ export default function PageContainer({
 }: PageContainerPropsWithSidebar) {
   return (
     <Container $theme={theme} className={className}>
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>{children}</MainContent>
+      <MainContent $sidebarCollapsed={sidebarCollapsed}>
+        <ContentWrapper>{children}</ContentWrapper>
+      </MainContent>
     </Container>
   );
 }

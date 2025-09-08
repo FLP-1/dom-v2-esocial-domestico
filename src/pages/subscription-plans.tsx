@@ -72,15 +72,6 @@ const FlexColumn = styled.div`
 `;
 
 // Styled Components
-const MainContent = styled.main<{ $sidebarCollapsed: boolean }>`
-  flex: 1;
-  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 2rem;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-`;
 
 const PlansSection = styled.section`
   margin-bottom: 4rem;
@@ -749,7 +740,6 @@ export default function SubscriptionPlans() {
         subtitle='Escolha o plano ideal para transformar sua gestão doméstica'
       />
 
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>
         {/* Seção de Planos */}
         <PlansSection>
           <PlansGrid>
@@ -1145,7 +1135,6 @@ export default function SubscriptionPlans() {
             Especialista
           </ActionButton>
         </ContactSection>
-      </MainContent>
 
       {/* Modal de Confirmação */}
       <Modal

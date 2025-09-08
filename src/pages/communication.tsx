@@ -69,15 +69,6 @@ const fadeIn = keyframes`
 `;
 
 // Styled Components
-const MainContent = styled.main<{ $sidebarCollapsed: boolean }>`
-  flex: 1;
-  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-  display: flex;
-`;
 
 const ChatLayout = styled.div`
   display: flex;
@@ -854,7 +845,6 @@ export default function Communication() {
         subtitle='Mantenha-se conectado com sua equipe através de mensagens instantâneas'
       />
 
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>
         <ChatLayout>
           <ConversationsSidebar $theme={theme}>
             <SidebarHeader $theme={theme}>
@@ -1025,7 +1015,6 @@ export default function Communication() {
             )}
           </ChatArea>
         </ChatLayout>
-      </MainContent>
 
       <Modal
         isOpen={showGroupModal}

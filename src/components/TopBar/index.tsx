@@ -11,12 +11,14 @@ const TopBarContainer = styled.header<{ $theme: any }>`
   backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 1rem 2rem;
-  margin-bottom: 2rem;
+  margin: 0 0 2rem 0;
   box-shadow: 0 4px 16px ${props => props.$theme.colors.shadow};
   display: flex;
   align-items: center;
   justify-content: space-between;
   border: 1px solid ${props => props.$theme.colors.primary}20;
+  width: 100%;
+  box-sizing: border-box;
 `;
 
 export default function TopBar({ theme, children }: TopBarProps) {

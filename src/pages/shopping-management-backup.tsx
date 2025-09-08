@@ -54,15 +54,6 @@ interface ShoppingCategory {
 }
 
 // Styled Components
-const MainContent = styled.main<{ $sidebarCollapsed: boolean }>`
-  flex: 1;
-  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 2rem;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-`;
 
 const CreateListSection = styled.div<{ $theme: any }>`
   background: rgba(255, 255, 255, 0.95);
@@ -652,7 +643,6 @@ export default function ShoppingManagement() {
         subtitle='Organize suas listas de compras e mantenha o lar sempre abastecido'
       />
 
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>
         <CreateListSection $theme={theme}>
           <SectionTitle>Criar Nova Lista</SectionTitle>
           <Form onSubmit={handleCreateList}>
@@ -849,7 +839,6 @@ export default function ShoppingManagement() {
             })}
           </ListsGrid>
         )}
-      </MainContent>
 
       <Modal
         isOpen={modalOpen}

@@ -76,15 +76,6 @@ interface LoanSummary {
 }
 
 // Styled Components
-const MainContent = styled.main<{ $sidebarCollapsed: boolean }>`
-  flex: 1;
-  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 2rem;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-`;
 
 const SummarySection = styled.section<{ $theme: any }>`
   background: rgba(255, 255, 255, 0.95);
@@ -824,7 +815,6 @@ export default function LoanManagement() {
         subtitle='Solicite, aprove e gerencie empréstimos e adiantamentos salariais'
       />
 
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>
         {/* Resumo */}
         <SummarySection $theme={theme}>
           <SummaryTitle>Resumo Financeiro</SummaryTitle>
@@ -1193,7 +1183,6 @@ export default function LoanManagement() {
             </ul>
           </TermsContent>
         </TermsSection>
-      </MainContent>
 
       {/* Modal de Detalhes da Solicitação */}
       <Modal

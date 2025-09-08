@@ -96,15 +96,6 @@ interface Employee {
 }
 
 // Styled Components
-const MainContent = styled.main<{ $sidebarCollapsed: boolean }>`
-  flex: 1;
-  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 2rem;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-`;
 
 const SummarySection = styled.section<{ $theme: any }>`
   background: rgba(255, 255, 255, 0.95);
@@ -807,7 +798,6 @@ export default function PayrollManagement() {
         subtitle='Gerencie pagamentos, consulte documentos e acompanhe cálculos salariais'
       />
 
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>
         {/* Resumo Salarial */}
         <SummarySection $theme={theme}>
           <SummaryTitle>Resumo Salarial - {payrollSummary.period}</SummaryTitle>
@@ -1096,7 +1086,6 @@ export default function PayrollManagement() {
             </DocumentsGrid>
           )}
         </DocumentsSection>
-      </MainContent>
 
       {/* Modal de Visualização de Documento */}
       <Modal

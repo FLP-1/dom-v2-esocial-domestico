@@ -19,15 +19,6 @@ import { useTheme } from '../hooks/useTheme';
 // Animações removidas - agora usando componentes reutilizáveis com suas próprias animações
 
 // Styled Components
-const MainContent = styled.main<{ $sidebarCollapsed: boolean }>`
-  flex: 1;
-  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 2rem;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-`;
 
 const ClockSection = styled.section`
   display: flex;
@@ -319,7 +310,6 @@ export default function TimeClock() {
         subtitle='Registre sua entrada, saída e intervalos de forma segura'
       />
 
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>
         <ClockSection>
           <TimeDisplay>
             <CurrentTime>
@@ -413,7 +403,6 @@ export default function TimeClock() {
             Detalhes
           </ActionButton>
         </ActionButtons>
-      </MainContent>
 
       <Modal
         isOpen={modalOpen}

@@ -69,15 +69,6 @@ type Frequency = 'once' | 'daily' | 'weekly' | 'monthly' | 'yearly';
 type NotificationType = 'email' | 'push' | 'sms' | 'all';
 
 // Styled Components
-const MainContent = styled.main<{ $sidebarCollapsed: boolean }>`
-  flex: 1;
-  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  padding: 2rem;
-  min-height: 100vh;
-  position: relative;
-  z-index: 1;
-`;
 
 const AlertStats = styled.div<{ $theme: any }>`
   display: grid;
@@ -770,7 +761,6 @@ export default function AlertManagement() {
         subtitle='Configure alertas personalizados para nunca perder eventos importantes'
       />
 
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>
         {/* Estatísticas */}
         <AlertStats $theme={theme}>
           <StatCard $theme={theme} $variant='primary'>
@@ -1156,7 +1146,6 @@ export default function AlertManagement() {
             ))}
           </AlertsGrid>
         )}
-      </MainContent>
 
       {/* Modal de Edição */}
       <Modal

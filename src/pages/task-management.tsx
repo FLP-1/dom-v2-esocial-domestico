@@ -52,7 +52,7 @@ interface ChecklistItem {
 
 // Styled Components
 const MainContent = styled.div<{ $sidebarCollapsed: boolean }>`
-  margin-left: ${props => (props.$sidebarCollapsed ? '80px' : '280px')};
+  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
   padding: 2rem;
   transition: margin-left 0.3s ease;
   min-height: 100vh;
