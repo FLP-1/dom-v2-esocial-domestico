@@ -8,11 +8,11 @@ import styled from 'styled-components';
 import ActionButton from '../components/ActionButton';
 import FilterSection from '../components/FilterSection';
 import {
-  Form,
-  FormGroup,
-  Input,
-  Label,
-  Select,
+    Form,
+    FormGroup,
+    Input,
+    Label,
+    Select,
 } from '../components/FormComponents';
 import Modal from '../components/Modal';
 import PageContainer from '../components/PageContainer';
@@ -20,6 +20,7 @@ import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Interfaces
@@ -51,12 +52,6 @@ interface ChecklistItem {
 }
 
 // Styled Components
-const MainContent = styled.div<{ $sidebarCollapsed: boolean }>`
-  margin-left: ${props => (props.$sidebarCollapsed ? '100px' : '280px')};
-  padding: 2rem;
-  transition: margin-left 0.3s ease;
-  min-height: 100vh;
-`;
 
 const TaskCreationSection = styled.section<{ $theme: any }>`
   background: ${props => props.$theme.colors.background};
@@ -440,13 +435,17 @@ const mockTasks: Task[] = [
 ];
 
 const TaskManagement: React.FC = () => {
-  const { theme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tasks, setTasks] = useState<Task[]>(mockTasks);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'comments' | 'checklist'>(
     'comments'
   );
+
+  // Mock data para perfis de usuário
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -606,426 +605,424 @@ const TaskManagement: React.FC = () => {
         subtitle='Organize e acompanhe as tarefas da sua equipe de forma colaborativa'
       />
 
-      <MainContent $sidebarCollapsed={sidebarCollapsed}>
-        <TaskCreationSection $theme={theme}>
-          <SectionTitle $theme={theme}>Criar Nova Tarefa</SectionTitle>
-          <TaskForm onSubmit={handleCreateTask}>
-            <FormGroup>
-              <Label>Título da Tarefa</Label>
-              <Input
-                $theme={theme}
-                type='text'
-                value={newTask.title}
-                onChange={e =>
-                  setNewTask(prev => ({ ...prev, title: e.target.value }))
-                }
-                placeholder='Digite o título da tarefa'
-                required
-              />
-            </FormGroup>
-
-            <FormGroup>
-              <Label htmlFor='task-priority'>Prioridade</Label>
-              <Select
-                id='task-priority'
-                $theme={theme}
-                value={newTask.priority}
-                onChange={e =>
-                  setNewTask(prev => ({
-                    ...prev,
-                    priority: e.target.value as 'high' | 'medium' | 'low',
-                  }))
-                }
-                aria-label='Selecionar prioridade da tarefa'
-                title='Selecionar prioridade da tarefa'
-              >
-                <option value='low'>Baixa</option>
-                <option value='medium'>Média</option>
-                <option value='high'>Alta</option>
-              </Select>
-            </FormGroup>
-
-            <FormGroup>
-              <Label htmlFor='task-assignee'>Responsável</Label>
-              <Select
-                id='task-assignee'
-                $theme={theme}
-                value={newTask.assignee}
-                onChange={e =>
-                  setNewTask(prev => ({ ...prev, assignee: e.target.value }))
-                }
-                aria-label='Selecionar responsável pela tarefa'
-                title='Selecionar responsável pela tarefa'
-              >
-                <option value=''>Selecionar responsável</option>
-                <option value='João Silva'>João Silva</option>
-                <option value='Maria Santos'>Maria Santos</option>
-                <option value='Pedro Costa'>Pedro Costa</option>
-              </Select>
-            </FormGroup>
-
-            <FormGroup>
-              <Label>Data de Vencimento</Label>
-              <Input
-                $theme={theme}
-                type='date'
-                value={newTask.dueDate}
-                onChange={e =>
-                  setNewTask(prev => ({ ...prev, dueDate: e.target.value }))
-                }
-                required
-              />
-            </FormGroup>
-
-            <ActionButton type='submit' variant='primary' theme={theme}>
-              Criar Tarefa
-            </ActionButton>
-          </TaskForm>
-        </TaskCreationSection>
-
-        <FilterSection theme={theme} title='Filtros e Ordenação'>
+      <TaskCreationSection $theme={theme}>
+        <SectionTitle $theme={theme}>Criar Nova Tarefa</SectionTitle>
+        <TaskForm onSubmit={handleCreateTask}>
           <FormGroup>
-            <Label htmlFor='filter-status-select'>Status</Label>
-            <Select
-              id='filter-status-select'
+            <Label>Título da Tarefa</Label>
+            <Input
               $theme={theme}
-              aria-label='Filtrar tarefas por status'
-              title='Filtrar tarefas por status'
-              value={filters.status}
+              type='text'
+              value={newTask.title}
               onChange={e =>
-                setFilters(prev => ({ ...prev, status: e.target.value }))
+                setNewTask(prev => ({ ...prev, title: e.target.value }))
               }
-            >
-              <option value='all'>Todos os status</option>
-              <option value='todo'>A Fazer</option>
-              <option value='in-progress'>Em Andamento</option>
-              <option value='completed'>Concluído</option>
-            </Select>
+              placeholder='Digite o título da tarefa'
+              required
+            />
           </FormGroup>
 
           <FormGroup>
-            <Label htmlFor='filter-priority-select'>Prioridade</Label>
+            <Label htmlFor='task-priority'>Prioridade</Label>
             <Select
-              id='filter-priority-select'
+              id='task-priority'
               $theme={theme}
-              aria-label='Filtrar tarefas por prioridade'
-              title='Filtrar tarefas por prioridade'
-              value={filters.priority}
+              value={newTask.priority}
               onChange={e =>
-                setFilters(prev => ({ ...prev, priority: e.target.value }))
+                setNewTask(prev => ({
+                  ...prev,
+                  priority: e.target.value as 'high' | 'medium' | 'low',
+                }))
               }
+              aria-label='Selecionar prioridade da tarefa'
+              title='Selecionar prioridade da tarefa'
             >
-              <option value='all'>Todas as prioridades</option>
-              <option value='high'>Alta</option>
-              <option value='medium'>Média</option>
               <option value='low'>Baixa</option>
+              <option value='medium'>Média</option>
+              <option value='high'>Alta</option>
             </Select>
           </FormGroup>
 
           <FormGroup>
-            <Label htmlFor='filter-assignee-select'>Responsável</Label>
+            <Label htmlFor='task-assignee'>Responsável</Label>
             <Select
-              id='filter-assignee-select'
+              id='task-assignee'
               $theme={theme}
-              aria-label='Filtrar tarefas por responsável'
-              title='Filtrar tarefas por responsável'
-              value={filters.assignee}
+              value={newTask.assignee}
               onChange={e =>
-                setFilters(prev => ({ ...prev, assignee: e.target.value }))
+                setNewTask(prev => ({ ...prev, assignee: e.target.value }))
               }
+              aria-label='Selecionar responsável pela tarefa'
+              title='Selecionar responsável pela tarefa'
             >
-              <option value='all'>Todos os responsáveis</option>
-              {getUniqueAssignees().map(assignee => (
-                <option key={assignee} value={assignee}>
-                  {assignee}
-                </option>
-              ))}
+              <option value=''>Selecionar responsável</option>
+              <option value='João Silva'>João Silva</option>
+              <option value='Maria Santos'>Maria Santos</option>
+              <option value='Pedro Costa'>Pedro Costa</option>
             </Select>
           </FormGroup>
-        </FilterSection>
 
-        <TaskBoard>
-          <TaskColumn $theme={theme}>
-            <ColumnHeader $theme={theme} $status='todo'>
-              <h3>A Fazer</h3>
-              <span className='count'>{getTasksByStatus('todo').length}</span>
-            </ColumnHeader>
-            {getTasksByStatus('todo').map(task => (
-              <TaskCard
-                key={task.id}
-                $theme={theme}
-                $priority={task.priority}
-                onClick={() => handleTaskStatusChange(task.id, 'in-progress')}
-              >
-                <h4>{task.title}</h4>
-                <p>{task.description}</p>
-                <TaskMeta $theme={theme}>
-                  <div>
-                    <PriorityBadge $priority={task.priority}>
-                      {task.priority === 'high'
-                        ? 'Alta'
-                        : task.priority === 'medium'
-                          ? 'Média'
-                          : 'Baixa'}
-                    </PriorityBadge>
-                  </div>
-                  <div className='assignee'>{task.assignee}</div>
-                </TaskMeta>
-                <TaskMeta $theme={theme}>
-                  <div
-                    className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
-                  >
-                    {new Date(task.dueDate).toLocaleDateString('pt-BR')}
-                  </div>
-                  <div>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleTaskClick(task, 'comments');
-                      }}
-                    >
-                      <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
-                      {task.comments.length}
-                    </button>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleTaskClick(task, 'checklist');
-                      }}
-                    >
-                      <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
-                      {task.checklist.length}
-                    </button>
-                  </div>
-                </TaskMeta>
-              </TaskCard>
+          <FormGroup>
+            <Label>Data de Vencimento</Label>
+            <Input
+              $theme={theme}
+              type='date'
+              value={newTask.dueDate}
+              onChange={e =>
+                setNewTask(prev => ({ ...prev, dueDate: e.target.value }))
+              }
+              required
+            />
+          </FormGroup>
+
+          <ActionButton type='submit' variant='primary' theme={theme}>
+            Criar Tarefa
+          </ActionButton>
+        </TaskForm>
+      </TaskCreationSection>
+
+      <FilterSection theme={theme} title='Filtros e Ordenação'>
+        <FormGroup>
+          <Label htmlFor='filter-status-select'>Status</Label>
+          <Select
+            id='filter-status-select'
+            $theme={theme}
+            aria-label='Filtrar tarefas por status'
+            title='Filtrar tarefas por status'
+            value={filters.status}
+            onChange={e =>
+              setFilters(prev => ({ ...prev, status: e.target.value }))
+            }
+          >
+            <option value='all'>Todos os status</option>
+            <option value='todo'>A Fazer</option>
+            <option value='in-progress'>Em Andamento</option>
+            <option value='completed'>Concluído</option>
+          </Select>
+        </FormGroup>
+
+        <FormGroup>
+          <Label htmlFor='filter-priority-select'>Prioridade</Label>
+          <Select
+            id='filter-priority-select'
+            $theme={theme}
+            aria-label='Filtrar tarefas por prioridade'
+            title='Filtrar tarefas por prioridade'
+            value={filters.priority}
+            onChange={e =>
+              setFilters(prev => ({ ...prev, priority: e.target.value }))
+            }
+          >
+            <option value='all'>Todas as prioridades</option>
+            <option value='high'>Alta</option>
+            <option value='medium'>Média</option>
+            <option value='low'>Baixa</option>
+          </Select>
+        </FormGroup>
+
+        <FormGroup>
+          <Label htmlFor='filter-assignee-select'>Responsável</Label>
+          <Select
+            id='filter-assignee-select'
+            $theme={theme}
+            aria-label='Filtrar tarefas por responsável'
+            title='Filtrar tarefas por responsável'
+            value={filters.assignee}
+            onChange={e =>
+              setFilters(prev => ({ ...prev, assignee: e.target.value }))
+            }
+          >
+            <option value='all'>Todos os responsáveis</option>
+            {getUniqueAssignees().map(assignee => (
+              <option key={assignee} value={assignee}>
+                {assignee}
+              </option>
             ))}
-          </TaskColumn>
+          </Select>
+        </FormGroup>
+      </FilterSection>
 
-          <TaskColumn $theme={theme}>
-            <ColumnHeader $theme={theme} $status='in-progress'>
-              <h3>Em Andamento</h3>
-              <span className='count'>
-                {getTasksByStatus('in-progress').length}
-              </span>
-            </ColumnHeader>
-            {getTasksByStatus('in-progress').map(task => (
-              <TaskCard
-                key={task.id}
-                $theme={theme}
-                $priority={task.priority}
-                onClick={() => handleTaskStatusChange(task.id, 'completed')}
-              >
-                <h4>{task.title}</h4>
-                <p>{task.description}</p>
-                <TaskMeta $theme={theme}>
-                  <div>
-                    <PriorityBadge $priority={task.priority}>
-                      {task.priority === 'high'
-                        ? 'Alta'
-                        : task.priority === 'medium'
-                          ? 'Média'
-                          : 'Baixa'}
-                    </PriorityBadge>
-                  </div>
-                  <div className='assignee'>{task.assignee}</div>
-                </TaskMeta>
-                <TaskMeta $theme={theme}>
-                  <div
-                    className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
-                  >
-                    {new Date(task.dueDate).toLocaleDateString('pt-BR')}
-                  </div>
-                  <div>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleTaskClick(task, 'comments');
-                      }}
-                    >
-                      <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
-                      {task.comments.length}
-                    </button>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleTaskClick(task, 'checklist');
-                      }}
-                    >
-                      <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
-                      {task.checklist.length}
-                    </button>
-                  </div>
-                </TaskMeta>
-              </TaskCard>
-            ))}
-          </TaskColumn>
-
-          <TaskColumn $theme={theme}>
-            <ColumnHeader $theme={theme} $status='completed'>
-              <h3>Concluído</h3>
-              <span className='count'>
-                {getTasksByStatus('completed').length}
-              </span>
-            </ColumnHeader>
-            {getTasksByStatus('completed').map(task => (
-              <TaskCard
-                key={task.id}
-                $theme={theme}
-                $priority={task.priority}
-                onClick={() => handleTaskStatusChange(task.id, 'todo')}
-              >
-                <h4>{task.title}</h4>
-                <p>{task.description}</p>
-                <TaskMeta $theme={theme}>
-                  <div>
-                    <PriorityBadge $priority={task.priority}>
-                      {task.priority === 'high'
-                        ? 'Alta'
-                        : task.priority === 'medium'
-                          ? 'Média'
-                          : 'Baixa'}
-                    </PriorityBadge>
-                  </div>
-                  <div className='assignee'>{task.assignee}</div>
-                </TaskMeta>
-                <TaskMeta $theme={theme}>
-                  <div
-                    className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
-                  >
-                    {new Date(task.dueDate).toLocaleDateString('pt-BR')}
-                  </div>
-                  <div>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleTaskClick(task, 'comments');
-                      }}
-                    >
-                      <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
-                      {task.comments.length}
-                    </button>
-                    <button
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleTaskClick(task, 'checklist');
-                      }}
-                    >
-                      <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
-                      {task.checklist.length}
-                    </button>
-                  </div>
-                </TaskMeta>
-              </TaskCard>
-            ))}
-          </TaskColumn>
-        </TaskBoard>
-
-        <Modal
-          isOpen={modalOpen}
-          onClose={() => setModalOpen(false)}
-          title={modalType === 'comments' ? 'Comentários' : 'Checklist'}
-          buttonContainer={
-            <ActionButton
-              variant='secondary'
-              onClick={() => setModalOpen(false)}
-              theme={theme}
+      <TaskBoard>
+        <TaskColumn $theme={theme}>
+          <ColumnHeader $theme={theme} $status='todo'>
+            <h3>A Fazer</h3>
+            <span className='count'>{getTasksByStatus('todo').length}</span>
+          </ColumnHeader>
+          {getTasksByStatus('todo').map(task => (
+            <TaskCard
+              key={task.id}
+              $theme={theme}
+              $priority={task.priority}
+              onClick={() => handleTaskStatusChange(task.id, 'in-progress')}
             >
-              Fechar
-            </ActionButton>
-          }
-        >
-          {modalType === 'comments' && selectedTask && (
-            <div>
-              <CommentSection $theme={theme}>
-                <CommentForm $theme={theme}>
-                  <Input
-                    $theme={theme}
-                    type='text'
-                    value={newComment}
-                    onChange={e => setNewComment(e.target.value)}
-                    placeholder='Digite seu comentário...'
-                  />
-                  <ActionButton
-                    variant='primary'
-                    onClick={addComment}
-                    theme={theme}
+              <h4>{task.title}</h4>
+              <p>{task.description}</p>
+              <TaskMeta $theme={theme}>
+                <div>
+                  <PriorityBadge $priority={task.priority}>
+                    {task.priority === 'high'
+                      ? 'Alta'
+                      : task.priority === 'medium'
+                        ? 'Média'
+                        : 'Baixa'}
+                  </PriorityBadge>
+                </div>
+                <div className='assignee'>{task.assignee}</div>
+              </TaskMeta>
+              <TaskMeta $theme={theme}>
+                <div
+                  className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
+                >
+                  {new Date(task.dueDate).toLocaleDateString('pt-BR')}
+                </div>
+                <div>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleTaskClick(task, 'comments');
+                    }}
                   >
-                    Adicionar
-                  </ActionButton>
-                </CommentForm>
-              </CommentSection>
-
-              <div>
-                <h4>Comentários ({selectedTask.comments.length})</h4>
-                {selectedTask.comments.map(comment => (
-                  <CommentItem key={comment.id} $theme={theme}>
-                    <CommentHeader $theme={theme}>
-                      <CommentAvatar $theme={theme}>
-                        {comment.avatar}
-                      </CommentAvatar>
-                      <div>
-                        <CommentAuthor $theme={theme}>
-                          {comment.author}
-                        </CommentAuthor>
-                        <CommentTime $theme={theme}>
-                          {new Date(comment.timestamp).toLocaleString('pt-BR')}
-                        </CommentTime>
-                      </div>
-                    </CommentHeader>
-                    <CommentText $theme={theme}>{comment.text}</CommentText>
-                  </CommentItem>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {modalType === 'checklist' && selectedTask && (
-            <div>
-              <ChecklistSection $theme={theme}>
-                <ChecklistForm $theme={theme}>
-                  <Input
-                    $theme={theme}
-                    type='text'
-                    value={newChecklistItem}
-                    onChange={e => setNewChecklistItem(e.target.value)}
-                    placeholder='Digite o item do checklist...'
-                  />
-                  <ActionButton
-                    variant='primary'
-                    onClick={addChecklistItem}
-                    theme={theme}
+                    <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
+                    {task.comments.length}
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleTaskClick(task, 'checklist');
+                    }}
                   >
-                    Adicionar
-                  </ActionButton>
-                </ChecklistForm>
-              </ChecklistSection>
+                    <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
+                    {task.checklist.length}
+                  </button>
+                </div>
+              </TaskMeta>
+            </TaskCard>
+          ))}
+        </TaskColumn>
 
-              <div>
-                <h4>Checklist ({selectedTask.checklist.length} itens)</h4>
-                {selectedTask.checklist.map(item => (
-                  <ChecklistItem key={item.id} $theme={theme}>
-                    <input
-                      type='checkbox'
-                      id={`checklist-${item.id}`}
-                      checked={item.completed}
-                      onChange={() =>
-                        toggleChecklistItem(selectedTask.id, item.id)
-                      }
-                    />
-                    <label
-                      htmlFor={`checklist-${item.id}`}
-                      className={item.completed ? 'completed' : ''}
-                    >
-                      {item.text}
-                    </label>
-                  </ChecklistItem>
-                ))}
-              </div>
+        <TaskColumn $theme={theme}>
+          <ColumnHeader $theme={theme} $status='in-progress'>
+            <h3>Em Andamento</h3>
+            <span className='count'>
+              {getTasksByStatus('in-progress').length}
+            </span>
+          </ColumnHeader>
+          {getTasksByStatus('in-progress').map(task => (
+            <TaskCard
+              key={task.id}
+              $theme={theme}
+              $priority={task.priority}
+              onClick={() => handleTaskStatusChange(task.id, 'completed')}
+            >
+              <h4>{task.title}</h4>
+              <p>{task.description}</p>
+              <TaskMeta $theme={theme}>
+                <div>
+                  <PriorityBadge $priority={task.priority}>
+                    {task.priority === 'high'
+                      ? 'Alta'
+                      : task.priority === 'medium'
+                        ? 'Média'
+                        : 'Baixa'}
+                  </PriorityBadge>
+                </div>
+                <div className='assignee'>{task.assignee}</div>
+              </TaskMeta>
+              <TaskMeta $theme={theme}>
+                <div
+                  className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
+                >
+                  {new Date(task.dueDate).toLocaleDateString('pt-BR')}
+                </div>
+                <div>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleTaskClick(task, 'comments');
+                    }}
+                  >
+                    <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
+                    {task.comments.length}
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleTaskClick(task, 'checklist');
+                    }}
+                  >
+                    <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
+                    {task.checklist.length}
+                  </button>
+                </div>
+              </TaskMeta>
+            </TaskCard>
+          ))}
+        </TaskColumn>
+
+        <TaskColumn $theme={theme}>
+          <ColumnHeader $theme={theme} $status='completed'>
+            <h3>Concluído</h3>
+            <span className='count'>
+              {getTasksByStatus('completed').length}
+            </span>
+          </ColumnHeader>
+          {getTasksByStatus('completed').map(task => (
+            <TaskCard
+              key={task.id}
+              $theme={theme}
+              $priority={task.priority}
+              onClick={() => handleTaskStatusChange(task.id, 'todo')}
+            >
+              <h4>{task.title}</h4>
+              <p>{task.description}</p>
+              <TaskMeta $theme={theme}>
+                <div>
+                  <PriorityBadge $priority={task.priority}>
+                    {task.priority === 'high'
+                      ? 'Alta'
+                      : task.priority === 'medium'
+                        ? 'Média'
+                        : 'Baixa'}
+                  </PriorityBadge>
+                </div>
+                <div className='assignee'>{task.assignee}</div>
+              </TaskMeta>
+              <TaskMeta $theme={theme}>
+                <div
+                  className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
+                >
+                  {new Date(task.dueDate).toLocaleDateString('pt-BR')}
+                </div>
+                <div>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleTaskClick(task, 'comments');
+                    }}
+                  >
+                    <AccessibleEmoji emoji='💬' label='Comentário' />{' '}
+                    {task.comments.length}
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleTaskClick(task, 'checklist');
+                    }}
+                  >
+                    <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
+                    {task.checklist.length}
+                  </button>
+                </div>
+              </TaskMeta>
+            </TaskCard>
+          ))}
+        </TaskColumn>
+      </TaskBoard>
+
+      <Modal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={modalType === 'comments' ? 'Comentários' : 'Checklist'}
+        buttonContainer={
+          <ActionButton
+            variant='secondary'
+            onClick={() => setModalOpen(false)}
+            theme={theme}
+          >
+            Fechar
+          </ActionButton>
+        }
+      >
+        {modalType === 'comments' && selectedTask && (
+          <div>
+            <CommentSection $theme={theme}>
+              <CommentForm $theme={theme}>
+                <Input
+                  $theme={theme}
+                  type='text'
+                  value={newComment}
+                  onChange={e => setNewComment(e.target.value)}
+                  placeholder='Digite seu comentário...'
+                />
+                <ActionButton
+                  variant='primary'
+                  onClick={addComment}
+                  theme={theme}
+                >
+                  Adicionar
+                </ActionButton>
+              </CommentForm>
+            </CommentSection>
+
+            <div>
+              <h4>Comentários ({selectedTask.comments.length})</h4>
+              {selectedTask.comments.map(comment => (
+                <CommentItem key={comment.id} $theme={theme}>
+                  <CommentHeader $theme={theme}>
+                    <CommentAvatar $theme={theme}>
+                      {comment.avatar}
+                    </CommentAvatar>
+                    <div>
+                      <CommentAuthor $theme={theme}>
+                        {comment.author}
+                      </CommentAuthor>
+                      <CommentTime $theme={theme}>
+                        {new Date(comment.timestamp).toLocaleString('pt-BR')}
+                      </CommentTime>
+                    </div>
+                  </CommentHeader>
+                  <CommentText $theme={theme}>{comment.text}</CommentText>
+                </CommentItem>
+              ))}
             </div>
-          )}
-        </Modal>
-      </MainContent>
+          </div>
+        )}
+
+        {modalType === 'checklist' && selectedTask && (
+          <div>
+            <ChecklistSection $theme={theme}>
+              <ChecklistForm $theme={theme}>
+                <Input
+                  $theme={theme}
+                  type='text'
+                  value={newChecklistItem}
+                  onChange={e => setNewChecklistItem(e.target.value)}
+                  placeholder='Digite o item do checklist...'
+                />
+                <ActionButton
+                  variant='primary'
+                  onClick={addChecklistItem}
+                  theme={theme}
+                >
+                  Adicionar
+                </ActionButton>
+              </ChecklistForm>
+            </ChecklistSection>
+
+            <div>
+              <h4>Checklist ({selectedTask.checklist.length} itens)</h4>
+              {selectedTask.checklist.map(item => (
+                <ChecklistItem key={item.id} $theme={theme}>
+                  <input
+                    type='checkbox'
+                    id={`checklist-${item.id}`}
+                    checked={item.completed}
+                    onChange={() =>
+                      toggleChecklistItem(selectedTask.id, item.id)
+                    }
+                  />
+                  <label
+                    htmlFor={`checklist-${item.id}`}
+                    className={item.completed ? 'completed' : ''}
+                  >
+                    {item.text}
+                  </label>
+                </ChecklistItem>
+              ))}
+            </div>
+          </div>
+        )}
+      </Modal>
     </PageContainer>
   );
 };

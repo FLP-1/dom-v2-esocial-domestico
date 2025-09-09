@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
@@ -16,6 +16,7 @@ import {
 import ProxyUploadModal from '../components/ProxyUploadModal';
 import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 import type {
   CertificateInfo,
@@ -590,26 +591,10 @@ const mockEvents: ESocialEvent[] = [
 
 const ESocialIntegration: React.FC = () => {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
 
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Administrador',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
   const [collapsed, setCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -627,21 +612,21 @@ const ESocialIntegration: React.FC = () => {
   });
 
   const [employerData, setEmployerData] = useState<EmployerData>({
-    cpf: '',
-    nome: '',
-    dataNascimento: '',
+    cpf: currentProfile?.cpf || '',
+    nome: currentProfile?.name || '',
+    dataNascimento: currentProfile?.dataNascimento || '',
     endereco: {
-      logradouro: '',
-      numero: '',
-      complemento: '',
-      bairro: '',
-      cidade: '',
-      uf: '',
-      cep: '',
+      logradouro: currentProfile?.endereco?.logradouro || '',
+      numero: currentProfile?.endereco?.numero || '',
+      complemento: currentProfile?.endereco?.complemento || '',
+      bairro: currentProfile?.endereco?.bairro || '',
+      cidade: currentProfile?.endereco?.cidade || '',
+      uf: currentProfile?.endereco?.uf || '',
+      cep: currentProfile?.endereco?.cep || '',
     },
     contato: {
-      telefone: '',
-      email: '',
+      telefone: currentProfile?.contato?.telefone || '',
+      email: currentProfile?.contato?.email || '',
     },
   });
 
@@ -670,13 +655,29 @@ const ESocialIntegration: React.FC = () => {
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
+  // Atualizar dados do empregador quando o perfil mudar
+  useEffect(() => {
+    if (currentProfile) {
+      setEmployerData({
+        cpf: currentProfile.cpf || '',
+        nome: currentProfile.name || '',
+        dataNascimento: currentProfile.dataNascimento || '',
+        endereco: {
+          logradouro: currentProfile.endereco?.logradouro || '',
+          numero: currentProfile.endereco?.numero || '',
+          complemento: currentProfile.endereco?.complemento || '',
+          bairro: currentProfile.endereco?.bairro || '',
+          cidade: currentProfile.endereco?.cidade || '',
+          uf: currentProfile.endereco?.uf || '',
+          cep: currentProfile.endereco?.cep || '',
+        },
+        contato: {
+          telefone: currentProfile.contato?.telefone || '',
+          email: currentProfile.contato?.email || '',
+        },
+      });
     }
-  };
+  }, [currentProfile]);
 
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -947,16 +948,13 @@ const ESocialIntegration: React.FC = () => {
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
       <MainContent>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={pendingEvents + errorEvents}
           onNotificationClick={() => {}}
         />

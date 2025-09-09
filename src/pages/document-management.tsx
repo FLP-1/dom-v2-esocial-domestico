@@ -15,6 +15,7 @@ import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Interfaces
@@ -319,7 +320,6 @@ const DocumentSubtitle = styled.p`
 
 export default function DocumentManagement() {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'view' | 'edit' | 'upload'>(
@@ -332,25 +332,9 @@ export default function DocumentManagement() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Mock data
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregada',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const categories: DocumentCategory[] = [
     {
@@ -432,14 +416,6 @@ export default function DocumentManagement() {
     category: '',
     expiring: false,
   });
-
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -564,17 +540,14 @@ export default function DocumentManagement() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={getExpiringDocumentsCount()}
           onNotificationClick={() =>
             toast.info('Notificações em desenvolvimento')
@@ -588,182 +561,179 @@ export default function DocumentManagement() {
         subtitle='Organize, armazene e gerencie todos os documentos importantes do lar'
       />
 
-        <UploadSection
-          $theme={theme}
-          $isDragOver={isDragOver}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <UploadContent>
-            <UploadIcon $theme={theme}>
-              <AccessibleEmoji emoji='📁' label='Pasta' />
-            </UploadIcon>
-            <UploadText>
-              <h3>Enviar Documento</h3>
-              <p>Arraste e solte arquivos aqui ou clique para selecionar</p>
-            </UploadText>
-            <ActionButton
-              variant='primary'
-              theme={theme}
-              onClick={() => {
-                fileInputRef.current?.click();
-              }}
+      <UploadSection
+        $theme={theme}
+        $isDragOver={isDragOver}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        <UploadContent>
+          <UploadIcon $theme={theme}>
+            <AccessibleEmoji emoji='📁' label='Pasta' />
+          </UploadIcon>
+          <UploadText>
+            <h3>Enviar Documento</h3>
+            <p>Arraste e solte arquivos aqui ou clique para selecionar</p>
+          </UploadText>
+          <ActionButton
+            variant='primary'
+            theme={theme}
+            onClick={() => {
+              fileInputRef.current?.click();
+            }}
+          >
+            <AccessibleEmoji emoji='📤' label='Exportar' /> Selecionar Arquivo
+          </ActionButton>
+        </UploadContent>
+        <HiddenFileInput
+          ref={fileInputRef}
+          type='file'
+          accept='.pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx'
+          onChange={e => handleFileUpload(e.target.files)}
+        />
+      </UploadSection>
+
+      <FilterSection theme={theme} title='Filtros e Busca'>
+        <FilterRow>
+          <FormGroup>
+            <Label>Buscar Documentos</Label>
+            <Input
+              $theme={theme}
+              type='text'
+              value={filters.search}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, search: e.target.value }))
+              }
+              placeholder='Digite o nome ou descrição...'
+            />
+          </FormGroup>
+
+          <FormGroup>
+            <Label htmlFor='filter-category'>Filtrar por Categoria</Label>
+            <Select
+              id='filter-category'
+              $theme={theme}
+              value={filters.category}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, category: e.target.value }))
+              }
+              aria-label='Filtrar por categoria'
+              title='Filtrar por categoria'
             >
-              <AccessibleEmoji emoji='📤' label='Exportar' /> Selecionar Arquivo
-            </ActionButton>
-          </UploadContent>
-          <HiddenFileInput
-            ref={fileInputRef}
-            type='file'
-            accept='.pdf,.doc,.docx,.jpg,.jpeg,.png,.xls,.xlsx'
-            onChange={e => handleFileUpload(e.target.files)}
-          />
-        </UploadSection>
+              <option value=''>Todas as categorias</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.name}>
+                  {category.icon} {category.name}
+                </option>
+              ))}
+            </Select>
+          </FormGroup>
 
-        <FilterSection theme={theme} title='Filtros e Busca'>
-          <FilterRow>
-            <FormGroup>
-              <Label>Buscar Documentos</Label>
-              <Input
-                $theme={theme}
-                type='text'
-                value={filters.search}
-                onChange={e =>
-                  setFilters(prev => ({ ...prev, search: e.target.value }))
-                }
-                placeholder='Digite o nome ou descrição...'
-              />
-            </FormGroup>
+          <FormGroup>
+            <Label htmlFor='filter-expiring'>Mostrar apenas</Label>
+            <Select
+              id='filter-expiring'
+              $theme={theme}
+              value={filters.expiring ? 'expiring' : 'all'}
+              onChange={e =>
+                setFilters(prev => ({
+                  ...prev,
+                  expiring: e.target.value === 'expiring',
+                }))
+              }
+              aria-label='Filtrar documentos'
+              title='Filtrar documentos'
+            >
+              <option value='all'>Todos os documentos</option>
+              <option value='expiring'>Documentos vencendo</option>
+            </Select>
+          </FormGroup>
+        </FilterRow>
+      </FilterSection>
 
-            <FormGroup>
-              <Label htmlFor='filter-category'>Filtrar por Categoria</Label>
-              <Select
-                id='filter-category'
-                $theme={theme}
-                value={filters.category}
-                onChange={e =>
-                  setFilters(prev => ({ ...prev, category: e.target.value }))
-                }
-                aria-label='Filtrar por categoria'
-                title='Filtrar por categoria'
-              >
-                <option value=''>Todas as categorias</option>
-                {categories.map(category => (
-                  <option key={category.id} value={category.name}>
-                    {category.icon} {category.name}
-                  </option>
-                ))}
-              </Select>
-            </FormGroup>
+      <DocumentGrid>
+        {getFilteredDocuments().map(document => {
+          const categoryInfo = getCategoryInfo(document.category);
+          return (
+            <DocumentCard
+              key={document.id}
+              $theme={theme}
+              $isExpiring={document.isExpiring}
+              onClick={() => openModal('view', document)}
+            >
+              <div className='document-header'>
+                <DocumentHeader>
+                  <DocumentIconSmall>{categoryInfo.icon}</DocumentIconSmall>
+                  <DocumentTitle>{document.name}</DocumentTitle>
+                </DocumentHeader>
+                <PermissionBadge $permission={document.permissions}>
+                  {document.permissions === 'public'
+                    ? 'Público'
+                    : document.permissions === 'private'
+                      ? 'Privado'
+                      : 'Compartilhado'}
+                </PermissionBadge>
+              </div>
 
-            <FormGroup>
-              <Label htmlFor='filter-expiring'>Mostrar apenas</Label>
-              <Select
-                id='filter-expiring'
-                $theme={theme}
-                value={filters.expiring ? 'expiring' : 'all'}
-                onChange={e =>
-                  setFilters(prev => ({
-                    ...prev,
-                    expiring: e.target.value === 'expiring',
-                  }))
-                }
-                aria-label='Filtrar documentos'
-                title='Filtrar documentos'
-              >
-                <option value='all'>Todos os documentos</option>
-                <option value='expiring'>Documentos vencendo</option>
-              </Select>
-            </FormGroup>
-          </FilterRow>
-        </FilterSection>
+              <div className='document-meta'>
+                <CategoryBadge $color={categoryInfo.color}>
+                  {document.category}
+                </CategoryBadge>
+                {document.dueDate && (
+                  <div className='document-due-date'>
+                    <AccessibleEmoji emoji='📅' label='Calendário' /> Vence em:{' '}
+                    {new Date(document.dueDate).toLocaleDateString('pt-BR')}
+                  </div>
+                )}
+              </div>
 
-        <DocumentGrid>
-          {getFilteredDocuments().map(document => {
-            const categoryInfo = getCategoryInfo(document.category);
-            return (
-              <DocumentCard
-                key={document.id}
-                $theme={theme}
-                $isExpiring={document.isExpiring}
-                onClick={() => openModal('view', document)}
-              >
-                <div className='document-header'>
-                  <DocumentHeader>
-                    <DocumentIconSmall>{categoryInfo.icon}</DocumentIconSmall>
-                    <DocumentTitle>{document.name}</DocumentTitle>
-                  </DocumentHeader>
-                  <PermissionBadge $permission={document.permissions}>
-                    {document.permissions === 'public'
-                      ? 'Público'
-                      : document.permissions === 'private'
-                        ? 'Privado'
-                        : 'Compartilhado'}
-                  </PermissionBadge>
-                </div>
+              <DocumentMeta>
+                <AccessibleEmoji emoji='📊' label='Dashboard' />{' '}
+                {document.fileSize} •{' '}
+                <AccessibleEmoji emoji='📅' label='Calendário' />{' '}
+                {new Date(document.uploadDate).toLocaleDateString('pt-BR')}
+              </DocumentMeta>
 
-                <div className='document-meta'>
-                  <CategoryBadge $color={categoryInfo.color}>
-                    {document.category}
-                  </CategoryBadge>
-                  {document.dueDate && (
-                    <div className='document-due-date'>
-                      <AccessibleEmoji emoji='📅' label='Calendário' /> Vence
-                      em:{' '}
-                      {new Date(document.dueDate).toLocaleDateString('pt-BR')}
-                    </div>
-                  )}
-                </div>
+              <DocumentDescription>{document.description}</DocumentDescription>
 
-                <DocumentMeta>
-                  <AccessibleEmoji emoji='📊' label='Dashboard' />{' '}
-                  {document.fileSize} •{' '}
-                  <AccessibleEmoji emoji='📅' label='Calendário' />{' '}
-                  {new Date(document.uploadDate).toLocaleDateString('pt-BR')}
-                </DocumentMeta>
-
-                <DocumentDescription>
-                  {document.description}
-                </DocumentDescription>
-
-                <div className='document-actions'>
-                  <DeleteButton
-                    className='action-button'
-                    onClick={e => {
-                      e.stopPropagation();
-                      openModal('edit', document);
-                    }}
-                    title='Editar documento'
-                  >
-                    <AccessibleEmoji emoji='✏' label='Editar' />
-                  </DeleteButton>
-                  <DeleteButton
-                    className='action-button'
-                    onClick={e => {
-                      e.stopPropagation();
-                      openModal('view', document);
-                    }}
-                    title='Compartilhar documento'
-                  >
-                    <AccessibleEmoji emoji='🔗' label='Compartilhar' />
-                  </DeleteButton>
-                  <DeleteButton
-                    className='action-button'
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleDeleteDocument(document.id);
-                    }}
-                    title='Excluir documento'
-                  >
-                    <AccessibleEmoji emoji='❌' label='Excluir' />
-                  </DeleteButton>
-                </div>
-              </DocumentCard>
-            );
-          })}
-        </DocumentGrid>
+              <div className='document-actions'>
+                <DeleteButton
+                  className='action-button'
+                  onClick={e => {
+                    e.stopPropagation();
+                    openModal('edit', document);
+                  }}
+                  title='Editar documento'
+                >
+                  <AccessibleEmoji emoji='✏' label='Editar' />
+                </DeleteButton>
+                <DeleteButton
+                  className='action-button'
+                  onClick={e => {
+                    e.stopPropagation();
+                    openModal('view', document);
+                  }}
+                  title='Compartilhar documento'
+                >
+                  <AccessibleEmoji emoji='🔗' label='Compartilhar' />
+                </DeleteButton>
+                <DeleteButton
+                  className='action-button'
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleDeleteDocument(document.id);
+                  }}
+                  title='Excluir documento'
+                >
+                  <AccessibleEmoji emoji='❌' label='Excluir' />
+                </DeleteButton>
+              </div>
+            </DocumentCard>
+          );
+        })}
+      </DocumentGrid>
 
       <Modal
         isOpen={modalOpen}

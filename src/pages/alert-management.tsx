@@ -21,6 +21,7 @@ import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
 
 // Styled Components
 const HelpText = styled.small`
@@ -385,31 +386,14 @@ const EmptyState = styled.div`
 
 export default function AlertManagement() {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const [showConditions, setShowConditions] = useState(false);
 
-  // Mock data
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregada',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const alertTypes: AlertType[] = [
     {
@@ -538,13 +522,6 @@ export default function AlertManagement() {
 
   const [conditions, setConditions] = useState<AlertCondition[]>([]);
 
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
 
   const handleCreateAlert = (e: React.FormEvent) => {
     e.preventDefault();
@@ -737,17 +714,14 @@ export default function AlertManagement() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={stats.activeAlerts}
           onNotificationClick={() =>
             toast.info('Notificações em desenvolvimento')
@@ -761,391 +735,391 @@ export default function AlertManagement() {
         subtitle='Configure alertas personalizados para nunca perder eventos importantes'
       />
 
-        {/* Estatísticas */}
-        <AlertStats $theme={theme}>
-          <StatCard $theme={theme} $variant='primary'>
-            <StatNumber>{stats.activeAlerts}</StatNumber>
-            <StatLabel>Alertas Ativos</StatLabel>
-          </StatCard>
-          <StatCard $theme={theme} $variant='warning'>
-            <StatNumber>{stats.triggeredToday}</StatNumber>
-            <StatLabel>Disparados Hoje</StatLabel>
-          </StatCard>
-          <StatCard $theme={theme} $variant='success'>
-            <StatNumber>{stats.totalTriggers}</StatNumber>
-            <StatLabel>Total de Disparos</StatLabel>
-          </StatCard>
-          <StatCard $theme={theme} $variant='danger'>
-            <StatNumber>{stats.inactiveAlerts}</StatNumber>
-            <StatLabel>Alertas Inativos</StatLabel>
-          </StatCard>
-        </AlertStats>
+      {/* Estatísticas */}
+      <AlertStats $theme={theme}>
+        <StatCard $theme={theme} $variant='primary'>
+          <StatNumber>{stats.activeAlerts}</StatNumber>
+          <StatLabel>Alertas Ativos</StatLabel>
+        </StatCard>
+        <StatCard $theme={theme} $variant='warning'>
+          <StatNumber>{stats.triggeredToday}</StatNumber>
+          <StatLabel>Disparados Hoje</StatLabel>
+        </StatCard>
+        <StatCard $theme={theme} $variant='success'>
+          <StatNumber>{stats.totalTriggers}</StatNumber>
+          <StatLabel>Total de Disparos</StatLabel>
+        </StatCard>
+        <StatCard $theme={theme} $variant='danger'>
+          <StatNumber>{stats.inactiveAlerts}</StatNumber>
+          <StatLabel>Alertas Inativos</StatLabel>
+        </StatCard>
+      </AlertStats>
 
-        {/* Criar Novo Alerta */}
-        <CreateAlertSection $theme={theme}>
-          <SectionTitle>Criar Novo Alerta</SectionTitle>
-          <Form onSubmit={handleCreateAlert}>
-            <FormRow>
-              <FormGroupFlex>
-                <Label>Título do Alerta</Label>
-                <Input
-                  $theme={theme}
-                  type='text'
-                  value={newAlert.title}
-                  onChange={e =>
-                    setNewAlert(prev => ({ ...prev, title: e.target.value }))
-                  }
-                  placeholder='Ex: Vencimento do Contrato'
-                  required
-                />
-              </FormGroupFlex>
-              <FormGroupFlex>
-                <Label htmlFor='alert-type'>Tipo de Alerta</Label>
-                <Select
-                  id='alert-type'
-                  $theme={theme}
-                  value={newAlert.type}
-                  onChange={e =>
-                    setNewAlert(prev => ({ ...prev, type: e.target.value }))
-                  }
-                  required
-                  aria-label='Selecionar tipo de alerta'
-                  title='Selecionar tipo de alerta'
-                >
-                  <option value=''>Selecionar tipo</option>
-                  {alertTypes.map(type => (
-                    <option key={type.id} value={type.id}>
-                      {type.icon} {type.name}
-                    </option>
-                  ))}
-                </Select>
-              </FormGroupFlex>
-            </FormRow>
-
-            <FormGroup>
-              <Label>Descrição</Label>
-              <Input
-                $theme={theme}
-                type='text'
-                value={newAlert.description}
-                onChange={e =>
-                  setNewAlert(prev => ({
-                    ...prev,
-                    description: e.target.value,
-                  }))
-                }
-                placeholder='Descreva o alerta...'
-              />
-            </FormGroup>
-
-            <FormRow>
-              <FormGroupFlex>
-                <Label>Data</Label>
-                <Input
-                  $theme={theme}
-                  type='date'
-                  value={newAlert.date}
-                  onChange={e =>
-                    setNewAlert(prev => ({ ...prev, date: e.target.value }))
-                  }
-                  required
-                />
-              </FormGroupFlex>
-              <FormGroupFlex>
-                <Label>Hora</Label>
-                <Input
-                  $theme={theme}
-                  type='time'
-                  value={newAlert.time}
-                  onChange={e =>
-                    setNewAlert(prev => ({ ...prev, time: e.target.value }))
-                  }
-                  required
-                />
-              </FormGroupFlex>
-              <FormGroupFlex>
-                <Label>Frequência</Label>
-                <Select
-                  $theme={theme}
-                  value={newAlert.frequency}
-                  onChange={e =>
-                    setNewAlert(prev => ({
-                      ...prev,
-                      frequency: e.target.value as Frequency,
-                    }))
-                  }
-                  aria-label='Selecionar frequência'
-                  title='Selecionar frequência'
-                >
-                  <option value='once'>Uma vez</option>
-                  <option value='daily'>Diariamente</option>
-                  <option value='weekly'>Semanalmente</option>
-                  <option value='monthly'>Mensalmente</option>
-                  <option value='yearly'>Anualmente</option>
-                </Select>
-              </FormGroupFlex>
-            </FormRow>
-
-            <FormRow>
-              <FormGroupFlex>
-                <Label>Tipo de Notificação</Label>
-                <Select
-                  $theme={theme}
-                  value={newAlert.notificationType}
-                  onChange={e =>
-                    setNewAlert(prev => ({
-                      ...prev,
-                      notificationType: e.target.value as NotificationType,
-                    }))
-                  }
-                  aria-label='Selecionar tipo de notificação'
-                  title='Selecionar tipo de notificação'
-                >
-                  <option value='email'>E-mail</option>
-                  <option value='push'>Notificação Push</option>
-                  <option value='sms'>SMS</option>
-                  <option value='all'>Todos os tipos</option>
-                </Select>
-              </FormGroupFlex>
-            </FormRow>
-
-            <FormGroup>
-              <Label>Texto da Notificação</Label>
-              <Input
-                $theme={theme}
-                type='text'
-                value={newAlert.notificationText}
-                onChange={e =>
-                  setNewAlert(prev => ({
-                    ...prev,
-                    notificationText: e.target.value,
-                  }))
-                }
-                placeholder='Ex: O documento {{nome_documento}} vence em {{data_vencimento}}'
-              />
-              <HelpText>
-                Use variáveis como {'{'}nome_documento{'}'}, {'{'}
-                data_vencimento{'}'}, {'{'}valor{'}'} para personalizar
-              </HelpText>
-            </FormGroup>
-
-            {newAlert.notificationText && (
-              <NotificationPreview $theme={theme}>
-                <PreviewTitle>Preview da Notificação:</PreviewTitle>
-                <PreviewText>{generateNotificationPreview()}</PreviewText>
-              </NotificationPreview>
-            )}
-
-            <ButtonGroup>
-              <ActionButton
-                type='button'
-                variant='secondary'
-                onClick={() => setShowConditions(!showConditions)}
-              >
-                {showConditions ? 'Ocultar' : 'Adicionar'} Condições
-              </ActionButton>
-            </ButtonGroup>
-
-            {showConditions && (
-              <ConditionsSection>
-                <SectionTitle>Condições do Alerta</SectionTitle>
-                {conditions.map(condition => (
-                  <ConditionRow key={condition.id}>
-                    <ConditionInput
-                      $theme={theme}
-                      value={condition.field}
-                      onChange={e =>
-                        updateCondition(condition.id, 'field', e.target.value)
-                      }
-                      placeholder='Campo (ex: valor, status)'
-                    />
-                    <ConditionSelect
-                      $theme={theme}
-                      value={condition.operator}
-                      onChange={e =>
-                        updateCondition(
-                          condition.id,
-                          'operator',
-                          e.target.value as any
-                        )
-                      }
-                      aria-label='Selecionar operador da condição'
-                      title='Selecionar operador da condição'
-                    >
-                      <option value='equals'>Igual a</option>
-                      <option value='greater_than'>Maior que</option>
-                      <option value='less_than'>Menor que</option>
-                      <option value='contains'>Contém</option>
-                    </ConditionSelect>
-                    <ConditionInput
-                      $theme={theme}
-                      value={condition.value}
-                      onChange={e =>
-                        updateCondition(condition.id, 'value', e.target.value)
-                      }
-                      placeholder='Valor'
-                    />
-                    <RemoveConditionButton
-                      onClick={() => removeCondition(condition.id)}
-                    >
-                      <AccessibleEmoji emoji='✕' label='Remover' />
-                    </RemoveConditionButton>
-                  </ConditionRow>
-                ))}
-                <AddConditionButton
-                  $theme={theme}
-                  type='button'
-                  onClick={addCondition}
-                >
-                  + Adicionar Condição
-                </AddConditionButton>
-              </ConditionsSection>
-            )}
-
-            <ButtonGroup>
-              <ActionButton type='submit' variant='primary' theme={theme}>
-                <AccessibleEmoji emoji='➕' label='Novo' /> Criar Alerta
-              </ActionButton>
-            </ButtonGroup>
-          </Form>
-        </CreateAlertSection>
-
-        {/* Filtros */}
-        <FilterSection theme={theme} title='Filtros e Busca'>
+      {/* Criar Novo Alerta */}
+      <CreateAlertSection $theme={theme}>
+        <SectionTitle>Criar Novo Alerta</SectionTitle>
+        <Form onSubmit={handleCreateAlert}>
           <FormRow>
-            <FormGroup>
-              <Label>Buscar Alertas</Label>
+            <FormGroupFlex>
+              <Label>Título do Alerta</Label>
               <Input
                 $theme={theme}
                 type='text'
-                value={filters.search}
+                value={newAlert.title}
                 onChange={e =>
-                  setFilters(prev => ({ ...prev, search: e.target.value }))
+                  setNewAlert(prev => ({ ...prev, title: e.target.value }))
                 }
-                placeholder='Digite o título ou descrição...'
+                placeholder='Ex: Vencimento do Contrato'
+                required
               />
-            </FormGroup>
-            <FormGroup>
-              <Label>Tipo</Label>
+            </FormGroupFlex>
+            <FormGroupFlex>
+              <Label htmlFor='alert-type'>Tipo de Alerta</Label>
               <Select
+                id='alert-type'
                 $theme={theme}
-                value={filters.type}
+                value={newAlert.type}
                 onChange={e =>
-                  setFilters(prev => ({ ...prev, type: e.target.value }))
+                  setNewAlert(prev => ({ ...prev, type: e.target.value }))
                 }
-                aria-label='Filtrar por tipo'
-                title='Filtrar por tipo'
+                required
+                aria-label='Selecionar tipo de alerta'
+                title='Selecionar tipo de alerta'
               >
-                <option value=''>Todos os tipos</option>
+                <option value=''>Selecionar tipo</option>
                 {alertTypes.map(type => (
                   <option key={type.id} value={type.id}>
                     {type.icon} {type.name}
                   </option>
                 ))}
               </Select>
-            </FormGroup>
-            <FormGroup>
-              <Label>Status</Label>
+            </FormGroupFlex>
+          </FormRow>
+
+          <FormGroup>
+            <Label>Descrição</Label>
+            <Input
+              $theme={theme}
+              type='text'
+              value={newAlert.description}
+              onChange={e =>
+                setNewAlert(prev => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              placeholder='Descreva o alerta...'
+            />
+          </FormGroup>
+
+          <FormRow>
+            <FormGroupFlex>
+              <Label>Data</Label>
+              <Input
+                $theme={theme}
+                type='date'
+                value={newAlert.date}
+                onChange={e =>
+                  setNewAlert(prev => ({ ...prev, date: e.target.value }))
+                }
+                required
+              />
+            </FormGroupFlex>
+            <FormGroupFlex>
+              <Label>Hora</Label>
+              <Input
+                $theme={theme}
+                type='time'
+                value={newAlert.time}
+                onChange={e =>
+                  setNewAlert(prev => ({ ...prev, time: e.target.value }))
+                }
+                required
+              />
+            </FormGroupFlex>
+            <FormGroupFlex>
+              <Label>Frequência</Label>
               <Select
                 $theme={theme}
-                value={filters.status}
+                value={newAlert.frequency}
                 onChange={e =>
-                  setFilters(prev => ({ ...prev, status: e.target.value }))
+                  setNewAlert(prev => ({
+                    ...prev,
+                    frequency: e.target.value as Frequency,
+                  }))
                 }
-                aria-label='Filtrar por status'
-                title='Filtrar por status'
+                aria-label='Selecionar frequência'
+                title='Selecionar frequência'
               >
-                <option value=''>Todos os status</option>
-                <option value='active'>Ativo</option>
-                <option value='inactive'>Inativo</option>
+                <option value='once'>Uma vez</option>
+                <option value='daily'>Diariamente</option>
+                <option value='weekly'>Semanalmente</option>
+                <option value='monthly'>Mensalmente</option>
+                <option value='yearly'>Anualmente</option>
               </Select>
-            </FormGroup>
+            </FormGroupFlex>
           </FormRow>
-        </FilterSection>
 
-        {/* Lista de Alertas */}
-        {getFilteredAlerts().length === 0 ? (
-          <EmptyState>
-            <div className='empty-icon'>
-              <AccessibleEmoji emoji='🔔' label='Notificação' />
-            </div>
-            <h3 className='empty-title'>Nenhum alerta encontrado</h3>
-            <p className='empty-description'>
-              Crie seu primeiro alerta para começar a receber notificações
-              importantes.
-            </p>
-          </EmptyState>
-        ) : (
-          <AlertsGrid>
-            {getFilteredAlerts().map(alert => (
-              <AlertCard key={alert.id} $theme={theme} $status={alert.status}>
-                <AlertHeader>
-                  <AlertTypeBadge $color={alert.type.color}>
-                    <span>{alert.type.icon}</span>
-                    <span>{alert.type.name}</span>
-                  </AlertTypeBadge>
-                  <AlertStatus $status={alert.status}>
-                    {alert.status === 'active' ? 'Ativo' : 'Inativo'}
-                  </AlertStatus>
-                </AlertHeader>
+          <FormRow>
+            <FormGroupFlex>
+              <Label>Tipo de Notificação</Label>
+              <Select
+                $theme={theme}
+                value={newAlert.notificationType}
+                onChange={e =>
+                  setNewAlert(prev => ({
+                    ...prev,
+                    notificationType: e.target.value as NotificationType,
+                  }))
+                }
+                aria-label='Selecionar tipo de notificação'
+                title='Selecionar tipo de notificação'
+              >
+                <option value='email'>E-mail</option>
+                <option value='push'>Notificação Push</option>
+                <option value='sms'>SMS</option>
+                <option value='all'>Todos os tipos</option>
+              </Select>
+            </FormGroupFlex>
+          </FormRow>
 
-                <AlertTitle>{alert.title}</AlertTitle>
-                <AlertDescription>{alert.description}</AlertDescription>
+          <FormGroup>
+            <Label>Texto da Notificação</Label>
+            <Input
+              $theme={theme}
+              type='text'
+              value={newAlert.notificationText}
+              onChange={e =>
+                setNewAlert(prev => ({
+                  ...prev,
+                  notificationText: e.target.value,
+                }))
+              }
+              placeholder='Ex: O documento {{nome_documento}} vence em {{data_vencimento}}'
+            />
+            <HelpText>
+              Use variáveis como {'{'}nome_documento{'}'}, {'{'}
+              data_vencimento{'}'}, {'{'}valor{'}'} para personalizar
+            </HelpText>
+          </FormGroup>
 
-                <AlertDateTime>
-                  <AccessibleEmoji emoji='📅' label='Calendário' />{' '}
-                  {new Date(alert.date).toLocaleDateString('pt-BR')} às{' '}
-                  {alert.time}
-                </AlertDateTime>
+          {newAlert.notificationText && (
+            <NotificationPreview $theme={theme}>
+              <PreviewTitle>Preview da Notificação:</PreviewTitle>
+              <PreviewText>{generateNotificationPreview()}</PreviewText>
+            </NotificationPreview>
+          )}
 
-                <AlertFrequency>
-                  <AccessibleEmoji emoji='🔄' label='Sincronizar' />{' '}
-                  {alert.frequency === 'once'
-                    ? 'Uma vez'
-                    : alert.frequency === 'daily'
-                      ? 'Diariamente'
-                      : alert.frequency === 'weekly'
-                        ? 'Semanalmente'
-                        : alert.frequency === 'monthly'
-                          ? 'Mensalmente'
-                          : 'Anualmente'}
-                </AlertFrequency>
+          <ButtonGroup>
+            <ActionButton
+              type='button'
+              variant='secondary'
+              onClick={() => setShowConditions(!showConditions)}
+            >
+              {showConditions ? 'Ocultar' : 'Adicionar'} Condições
+            </ActionButton>
+          </ButtonGroup>
 
-                {alert.lastTriggered && (
-                  <HelpText>
-                    Último disparo:{' '}
-                    {new Date(alert.lastTriggered).toLocaleDateString('pt-BR')}
-                  </HelpText>
-                )}
-
-                <HelpText>Disparos: {alert.triggerCount}</HelpText>
-
-                <AlertActions>
-                  <AlertActionButton
+          {showConditions && (
+            <ConditionsSection>
+              <SectionTitle>Condições do Alerta</SectionTitle>
+              {conditions.map(condition => (
+                <ConditionRow key={condition.id}>
+                  <ConditionInput
                     $theme={theme}
-                    onClick={() => handleEditAlert(alert)}
-                  >
-                    <AccessibleEmoji emoji='✏' label='Editar' /> Editar
-                  </AlertActionButton>
-                  <AlertActionButton
+                    value={condition.field}
+                    onChange={e =>
+                      updateCondition(condition.id, 'field', e.target.value)
+                    }
+                    placeholder='Campo (ex: valor, status)'
+                  />
+                  <ConditionSelect
                     $theme={theme}
-                    $variant='warning'
-                    onClick={() => handleToggleAlertStatus(alert.id)}
+                    value={condition.operator}
+                    onChange={e =>
+                      updateCondition(
+                        condition.id,
+                        'operator',
+                        e.target.value as any
+                      )
+                    }
+                    aria-label='Selecionar operador da condição'
+                    title='Selecionar operador da condição'
                   >
-                    {alert.status === 'active' ? '⏸️ Pausar' : '▶️ Ativar'}
-                  </AlertActionButton>
-                  <AlertActionButton
+                    <option value='equals'>Igual a</option>
+                    <option value='greater_than'>Maior que</option>
+                    <option value='less_than'>Menor que</option>
+                    <option value='contains'>Contém</option>
+                  </ConditionSelect>
+                  <ConditionInput
                     $theme={theme}
-                    $variant='danger'
-                    onClick={() => handleDeleteAlert(alert.id)}
+                    value={condition.value}
+                    onChange={e =>
+                      updateCondition(condition.id, 'value', e.target.value)
+                    }
+                    placeholder='Valor'
+                  />
+                  <RemoveConditionButton
+                    onClick={() => removeCondition(condition.id)}
                   >
-                    <AccessibleEmoji emoji='❌' label='Excluir' /> Excluir
-                  </AlertActionButton>
-                </AlertActions>
-              </AlertCard>
-            ))}
-          </AlertsGrid>
-        )}
+                    <AccessibleEmoji emoji='✕' label='Remover' />
+                  </RemoveConditionButton>
+                </ConditionRow>
+              ))}
+              <AddConditionButton
+                $theme={theme}
+                type='button'
+                onClick={addCondition}
+              >
+                + Adicionar Condição
+              </AddConditionButton>
+            </ConditionsSection>
+          )}
+
+          <ButtonGroup>
+            <ActionButton type='submit' variant='primary' theme={theme}>
+              <AccessibleEmoji emoji='➕' label='Novo' /> Criar Alerta
+            </ActionButton>
+          </ButtonGroup>
+        </Form>
+      </CreateAlertSection>
+
+      {/* Filtros */}
+      <FilterSection theme={theme} title='Filtros e Busca'>
+        <FormRow>
+          <FormGroup>
+            <Label>Buscar Alertas</Label>
+            <Input
+              $theme={theme}
+              type='text'
+              value={filters.search}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, search: e.target.value }))
+              }
+              placeholder='Digite o título ou descrição...'
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label>Tipo</Label>
+            <Select
+              $theme={theme}
+              value={filters.type}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, type: e.target.value }))
+              }
+              aria-label='Filtrar por tipo'
+              title='Filtrar por tipo'
+            >
+              <option value=''>Todos os tipos</option>
+              {alertTypes.map(type => (
+                <option key={type.id} value={type.id}>
+                  {type.icon} {type.name}
+                </option>
+              ))}
+            </Select>
+          </FormGroup>
+          <FormGroup>
+            <Label>Status</Label>
+            <Select
+              $theme={theme}
+              value={filters.status}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, status: e.target.value }))
+              }
+              aria-label='Filtrar por status'
+              title='Filtrar por status'
+            >
+              <option value=''>Todos os status</option>
+              <option value='active'>Ativo</option>
+              <option value='inactive'>Inativo</option>
+            </Select>
+          </FormGroup>
+        </FormRow>
+      </FilterSection>
+
+      {/* Lista de Alertas */}
+      {getFilteredAlerts().length === 0 ? (
+        <EmptyState>
+          <div className='empty-icon'>
+            <AccessibleEmoji emoji='🔔' label='Notificação' />
+          </div>
+          <h3 className='empty-title'>Nenhum alerta encontrado</h3>
+          <p className='empty-description'>
+            Crie seu primeiro alerta para começar a receber notificações
+            importantes.
+          </p>
+        </EmptyState>
+      ) : (
+        <AlertsGrid>
+          {getFilteredAlerts().map(alert => (
+            <AlertCard key={alert.id} $theme={theme} $status={alert.status}>
+              <AlertHeader>
+                <AlertTypeBadge $color={alert.type.color}>
+                  <span>{alert.type.icon}</span>
+                  <span>{alert.type.name}</span>
+                </AlertTypeBadge>
+                <AlertStatus $status={alert.status}>
+                  {alert.status === 'active' ? 'Ativo' : 'Inativo'}
+                </AlertStatus>
+              </AlertHeader>
+
+              <AlertTitle>{alert.title}</AlertTitle>
+              <AlertDescription>{alert.description}</AlertDescription>
+
+              <AlertDateTime>
+                <AccessibleEmoji emoji='📅' label='Calendário' />{' '}
+                {new Date(alert.date).toLocaleDateString('pt-BR')} às{' '}
+                {alert.time}
+              </AlertDateTime>
+
+              <AlertFrequency>
+                <AccessibleEmoji emoji='🔄' label='Sincronizar' />{' '}
+                {alert.frequency === 'once'
+                  ? 'Uma vez'
+                  : alert.frequency === 'daily'
+                    ? 'Diariamente'
+                    : alert.frequency === 'weekly'
+                      ? 'Semanalmente'
+                      : alert.frequency === 'monthly'
+                        ? 'Mensalmente'
+                        : 'Anualmente'}
+              </AlertFrequency>
+
+              {alert.lastTriggered && (
+                <HelpText>
+                  Último disparo:{' '}
+                  {new Date(alert.lastTriggered).toLocaleDateString('pt-BR')}
+                </HelpText>
+              )}
+
+              <HelpText>Disparos: {alert.triggerCount}</HelpText>
+
+              <AlertActions>
+                <AlertActionButton
+                  $theme={theme}
+                  onClick={() => handleEditAlert(alert)}
+                >
+                  <AccessibleEmoji emoji='✏' label='Editar' /> Editar
+                </AlertActionButton>
+                <AlertActionButton
+                  $theme={theme}
+                  $variant='warning'
+                  onClick={() => handleToggleAlertStatus(alert.id)}
+                >
+                  {alert.status === 'active' ? '⏸️ Pausar' : '▶️ Ativar'}
+                </AlertActionButton>
+                <AlertActionButton
+                  $theme={theme}
+                  $variant='danger'
+                  onClick={() => handleDeleteAlert(alert.id)}
+                >
+                  <AccessibleEmoji emoji='❌' label='Excluir' /> Excluir
+                </AlertActionButton>
+              </AlertActions>
+            </AlertCard>
+          ))}
+        </AlertsGrid>
+      )}
 
       {/* Modal de Edição */}
       <Modal

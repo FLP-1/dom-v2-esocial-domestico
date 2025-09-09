@@ -20,6 +20,7 @@ import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Styled Components para substituir estilos inline
@@ -569,7 +570,6 @@ const PDFViewer = styled.div<{ $theme: any }>`
 
 export default function PayrollManagement() {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] =
@@ -577,25 +577,9 @@ export default function PayrollManagement() {
   const [selectedEmployee, setSelectedEmployee] = useState<string>('');
   const [showPaymentForm, setShowPaymentForm] = useState(false);
 
-  // Mock data
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregada',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const employees: Employee[] = [
     {
@@ -691,14 +675,6 @@ export default function PayrollManagement() {
     status: '',
   });
 
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
-
   const handleViewDocument = (document: PayrollDocument) => {
     setSelectedDocument(document);
     setModalOpen(true);
@@ -774,17 +750,14 @@ export default function PayrollManagement() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={0}
           onNotificationClick={() =>
             toast.info('Notificações em desenvolvimento')
@@ -798,294 +771,292 @@ export default function PayrollManagement() {
         subtitle='Gerencie pagamentos, consulte documentos e acompanhe cálculos salariais'
       />
 
-        {/* Resumo Salarial */}
-        <SummarySection $theme={theme}>
-          <SummaryTitle>Resumo Salarial - {payrollSummary.period}</SummaryTitle>
-          <SummaryGrid>
-            <SummaryCard $theme={theme}>
-              <SummaryCardTitle>
-                <AccessibleEmoji emoji='💵' label='Pagamento' /> Salário Base
-              </SummaryCardTitle>
-              <SummaryValue>
-                {formatCurrency(payrollSummary.baseSalary)}
-              </SummaryValue>
-              <SummaryDetails>Valor fixo mensal</SummaryDetails>
-            </SummaryCard>
+      {/* Resumo Salarial */}
+      <SummarySection $theme={theme}>
+        <SummaryTitle>Resumo Salarial - {payrollSummary.period}</SummaryTitle>
+        <SummaryGrid>
+          <SummaryCard $theme={theme}>
+            <SummaryCardTitle>
+              <AccessibleEmoji emoji='💵' label='Pagamento' /> Salário Base
+            </SummaryCardTitle>
+            <SummaryValue>
+              {formatCurrency(payrollSummary.baseSalary)}
+            </SummaryValue>
+            <SummaryDetails>Valor fixo mensal</SummaryDetails>
+          </SummaryCard>
 
-            <SummaryCard $theme={theme} $variant='success'>
-              <SummaryCardTitle>
-                <AccessibleEmoji emoji='➕' label='Novo' /> Adicionais
-              </SummaryCardTitle>
-              <SummaryValue>
-                {formatCurrency(payrollSummary.additions.total)}
-              </SummaryValue>
-              <SummaryDetails>
-                Horas extras:{' '}
-                {formatCurrency(payrollSummary.additions.overtime)}
-                <br />
-                Adicional noturno:{' '}
-                {formatCurrency(payrollSummary.additions.nightShift)}
-                <br />
-                Feriados: {formatCurrency(payrollSummary.additions.holiday)}
-                <br />
-                Bônus: {formatCurrency(payrollSummary.additions.bonus)}
-              </SummaryDetails>
-            </SummaryCard>
+          <SummaryCard $theme={theme} $variant='success'>
+            <SummaryCardTitle>
+              <AccessibleEmoji emoji='➕' label='Novo' /> Adicionais
+            </SummaryCardTitle>
+            <SummaryValue>
+              {formatCurrency(payrollSummary.additions.total)}
+            </SummaryValue>
+            <SummaryDetails>
+              Horas extras: {formatCurrency(payrollSummary.additions.overtime)}
+              <br />
+              Adicional noturno:{' '}
+              {formatCurrency(payrollSummary.additions.nightShift)}
+              <br />
+              Feriados: {formatCurrency(payrollSummary.additions.holiday)}
+              <br />
+              Bônus: {formatCurrency(payrollSummary.additions.bonus)}
+            </SummaryDetails>
+          </SummaryCard>
 
-            <SummaryCard $theme={theme} $variant='warning'>
-              <SummaryCardTitle>
-                <AccessibleEmoji emoji='➖' label='Remover' /> Descontos
-              </SummaryCardTitle>
-              <SummaryValue>
-                {formatCurrency(payrollSummary.deductions.total)}
-              </SummaryValue>
-              <SummaryDetails>
-                INSS: {formatCurrency(payrollSummary.deductions.inss)}
-                <br />
-                IRRF: {formatCurrency(payrollSummary.deductions.irrf)}
-                <br />
-                FGTS: {formatCurrency(payrollSummary.deductions.fgts)}
-                <br />
-                Outros: {formatCurrency(payrollSummary.deductions.other)}
-              </SummaryDetails>
-            </SummaryCard>
+          <SummaryCard $theme={theme} $variant='warning'>
+            <SummaryCardTitle>
+              <AccessibleEmoji emoji='➖' label='Remover' /> Descontos
+            </SummaryCardTitle>
+            <SummaryValue>
+              {formatCurrency(payrollSummary.deductions.total)}
+            </SummaryValue>
+            <SummaryDetails>
+              INSS: {formatCurrency(payrollSummary.deductions.inss)}
+              <br />
+              IRRF: {formatCurrency(payrollSummary.deductions.irrf)}
+              <br />
+              FGTS: {formatCurrency(payrollSummary.deductions.fgts)}
+              <br />
+              Outros: {formatCurrency(payrollSummary.deductions.other)}
+            </SummaryDetails>
+          </SummaryCard>
 
-            <SummaryCard $theme={theme} $variant='info'>
-              <SummaryCardTitle>
-                <AccessibleEmoji emoji='💵' label='Dinheiro' /> Salário Líquido
-              </SummaryCardTitle>
-              <SummaryValue>
-                {formatCurrency(payrollSummary.netSalary)}
-              </SummaryValue>
-              <SummaryDetails>
-                Bruto: {formatCurrency(payrollSummary.grossSalary)}
-                <br />
-                Status: {payrollSummary.status === 'paid' ? 'Pago' : 'Pendente'}
-                {payrollSummary.paymentDate && (
-                  <>
-                    <br />
-                    Pago em:{' '}
-                    {new Date(payrollSummary.paymentDate).toLocaleDateString(
-                      'pt-BR'
-                    )}
-                  </>
-                )}
-              </SummaryDetails>
-            </SummaryCard>
-          </SummaryGrid>
-        </SummarySection>
+          <SummaryCard $theme={theme} $variant='info'>
+            <SummaryCardTitle>
+              <AccessibleEmoji emoji='💵' label='Dinheiro' /> Salário Líquido
+            </SummaryCardTitle>
+            <SummaryValue>
+              {formatCurrency(payrollSummary.netSalary)}
+            </SummaryValue>
+            <SummaryDetails>
+              Bruto: {formatCurrency(payrollSummary.grossSalary)}
+              <br />
+              Status: {payrollSummary.status === 'paid' ? 'Pago' : 'Pendente'}
+              {payrollSummary.paymentDate && (
+                <>
+                  <br />
+                  Pago em:{' '}
+                  {new Date(payrollSummary.paymentDate).toLocaleDateString(
+                    'pt-BR'
+                  )}
+                </>
+              )}
+            </SummaryDetails>
+          </SummaryCard>
+        </SummaryGrid>
+      </SummarySection>
 
-        {/* Gráfico de Distribuição */}
-        <ChartSection $theme={theme}>
-          <ChartTitle>Distribuição dos Valores</ChartTitle>
-          <ChartContainer>
-            <PieChart />
-            <ChartLegend>
-              <LegendItem>
-                <LegendColor $color='#3498db' />
-                <span>
-                  Salário Base: {formatCurrency(payrollSummary.baseSalary)}
-                </span>
-              </LegendItem>
-              <LegendItem>
-                <LegendColor $color='#2ecc71' />
-                <span>
-                  Adicionais: {formatCurrency(payrollSummary.additions.total)}
-                </span>
-              </LegendItem>
-              <LegendItem>
-                <LegendColor $color='#e74c3c' />
-                <span>
-                  Descontos: {formatCurrency(payrollSummary.deductions.total)}
-                </span>
-              </LegendItem>
-              <LegendItem>
-                <LegendColor $color='#f39c12' />
-                <span>Líquido: {formatCurrency(payrollSummary.netSalary)}</span>
-              </LegendItem>
-            </ChartLegend>
-          </ChartContainer>
-        </ChartSection>
+      {/* Gráfico de Distribuição */}
+      <ChartSection $theme={theme}>
+        <ChartTitle>Distribuição dos Valores</ChartTitle>
+        <ChartContainer>
+          <PieChart />
+          <ChartLegend>
+            <LegendItem>
+              <LegendColor $color='#3498db' />
+              <span>
+                Salário Base: {formatCurrency(payrollSummary.baseSalary)}
+              </span>
+            </LegendItem>
+            <LegendItem>
+              <LegendColor $color='#2ecc71' />
+              <span>
+                Adicionais: {formatCurrency(payrollSummary.additions.total)}
+              </span>
+            </LegendItem>
+            <LegendItem>
+              <LegendColor $color='#e74c3c' />
+              <span>
+                Descontos: {formatCurrency(payrollSummary.deductions.total)}
+              </span>
+            </LegendItem>
+            <LegendItem>
+              <LegendColor $color='#f39c12' />
+              <span>Líquido: {formatCurrency(payrollSummary.netSalary)}</span>
+            </LegendItem>
+          </ChartLegend>
+        </ChartContainer>
+      </ChartSection>
 
-        {/* Seção de Pagamentos (apenas para empregadores) */}
-        {selectedProfile?.role === 'Empregador' && (
-          <PaymentSection $theme={theme}>
-            <PaymentTitle>Processar Pagamentos</PaymentTitle>
+      {/* Seção de Pagamentos (apenas para empregadores) */}
+      {currentProfile?.role === 'Empregador' && (
+        <PaymentSection $theme={theme}>
+          <PaymentTitle>Processar Pagamentos</PaymentTitle>
 
-            <EmployeeSelector>
-              <Label>Selecionar Funcionário</Label>
-              {employees.map(employee => (
-                <EmployeeCard
-                  key={employee.id}
-                  $theme={theme}
-                  $selected={selectedEmployee === employee.id}
-                  onClick={() => setSelectedEmployee(employee.id)}
-                >
-                  <EmployeeAvatar
-                    $color={employee.avatar === 'MS' ? '#90EE90' : '#29ABE2'}
-                  >
-                    {employee.avatar}
-                  </EmployeeAvatar>
-                  <EmployeeInfo>
-                    <EmployeeName>{employee.name}</EmployeeName>
-                    <EmployeeDetails>
-                      {employee.position} •{' '}
-                      {formatCurrency(employee.baseSalary)}/mês
-                    </EmployeeDetails>
-                  </EmployeeInfo>
-                </EmployeeCard>
-              ))}
-            </EmployeeSelector>
-
-            {selectedEmployee && (
-              <div>
-                <ActionButton
-                  variant='primary'
-                  theme={theme}
-                  onClick={() => setShowPaymentForm(true)}
-                >
-                  <AccessibleEmoji emoji='💵' label='Pagamento' /> Processar
-                  Pagamento
-                </ActionButton>
-              </div>
-            )}
-          </PaymentSection>
-        )}
-
-        {/* Filtros */}
-        <FilterSection theme={theme} title='Filtros e Busca'>
-          <FormRow>
-            <FormGroup>
-              <Label>Período</Label>
-              <Input
+          <EmployeeSelector>
+            <Label>Selecionar Funcionário</Label>
+            {employees.map(employee => (
+              <EmployeeCard
+                key={employee.id}
                 $theme={theme}
-                type='text'
-                value={filters.period}
-                onChange={e =>
-                  setFilters(prev => ({ ...prev, period: e.target.value }))
-                }
-                placeholder='Ex: Janeiro 2024'
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label>Tipo de Documento</Label>
-              <Select
-                $theme={theme}
-                value={filters.type}
-                onChange={e =>
-                  setFilters(prev => ({ ...prev, type: e.target.value }))
-                }
-                aria-label='Filtrar por tipo de documento'
-                title='Filtrar por tipo de documento'
+                $selected={selectedEmployee === employee.id}
+                onClick={() => setSelectedEmployee(employee.id)}
               >
-                <option value=''>Todos os tipos</option>
-                <option value='holerite'>Holerite</option>
-                <option value='recibo'>Recibo</option>
-                <option value='vale_transporte'>Vale Transporte</option>
-                <option value='comprovante_pagamento'>
-                  Comprovante de Pagamento
-                </option>
-              </Select>
-            </FormGroup>
-            <FormGroup>
-              <Label>Status</Label>
-              <Select
-                $theme={theme}
-                value={filters.status}
-                onChange={e =>
-                  setFilters(prev => ({ ...prev, status: e.target.value }))
-                }
-                aria-label='Filtrar por status'
-                title='Filtrar por status'
-              >
-                <option value=''>Todos os status</option>
-                <option value='available'>Disponível</option>
-                <option value='processing'>Processando</option>
-                <option value='error'>Erro</option>
-              </Select>
-            </FormGroup>
-          </FormRow>
-        </FilterSection>
-
-        {/* Listagem de Documentos */}
-        <DocumentsSection $theme={theme}>
-          <DocumentsTitle>Documentos e Holerites</DocumentsTitle>
-
-          {getFilteredDocuments().length === 0 ? (
-            <EmptyState>
-              <div className='empty-icon'>
-                <AccessibleEmoji emoji='📄' label='Documento' />
-              </div>
-              <h3 className='empty-title'>Nenhum documento encontrado</h3>
-              <p className='empty-description'>
-                Não há documentos que correspondam aos filtros selecionados.
-              </p>
-            </EmptyState>
-          ) : (
-            <DocumentsGrid>
-              {getFilteredDocuments().map(document => (
-                <DocumentCard
-                  key={document.id}
-                  $theme={theme}
-                  $status={document.status}
+                <EmployeeAvatar
+                  $color={employee.avatar === 'MS' ? '#90EE90' : '#29ABE2'}
                 >
-                  <DocumentHeader>
-                    <DocumentType $type={document.type}>
-                      <span>{getDocumentTypeIcon(document.type)}</span>
-                      <span>{getDocumentTypeName(document.type)}</span>
-                    </DocumentType>
-                    <DocumentStatus $status={document.status}>
-                      {document.status === 'available'
-                        ? 'Disponível'
-                        : document.status === 'processing'
-                          ? 'Processando'
-                          : 'Erro'}
-                    </DocumentStatus>
-                  </DocumentHeader>
+                  {employee.avatar}
+                </EmployeeAvatar>
+                <EmployeeInfo>
+                  <EmployeeName>{employee.name}</EmployeeName>
+                  <EmployeeDetails>
+                    {employee.position} • {formatCurrency(employee.baseSalary)}
+                    /mês
+                  </EmployeeDetails>
+                </EmployeeInfo>
+              </EmployeeCard>
+            ))}
+          </EmployeeSelector>
 
-                  <DocumentInfo>
-                    <DocumentTitle>{document.employeeName}</DocumentTitle>
-                    <DocumentPeriod>Período: {document.period}</DocumentPeriod>
-                    <DocumentPeriod>
-                      Emissão:{' '}
-                      {new Date(document.issueDate).toLocaleDateString('pt-BR')}
-                    </DocumentPeriod>
-                    <DocumentAmount>
-                      {formatCurrency(document.amount)}
-                    </DocumentAmount>
-                  </DocumentInfo>
-
-                  <DocumentActions>
-                    <DocumentActionButton
-                      $theme={theme}
-                      onClick={() => handleViewDocument(document)}
-                      disabled={document.status !== 'available'}
-                    >
-                      <AccessibleEmoji emoji='👁' label='Visualizar' />{' '}
-                      Visualizar
-                    </DocumentActionButton>
-                    <DocumentActionButton
-                      $theme={theme}
-                      $variant='success'
-                      onClick={() => handleDownloadDocument(document)}
-                      disabled={document.status !== 'available'}
-                    >
-                      <AccessibleEmoji emoji='⬇️' label='Baixar' /> Baixar
-                    </DocumentActionButton>
-                    <DocumentActionButton
-                      $theme={theme}
-                      $variant='secondary'
-                      onClick={() => handlePrintDocument(document)}
-                      disabled={document.status !== 'available'}
-                    >
-                      <AccessibleEmoji emoji='🖨' label='Imprimir' /> Imprimir
-                    </DocumentActionButton>
-                  </DocumentActions>
-                </DocumentCard>
-              ))}
-            </DocumentsGrid>
+          {selectedEmployee && (
+            <div>
+              <ActionButton
+                variant='primary'
+                theme={theme}
+                onClick={() => setShowPaymentForm(true)}
+              >
+                <AccessibleEmoji emoji='💵' label='Pagamento' /> Processar
+                Pagamento
+              </ActionButton>
+            </div>
           )}
-        </DocumentsSection>
+        </PaymentSection>
+      )}
+
+      {/* Filtros */}
+      <FilterSection theme={theme} title='Filtros e Busca'>
+        <FormRow>
+          <FormGroup>
+            <Label>Período</Label>
+            <Input
+              $theme={theme}
+              type='text'
+              value={filters.period}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, period: e.target.value }))
+              }
+              placeholder='Ex: Janeiro 2024'
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label>Tipo de Documento</Label>
+            <Select
+              $theme={theme}
+              value={filters.type}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, type: e.target.value }))
+              }
+              aria-label='Filtrar por tipo de documento'
+              title='Filtrar por tipo de documento'
+            >
+              <option value=''>Todos os tipos</option>
+              <option value='holerite'>Holerite</option>
+              <option value='recibo'>Recibo</option>
+              <option value='vale_transporte'>Vale Transporte</option>
+              <option value='comprovante_pagamento'>
+                Comprovante de Pagamento
+              </option>
+            </Select>
+          </FormGroup>
+          <FormGroup>
+            <Label>Status</Label>
+            <Select
+              $theme={theme}
+              value={filters.status}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, status: e.target.value }))
+              }
+              aria-label='Filtrar por status'
+              title='Filtrar por status'
+            >
+              <option value=''>Todos os status</option>
+              <option value='available'>Disponível</option>
+              <option value='processing'>Processando</option>
+              <option value='error'>Erro</option>
+            </Select>
+          </FormGroup>
+        </FormRow>
+      </FilterSection>
+
+      {/* Listagem de Documentos */}
+      <DocumentsSection $theme={theme}>
+        <DocumentsTitle>Documentos e Holerites</DocumentsTitle>
+
+        {getFilteredDocuments().length === 0 ? (
+          <EmptyState>
+            <div className='empty-icon'>
+              <AccessibleEmoji emoji='📄' label='Documento' />
+            </div>
+            <h3 className='empty-title'>Nenhum documento encontrado</h3>
+            <p className='empty-description'>
+              Não há documentos que correspondam aos filtros selecionados.
+            </p>
+          </EmptyState>
+        ) : (
+          <DocumentsGrid>
+            {getFilteredDocuments().map(document => (
+              <DocumentCard
+                key={document.id}
+                $theme={theme}
+                $status={document.status}
+              >
+                <DocumentHeader>
+                  <DocumentType $type={document.type}>
+                    <span>{getDocumentTypeIcon(document.type)}</span>
+                    <span>{getDocumentTypeName(document.type)}</span>
+                  </DocumentType>
+                  <DocumentStatus $status={document.status}>
+                    {document.status === 'available'
+                      ? 'Disponível'
+                      : document.status === 'processing'
+                        ? 'Processando'
+                        : 'Erro'}
+                  </DocumentStatus>
+                </DocumentHeader>
+
+                <DocumentInfo>
+                  <DocumentTitle>{document.employeeName}</DocumentTitle>
+                  <DocumentPeriod>Período: {document.period}</DocumentPeriod>
+                  <DocumentPeriod>
+                    Emissão:{' '}
+                    {new Date(document.issueDate).toLocaleDateString('pt-BR')}
+                  </DocumentPeriod>
+                  <DocumentAmount>
+                    {formatCurrency(document.amount)}
+                  </DocumentAmount>
+                </DocumentInfo>
+
+                <DocumentActions>
+                  <DocumentActionButton
+                    $theme={theme}
+                    onClick={() => handleViewDocument(document)}
+                    disabled={document.status !== 'available'}
+                  >
+                    <AccessibleEmoji emoji='👁' label='Visualizar' /> Visualizar
+                  </DocumentActionButton>
+                  <DocumentActionButton
+                    $theme={theme}
+                    $variant='success'
+                    onClick={() => handleDownloadDocument(document)}
+                    disabled={document.status !== 'available'}
+                  >
+                    <AccessibleEmoji emoji='⬇️' label='Baixar' /> Baixar
+                  </DocumentActionButton>
+                  <DocumentActionButton
+                    $theme={theme}
+                    $variant='secondary'
+                    onClick={() => handlePrintDocument(document)}
+                    disabled={document.status !== 'available'}
+                  >
+                    <AccessibleEmoji emoji='🖨' label='Imprimir' /> Imprimir
+                  </DocumentActionButton>
+                </DocumentActions>
+              </DocumentCard>
+            ))}
+          </DocumentsGrid>
+        )}
+      </DocumentsSection>
 
       {/* Modal de Visualização de Documento */}
       <Modal

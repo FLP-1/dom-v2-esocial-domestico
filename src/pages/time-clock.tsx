@@ -14,6 +14,7 @@ import Sidebar from '../components/Sidebar';
 import StatusCard from '../components/StatusCard';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Animações removidas - agora usando componentes reutilizáveis com suas próprias animações
@@ -130,38 +131,9 @@ export default function TimeClock() {
   const [modalType, setModalType] = useState<'history' | 'details' | 'break'>(
     'history'
   );
-  // Perfis disponíveis
-  const [userProfiles] = useState([
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregado',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregador',
-      avatar: 'MS',
-      color: '#E74C3C',
-    },
-    {
-      id: '3',
-      name: 'Família Silva',
-      role: 'Família',
-      avatar: 'FS',
-      color: '#9B59B6',
-    },
-  ]);
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
-  const { theme, updateTheme } = useTheme(selectedProfile?.role.toLowerCase());
-
-  const handleProfileChange = (profile: any) => {
-    setSelectedProfile(profile);
-    updateTheme(profile.role.toLowerCase());
-  };
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const [timeRecords, setTimeRecords] = useState<TimeRecord[]>([
     {
@@ -286,17 +258,14 @@ export default function TimeClock() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile || userProfiles[0]}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={2}
           onNotificationClick={() =>
             toast.info('Notificações em desenvolvimento')
@@ -310,99 +279,99 @@ export default function TimeClock() {
         subtitle='Registre sua entrada, saída e intervalos de forma segura'
       />
 
-        <ClockSection>
-          <TimeDisplay>
-            <CurrentTime>
-              {currentTime.toLocaleTimeString('pt-BR', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              })}
-            </CurrentTime>
-            <CurrentDate>
-              {currentTime.toLocaleDateString('pt-BR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </CurrentDate>
-          </TimeDisplay>
+      <ClockSection>
+        <TimeDisplay>
+          <CurrentTime>
+            {currentTime.toLocaleTimeString('pt-BR', {
+              hour: '2-digit',
+              minute: '2-digit',
+              second: '2-digit',
+            })}
+          </CurrentTime>
+          <CurrentDate>
+            {currentTime.toLocaleDateString('pt-BR', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </CurrentDate>
+        </TimeDisplay>
 
-          <ClockInButton
-            isClockedIn={isClockedIn}
-            justRegistered={justRegistered}
-            onClick={handleClockInOut}
-            theme={theme}
-            icon={isClockedIn ? '⏰' : '👆'}
-            text={isClockedIn ? 'Registrar Saída' : 'Registrar Entrada'}
-          />
+        <ClockInButton
+          isClockedIn={isClockedIn}
+          justRegistered={justRegistered}
+          onClick={handleClockInOut}
+          theme={theme}
+          icon={isClockedIn ? '⏰' : '👆'}
+          text={isClockedIn ? 'Registrar Saída' : 'Registrar Entrada'}
+        />
 
-          <StatusCard
-            status={statusInfo.status as 'in' | 'out' | 'break'}
-            icon={statusInfo.icon}
-            title={
-              statusInfo.status === 'in'
-                ? 'Trabalhando'
-                : statusInfo.status === 'out'
-                  ? 'Fora do Trabalho'
-                  : 'Em Intervalo'
-            }
-            time={statusInfo.time}
-            theme={theme}
-          />
-        </ClockSection>
+        <StatusCard
+          status={statusInfo.status as 'in' | 'out' | 'break'}
+          icon={statusInfo.icon}
+          title={
+            statusInfo.status === 'in'
+              ? 'Trabalhando'
+              : statusInfo.status === 'out'
+                ? 'Fora do Trabalho'
+                : 'Em Intervalo'
+          }
+          time={statusInfo.time}
+          theme={theme}
+        />
+      </ClockSection>
 
-        <InfoGrid>
-          <InfoCard
-            icon='📍'
-            title='Localização Atual'
-            theme={theme}
-            location='Casa - Sala de Estar'
-            wifi='Casa_WiFi_5G'
-          >
-            <></>
-          </InfoCard>
+      <InfoGrid>
+        <InfoCard
+          icon='📍'
+          title='Localização Atual'
+          theme={theme}
+          location='Casa - Sala de Estar'
+          wifi='Casa_WiFi_5G'
+        >
+          <></>
+        </InfoCard>
 
-          <InfoCard icon='⏱️' title='Horário de Trabalho' theme={theme}>
-            <p>Início: 08:00</p>
-            <p>Fim: 17:00</p>
-            <p>Intervalo: 12:00 - 13:00</p>
-          </InfoCard>
+        <InfoCard icon='⏱️' title='Horário de Trabalho' theme={theme}>
+          <p>Início: 08:00</p>
+          <p>Fim: 17:00</p>
+          <p>Intervalo: 12:00 - 13:00</p>
+        </InfoCard>
 
-          <InfoCard icon='📊' title='Resumo do Dia' theme={theme}>
-            <p>Tempo trabalhado: 6h 30min</p>
-            <p>Registros hoje: {timeRecords.length}</p>
-            <p>Status: {isClockedIn ? 'Ativo' : 'Inativo'}</p>
-          </InfoCard>
-        </InfoGrid>
+        <InfoCard icon='📊' title='Resumo do Dia' theme={theme}>
+          <p>Tempo trabalhado: 6h 30min</p>
+          <p>Registros hoje: {timeRecords.length}</p>
+          <p>Status: {isClockedIn ? 'Ativo' : 'Inativo'}</p>
+        </InfoCard>
+      </InfoGrid>
 
-        <ActionButtons>
-          <ActionButton
-            variant='secondary'
-            onClick={() => openModal('history')}
-            icon='📋'
-            theme={theme}
-          >
-            Histórico
-          </ActionButton>
-          <ActionButton
-            variant='warning'
-            onClick={handleBreak}
-            icon='☕'
-            theme={theme}
-          >
-            Intervalo
-          </ActionButton>
-          <ActionButton
-            variant='success'
-            onClick={() => openModal('details')}
-            icon='📝'
-            theme={theme}
-          >
-            Detalhes
-          </ActionButton>
-        </ActionButtons>
+      <ActionButtons>
+        <ActionButton
+          variant='secondary'
+          onClick={() => openModal('history')}
+          icon='📋'
+          theme={theme}
+        >
+          Histórico
+        </ActionButton>
+        <ActionButton
+          variant='warning'
+          onClick={handleBreak}
+          icon='☕'
+          theme={theme}
+        >
+          Intervalo
+        </ActionButton>
+        <ActionButton
+          variant='success'
+          onClick={() => openModal('details')}
+          icon='📝'
+          theme={theme}
+        >
+          Detalhes
+        </ActionButton>
+      </ActionButtons>
 
       <Modal
         isOpen={modalOpen}

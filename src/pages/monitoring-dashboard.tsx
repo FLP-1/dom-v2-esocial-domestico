@@ -6,6 +6,7 @@ import AccessibleEmoji from '../components/AccessibleEmoji';
 import { ActionButton } from '../components/ActionButton';
 import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 import { getAuditService } from '../services/auditService';
 import { getBackupService } from '../services/backupService';
@@ -294,26 +295,10 @@ const RefreshButton = styled(ActionButton)<{ $theme: any }>`
 
 const MonitoringDashboard: React.FC = () => {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
 
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Administrador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregador',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
   const [collapsed, setCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [systemStatus, setSystemStatus] = useState('online');
@@ -327,14 +312,6 @@ const MonitoringDashboard: React.FC = () => {
   });
   const [recentActivity, setRecentActivity] = useState<any[]>([]);
   const [alerts, setAlerts] = useState<any[]>([]);
-
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
 
   const loadMetrics = useCallback(async () => {
     setIsLoading(true);
@@ -463,9 +440,9 @@ const MonitoringDashboard: React.FC = () => {
       case 'warning':
         return '🟡';
       case 'error':
-        return '<AccessibleEmoji emoji="🔴" label="Erro" />';
+        return '🔴';
       default:
-        return '<AccessibleEmoji emoji="⚪" label="Neutro" />';
+        return '⚪';
     }
   };
 
@@ -475,16 +452,13 @@ const MonitoringDashboard: React.FC = () => {
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
       <MainContent>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={alerts.length}
           onNotificationClick={() => {}}
         />
@@ -509,10 +483,7 @@ const MonitoringDashboard: React.FC = () => {
               onClick={handleRefresh}
               disabled={isLoading}
             >
-              {isLoading
-                ? '⏳'
-                : '<AccessibleEmoji emoji="🔄" label="Sincronizar" />'}{' '}
-              Atualizar
+              {isLoading ? '⏳' : '🔄'} Atualizar
             </RefreshButton>
           </FlexContainer>
         </Header>

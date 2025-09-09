@@ -14,6 +14,7 @@ import {
 } from '../components/Modal';
 import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Animações
@@ -502,35 +503,12 @@ const mockTermsData: TermsData = {
 
 const TermsManagement: React.FC = () => {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
 
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregado',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
   const [collapsed, setCollapsed] = useState(false);
 
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
   const [activeTab, setActiveTab] = useState<'terms' | 'privacy'>('terms');
   const [selectedVersion, setSelectedVersion] = useState<string>('1');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -601,7 +579,7 @@ const TermsManagement: React.FC = () => {
   };
 
   const isAdmin =
-    selectedProfile?.role === 'admin' || selectedProfile?.role === 'employer';
+    currentProfile?.role === 'admin' || currentProfile?.role === 'employer';
 
   return (
     <>
@@ -611,16 +589,13 @@ const TermsManagement: React.FC = () => {
           collapsed={collapsed}
           onToggle={() => setCollapsed(!collapsed)}
           currentPath={router.pathname}
-          userProfiles={userProfiles}
-          selectedProfile={selectedProfile}
-          onProfileChange={handleProfileChange}
         />
         <MainContent>
           <WelcomeSection
             theme={theme}
-            userAvatar={selectedProfile?.avatar || 'U'}
-            userName={selectedProfile?.name || 'Usuário'}
-            userRole={selectedProfile?.role || 'Usuário'}
+            userAvatar={currentProfile?.avatar || 'U'}
+            userName={currentProfile?.name || 'Usuário'}
+            userRole={currentProfile?.role || 'Usuário'}
             notificationCount={0}
             onNotificationClick={() => {}}
           />
@@ -719,7 +694,7 @@ const TermsManagement: React.FC = () => {
                   theme={theme}
                   onClick={handlePrint}
                 >
-                  <AccessibleEmoji emoji='🖨' label='Emoji' />️ Imprimir
+                  <AccessibleEmoji emoji='🖨' label='Impressora' /> Imprimir
                 </ActionButton>
                 {isAdmin && (
                   <ActionButton
@@ -727,7 +702,7 @@ const TermsManagement: React.FC = () => {
                     theme={theme}
                     onClick={handleEditDocument}
                   >
-                    <AccessibleEmoji emoji='✏' label='Emoji' />️ Editar
+                    <AccessibleEmoji emoji='✏' label='Lápis' /> Editar
                     Documento
                   </ActionButton>
                 )}

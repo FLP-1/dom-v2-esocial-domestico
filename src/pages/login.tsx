@@ -2,21 +2,16 @@ import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/login-biometric.tsx
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
+import { useEffect, useState } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled, { keyframes } from 'styled-components';
+import { UserProfile, useUserProfile } from '../contexts/UserProfileContext';
 import { validateCpf } from '../utils/cpfValidator';
 
 // Carrega o MotivationCarousel dinamicamente
 const MotivationCarousel = dynamic(
   () => import('../components/MotivationCarousel'),
-  { ssr: false }
-);
-
-// Carrega o TermsAcceptanceModal dinamicamente
-const TermsAcceptanceModal = dynamic(
-  () => import('../components/TermsAcceptanceModal'),
   { ssr: false }
 );
 
@@ -370,12 +365,15 @@ export default function LoginBiometric() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
   const [errors, setErrors] = useState<{
     cpf?: string;
     password?: string;
     terms?: string;
   }>({});
+
+  // Hook do contexto de perfil
+  const { setAvailableProfiles, setShowProfileModal, handleProfileSelection } =
+    useUserProfile();
 
   const motivationalPhrases = [
     'Transforme sua casa em um lar organizado e acolhedor',
@@ -385,14 +383,16 @@ export default function LoginBiometric() {
     'Seu lar, sua paz, sua gestão perfeita',
   ];
 
-  // Verificar se os termos já foram aceitos
-  const checkTermsAcceptance = () => {
-    const termsAccepted = localStorage.getItem('termsAccepted');
-    const termsVersion = localStorage.getItem('termsVersion');
-    const currentVersion = 'v2.1.0';
-
-    return termsAccepted === 'true' && termsVersion === currentVersion;
-  };
+  // Limpar erro de termos quando checkbox for marcado
+  useEffect(() => {
+    if (acceptedTerms && errors.terms) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.terms;
+        return newErrors;
+      });
+    }
+  }, [acceptedTerms, errors.terms]);
 
   const validateForm = () => {
     const newErrors: { cpf?: string; password?: string; terms?: string } = {};
@@ -410,30 +410,13 @@ export default function LoginBiometric() {
     }
 
     // Verificar aceite de termos
-    if (!checkTermsAcceptance()) {
-      setShowTermsModal(true);
+    if (!acceptedTerms) {
       newErrors.terms =
         'Você deve aceitar os Termos de Uso e Políticas de Privacidade';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleTermsAccept = () => {
-    setAcceptedTerms(true);
-    setShowTermsModal(false);
-    setErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors.terms;
-      return newErrors;
-    });
-    toast.success('Termos aceitos com sucesso!');
-  };
-
-  const handleTermsDecline = () => {
-    setShowTermsModal(false);
-    toast.error('Você deve aceitar os termos para continuar.');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -449,7 +432,91 @@ export default function LoginBiometric() {
     setTimeout(() => {
       setIsLoading(false);
       toast.success('Login realizado com sucesso!');
-      router.push('/dashboard');
+
+      // Simula busca de perfis do usuário
+      const userProfiles: UserProfile[] = [
+        {
+          id: '1',
+          name: 'João Silva',
+          role: 'Empregado',
+          avatar: 'JS',
+          color: '#29ABE2',
+          cpf: cpf,
+          dataNascimento: '1985-03-15',
+          endereco: {
+            logradouro: 'Rua das Flores',
+            numero: '123',
+            complemento: 'Apto 45',
+            bairro: 'Centro',
+            cidade: 'São Paulo',
+            uf: 'SP',
+            cep: '01234-567',
+          },
+          contato: {
+            telefone: '(11) 99999-9999',
+            email: 'joao.silva@email.com',
+          },
+        },
+        {
+          id: '2',
+          name: 'João Silva',
+          role: 'Empregador',
+          avatar: 'JS',
+          color: '#E74C3C',
+          cpf: cpf,
+          dataNascimento: '1980-05-20',
+          endereco: {
+            logradouro: 'Av. Paulista',
+            numero: '1000',
+            complemento: 'Sala 501',
+            bairro: 'Bela Vista',
+            cidade: 'São Paulo',
+            uf: 'SP',
+            cep: '01310-100',
+          },
+          contato: {
+            telefone: '(11) 3333-4444',
+            email: 'empregador@empresa.com',
+          },
+        },
+        {
+          id: '3',
+          name: 'Família Silva',
+          role: 'Família',
+          avatar: 'FS',
+          color: '#9B59B6',
+          cpf: cpf,
+          dataNascimento: '1990-12-10',
+          endereco: {
+            logradouro: 'Rua da Família',
+            numero: '456',
+            complemento: '',
+            bairro: 'Vila Madalena',
+            cidade: 'São Paulo',
+            uf: 'SP',
+            cep: '05433-000',
+          },
+          contato: {
+            telefone: '(11) 5555-6666',
+            email: 'familia@silva.com',
+          },
+        },
+      ];
+
+      // Define os perfis disponíveis no contexto
+      setAvailableProfiles(userProfiles);
+
+      // Se há apenas um perfil, seleciona automaticamente
+      if (userProfiles.length === 1) {
+        const profile = userProfiles[0];
+        if (profile) {
+          handleProfileSelection(profile);
+          router.push('/dashboard');
+        }
+      } else {
+        // Se há múltiplos perfis, mostra o modal de seleção
+        setShowProfileModal(true);
+      }
     }, 1500);
   };
 
@@ -466,7 +533,49 @@ export default function LoginBiometric() {
       setTimeout(() => {
         setIsLoading(false);
         toast.success('Login realizado com sucesso!');
-        router.push('/dashboard');
+
+        // Simula busca de perfis do usuário
+        const userProfiles: UserProfile[] = [
+          {
+            id: '1',
+            name: 'João Silva',
+            role: 'Empregado',
+            avatar: 'JS',
+            color: '#29ABE2',
+            cpf: cpf,
+          },
+          {
+            id: '2',
+            name: 'João Silva',
+            role: 'Empregador',
+            avatar: 'JS',
+            color: '#E74C3C',
+            cpf: cpf,
+          },
+          {
+            id: '3',
+            name: 'Família Silva',
+            role: 'Família',
+            avatar: 'FS',
+            color: '#9B59B6',
+            cpf: cpf,
+          },
+        ];
+
+        // Define os perfis disponíveis no contexto
+        setAvailableProfiles(userProfiles);
+
+        // Se há apenas um perfil, seleciona automaticamente
+        if (userProfiles.length === 1) {
+          const profile = userProfiles[0];
+          if (profile) {
+            handleProfileSelection(profile);
+            router.push('/dashboard');
+          }
+        } else {
+          // Se há múltiplos perfis, mostra o modal de seleção
+          setShowProfileModal(true);
+        }
       }, 1500);
       return;
     }
@@ -564,8 +673,29 @@ export default function LoginBiometric() {
               />
               <CheckboxLabel htmlFor='terms'>
                 Li e aceito os{' '}
-                <Link href='/terms-management'>Termos de Uso</Link> e as{' '}
-                <Link href='/terms-management'>Políticas de Privacidade</Link>
+                <Link
+                  href='/terms'
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    color: '#29ABE2',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Termos de Uso
+                </Link>{' '}
+                e as{' '}
+                <Link
+                  href='/privacy'
+                  onClick={e => e.stopPropagation()}
+                  style={{
+                    color: '#29ABE2',
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Políticas de Privacidade
+                </Link>
               </CheckboxLabel>
             </CheckboxContainer>
           </RememberMeContainer>
@@ -615,21 +745,6 @@ export default function LoginBiometric() {
           </BiometricOptions>
         </BiometricSection>
       </LoginCard>
-
-      {/* Modal de Aceite de Termos */}
-      <TermsAcceptanceModal
-        isOpen={showTermsModal}
-        onAccept={handleTermsAccept}
-        onDecline={handleTermsDecline}
-        theme={{
-          colors: {
-            primary: '#29ABE2',
-            success: '#90EE90',
-            text: '#2C3E50',
-            border: '#E9ECEF',
-          },
-        }}
-      />
 
       <ToastContainer
         position='top-center'

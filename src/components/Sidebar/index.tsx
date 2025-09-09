@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
-import { useState } from 'react';
 import styled from 'styled-components';
-import AccessibleEmoji from '../AccessibleEmoji';
+import { useUserProfile } from '../../contexts/UserProfileContext';
+import { Icons } from '../Icons';
 
 // slideIn animation removed - not used
 
@@ -17,23 +17,6 @@ interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
   currentPath: string;
-  userProfiles?: Array<{
-    id: string;
-    name: string;
-    role: string;
-    avatar: string;
-    color: string;
-  }>;
-  selectedProfile?:
-    | {
-        id: string;
-        name: string;
-        role: string;
-        avatar: string;
-        color: string;
-      }
-    | undefined;
-  onProfileChange?: (profile: any) => void;
 }
 
 const SidebarContainer = styled.aside<{ $collapsed: boolean }>`
@@ -47,7 +30,10 @@ const SidebarContainer = styled.aside<{ $collapsed: boolean }>`
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  overflow: visible;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 `;
 
 const SidebarHeader = styled.div<{ $collapsed: boolean }>`
@@ -147,126 +133,21 @@ const ProfileIconButton = styled.button<{ $collapsed: boolean }>`
   }
 `;
 
-const ProfileModal = styled.div<{ $isOpen: boolean }>`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: ${props => (props.$isOpen ? 'flex' : 'none')};
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  backdrop-filter: blur(4px);
-`;
-
-const ProfileModalContent = styled.div`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 2rem;
-  max-width: 400px;
-  width: 90%;
-  max-height: 80vh;
-  overflow-y: auto;
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(41, 171, 226, 0.2);
-  animation: slideIn 0.3s ease-out;
-
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-  }
-
-  .title {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0;
-  }
-
-  .close-button {
-    background: none;
-    border: none;
-    color: #7f8c8d;
-    cursor: pointer;
-    font-size: 1.5rem;
-    padding: 0.5rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-
-    &:hover {
-      background: rgba(231, 76, 60, 0.1);
-      color: #e74c3c;
-    }
-  }
-`;
-
-const ProfileList = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
-
-const ProfileItem = styled.button<{ $isSelected: boolean; $color: string }>`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
+const ProfileSection = styled.div`
   padding: 1rem;
-  border: 2px solid
-    ${props => (props.$isSelected ? props.$color : 'transparent')};
-  border-radius: 12px;
-  background: ${props =>
-    props.$isSelected ? `${props.$color}15` : 'rgba(255, 255, 255, 0.8)'};
-  cursor: pointer;
-  transition: all 0.3s ease;
-  width: 100%;
-  text-align: left;
-
-  &:hover {
-    background: ${props => `${props.$color}20`};
-    border-color: ${props => props.$color};
-    transform: translateY(-2px);
-  }
-
-  .profile-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: ${props => props.$color};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 1rem;
-  }
-
-  .profile-info {
-    flex: 1;
-  }
-
-  .profile-name {
-    font-weight: 600;
-    color: #2c3e50;
-    margin: 0 0 0.25rem 0;
-  }
-
-  .profile-role {
-    color: #7f8c8d;
-    font-size: 0.9rem;
-    margin: 0;
-  }
+  border-top: 1px solid #dee2e6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
 `;
 
 const Navigation = styled.nav`
+  flex: 1;
   padding: 1rem 0;
   opacity: 1;
   transition: opacity 0.3s ease;
+  overflow-y: auto;
 `;
 
 const NavItem = styled.div<{ $active?: boolean; $collapsed?: boolean }>`
@@ -314,120 +195,120 @@ export default function Sidebar({
   collapsed,
   onToggle,
   currentPath,
-  userProfiles = [],
-  selectedProfile,
-  onProfileChange,
 }: SidebarProps) {
   const router = useRouter();
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
+
+  // Hook do contexto de perfil
+  const { currentProfile, availableProfiles, setShowProfileModal } =
+    useUserProfile();
 
   // Navegação centralizada - única fonte da verdade
   const navigationItems: NavigationItem[] = [
     {
       id: 'dashboard',
-      icon: <AccessibleEmoji emoji='🏠' label='Home' />,
+      icon: Icons.home,
       label: 'Dashboard',
       path: '/dashboard',
     },
     {
       id: 'time-clock',
-      icon: '⏰',
+      icon: Icons.clock,
       label: 'Controle de Ponto',
       path: '/time-clock',
     },
     {
       id: 'task-management',
-      icon: <AccessibleEmoji emoji='📋' label='Checklist' />,
+      icon: Icons.checklist,
       label: 'Gestão de Tarefas',
       path: '/task-management',
     },
     {
       id: 'finances',
-      icon: <AccessibleEmoji emoji='💵' label='Pagamento' />,
+      icon: Icons.money,
       label: 'Finanças',
       path: '#',
     },
     {
       id: 'document-management',
-      icon: <AccessibleEmoji emoji='📄' label='Documento' />,
+      icon: Icons.document,
       label: 'Gestão de Documentos',
       path: '/document-management',
     },
     {
       id: 'communication',
-      icon: <AccessibleEmoji emoji='💬' label='Comunicação' />,
+      icon: Icons.message,
       label: 'Comunicação',
       path: '/communication',
     },
     {
       id: 'shopping-management',
-      icon: <AccessibleEmoji emoji='🛍' label='Compras' />,
+      icon: Icons.shopping,
       label: 'Gestão de Compras',
       path: '/shopping-management',
     },
     {
       id: 'alert-management',
-      icon: <AccessibleEmoji emoji='🔔' label='Notificação' />,
+      icon: Icons.alert,
       label: 'Gestão de Alertas',
       path: '/alert-management',
     },
     {
       id: 'subscription-plans',
-      icon: <AccessibleEmoji emoji='💎' label='Diamante' />,
+      icon: Icons.diamond,
       label: 'Planos de Assinatura',
       path: '/subscription-plans',
     },
     {
       id: 'payroll-management',
-      icon: <AccessibleEmoji emoji='💵' label='Pagamento' />,
+      icon: Icons.calculator,
       label: 'Cálculos Salariais',
       path: '/payroll-management',
     },
     {
       id: 'loan-management',
-      icon: <AccessibleEmoji emoji='💵' label='Dinheiro' />,
+      icon: Icons.bank,
       label: 'Empréstimos',
       path: '/loan-management',
     },
     {
       id: 'terms-management',
-      icon: <AccessibleEmoji emoji='📜' label='Documento' />,
+      icon: Icons.document,
       label: 'Termos e Políticas',
       path: '/terms-management',
     },
     {
       id: 'esocial-integration',
-      icon: <AccessibleEmoji emoji='🏛' label='Governo' />,
+      icon: Icons.government,
       label: 'eSocial Doméstico',
       path: '/esocial-integration',
     },
     {
       id: 'monitoring-dashboard',
-      icon: <AccessibleEmoji emoji='📊' label='Dashboard' />,
+      icon: Icons.dashboard,
       label: 'Monitoramento',
       path: '/monitoring-dashboard',
     },
     {
       id: 'tutorial',
-      icon: <AccessibleEmoji emoji='🎓' label='Graduação' />,
+      icon: Icons.tutorial,
       label: 'Tutorial',
       path: '/welcome-tutorial',
     },
     {
       id: 'team',
-      icon: <AccessibleEmoji emoji='👥' label='Equipe' />,
+      icon: Icons.team,
       label: 'Equipe',
       path: '#',
     },
     {
       id: 'reports',
-      icon: <AccessibleEmoji emoji='📊' label='Dashboard' />,
+      icon: Icons.analytics,
       label: 'Relatórios',
       path: '#',
     },
     {
       id: 'settings',
-      icon: <AccessibleEmoji emoji='⚙' label='Configurações' />,
+      icon: Icons.settings,
       label: 'Configurações',
       path: '#',
     },
@@ -442,13 +323,6 @@ export default function Sidebar({
     return currentPath === itemPath;
   };
 
-  const handleProfileSelect = (profile: any) => {
-    if (onProfileChange) {
-      onProfileChange(profile);
-    }
-    setProfileModalOpen(false);
-  };
-
   return (
     <SidebarContainer $collapsed={collapsed}>
       <SidebarHeader $collapsed={collapsed}>
@@ -459,7 +333,7 @@ export default function Sidebar({
               onClick={onToggle}
               aria-label='Expandir sidebar'
             >
-              <AccessibleEmoji emoji='☰' label='Menu' />
+              {Icons.menu}
             </CollapsedToggleButton>
           </>
         ) : (
@@ -469,18 +343,16 @@ export default function Sidebar({
               <SidebarTitle $collapsed={collapsed}>DOM</SidebarTitle>
             </LogoContainer>
             <HeaderActionsContainer>
-              {userProfiles.length > 1 && (
+              {availableProfiles.length > 1 && (
                 <ProfileIconButton
                   $collapsed={collapsed}
-                  onClick={() => setProfileModalOpen(true)}
+                  onClick={() => setShowProfileModal(true)}
                 >
-                  <span className='profile-icon'>
-                    <AccessibleEmoji emoji='👤' label='Perfil' />
-                  </span>
+                  <span className='profile-icon'>{Icons.profile}</span>
                 </ProfileIconButton>
               )}
               <ToggleButton onClick={onToggle} aria-label='Recolher sidebar'>
-                <AccessibleEmoji emoji='✕' label='Fechar' />
+                {Icons.close}
               </ToggleButton>
             </HeaderActionsContainer>
           </>
@@ -501,38 +373,20 @@ export default function Sidebar({
         ))}
       </Navigation>
 
-      {/* Modal de Seleção de Perfil */}
-      <ProfileModal $isOpen={profileModalOpen}>
-        <ProfileModalContent>
-          <div className='header'>
-            <h2 className='title'>Selecionar Perfil</h2>
-            <button
-              className='close-button'
-              onClick={() => setProfileModalOpen(false)}
-              aria-label='Fechar modal de seleção de perfil'
-            >
-              <AccessibleEmoji emoji='✕' label='Fechar' />
-            </button>
-          </div>
-
-          <ProfileList>
-            {userProfiles.map(profile => (
-              <ProfileItem
-                key={profile.id}
-                $isSelected={selectedProfile?.id === profile.id}
-                $color={profile.color}
-                onClick={() => handleProfileSelect(profile)}
-              >
-                <div className='profile-avatar'>{profile.avatar}</div>
-                <div className='profile-info'>
-                  <div className='profile-name'>{profile.name}</div>
-                  <div className='profile-role'>{profile.role}</div>
-                </div>
-              </ProfileItem>
-            ))}
-          </ProfileList>
-        </ProfileModalContent>
-      </ProfileModal>
+      {/* Seção de Perfil no Final */}
+      {collapsed && availableProfiles.length > 0 && (
+        <ProfileSection>
+          <ProfileIconButton
+            $collapsed={collapsed}
+            onClick={() => setShowProfileModal(true)}
+            title={`Perfil: ${currentProfile?.name || 'Usuário'}`}
+          >
+            <span className='profile-icon'>
+              {currentProfile?.avatar || 'U'}
+            </span>
+          </ProfileIconButton>
+        </ProfileSection>
+      )}
     </SidebarContainer>
   );
 }

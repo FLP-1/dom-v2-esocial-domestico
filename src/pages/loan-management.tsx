@@ -20,6 +20,7 @@ import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Styled Components para substituir estilos inline
@@ -501,7 +502,6 @@ const TermsContent = styled.div`
 
 export default function LoanManagement() {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<LoanRequest | null>(
@@ -512,25 +512,9 @@ export default function LoanManagement() {
     'approve'
   );
 
-  // Mock data
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregada',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const [loanSummary] = useState<LoanSummary>({
     totalPending: 2500,
@@ -608,14 +592,6 @@ export default function LoanManagement() {
 
   const [approvalComment, setApprovalComment] = useState('');
 
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
-
   const handleSubmitRequest = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRequest.amount || !newRequest.justification) return;
@@ -630,8 +606,8 @@ export default function LoanManagement() {
 
     const request: LoanRequest = {
       id: Date.now().toString(),
-      employeeId: selectedProfile?.id || '1',
-      employeeName: selectedProfile?.name || 'Usuário',
+      employeeId: currentProfile?.id || '1',
+      employeeName: currentProfile?.name || 'Usuário',
       type: newRequest.type,
       amount,
       installments: newRequest.installments,
@@ -684,7 +660,7 @@ export default function LoanManagement() {
       ...selectedRequest,
       status: approvalAction === 'approve' ? 'approved' : 'rejected',
       approvalDate: new Date().toISOString().split('T')[0]!,
-      approvedBy: selectedProfile?.name || 'Usuário',
+      approvedBy: currentProfile?.name || 'Usuário',
       ...(approvalAction === 'reject' && { rejectionReason: approvalComment }),
     };
 
@@ -789,17 +765,14 @@ export default function LoanManagement() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={
             requests.filter(r => r.status === 'pending').length
           }
@@ -815,374 +788,369 @@ export default function LoanManagement() {
         subtitle='Solicite, aprove e gerencie empréstimos e adiantamentos salariais'
       />
 
-        {/* Resumo */}
-        <SummarySection $theme={theme}>
-          <SummaryTitle>Resumo Financeiro</SummaryTitle>
-          <SummaryGrid>
-            <SummaryCard $theme={theme} $variant='warning'>
-              <SummaryCardTitle>
-                <AccessibleEmoji emoji='⏳' label='Carregando' /> Pendentes
-              </SummaryCardTitle>
-              <SummaryValue>
-                {formatCurrency(loanSummary.totalPending)}
-              </SummaryValue>
-              <SummaryDetails>Solicitações aguardando aprovação</SummaryDetails>
-            </SummaryCard>
+      {/* Resumo */}
+      <SummarySection $theme={theme}>
+        <SummaryTitle>Resumo Financeiro</SummaryTitle>
+        <SummaryGrid>
+          <SummaryCard $theme={theme} $variant='warning'>
+            <SummaryCardTitle>
+              <AccessibleEmoji emoji='⏳' label='Carregando' /> Pendentes
+            </SummaryCardTitle>
+            <SummaryValue>
+              {formatCurrency(loanSummary.totalPending)}
+            </SummaryValue>
+            <SummaryDetails>Solicitações aguardando aprovação</SummaryDetails>
+          </SummaryCard>
 
-            <SummaryCard $theme={theme} $variant='success'>
-              <SummaryCardTitle>
-                <AccessibleEmoji emoji='✅' label='Sucesso' /> Aprovados
-              </SummaryCardTitle>
-              <SummaryValue>
-                {formatCurrency(loanSummary.totalApproved)}
-              </SummaryValue>
-              <SummaryDetails>Valor total aprovado</SummaryDetails>
-            </SummaryCard>
+          <SummaryCard $theme={theme} $variant='success'>
+            <SummaryCardTitle>
+              <AccessibleEmoji emoji='✅' label='Sucesso' /> Aprovados
+            </SummaryCardTitle>
+            <SummaryValue>
+              {formatCurrency(loanSummary.totalApproved)}
+            </SummaryValue>
+            <SummaryDetails>Valor total aprovado</SummaryDetails>
+          </SummaryCard>
 
-            <SummaryCard $theme={theme} $variant='info'>
-              <SummaryCardTitle>
-                <AccessibleEmoji emoji='💵' label='Pagamento' /> Em Aberto
-              </SummaryCardTitle>
-              <SummaryValue>
-                {formatCurrency(loanSummary.totalOutstanding)}
-              </SummaryValue>
-              <SummaryDetails>Valor ainda não pago</SummaryDetails>
-            </SummaryCard>
+          <SummaryCard $theme={theme} $variant='info'>
+            <SummaryCardTitle>
+              <AccessibleEmoji emoji='💵' label='Pagamento' /> Em Aberto
+            </SummaryCardTitle>
+            <SummaryValue>
+              {formatCurrency(loanSummary.totalOutstanding)}
+            </SummaryValue>
+            <SummaryDetails>Valor ainda não pago</SummaryDetails>
+          </SummaryCard>
 
-            <SummaryCard $theme={theme} $variant='primary'>
-              <SummaryCardTitle>
-                <AccessibleEmoji emoji='📅' label='Calendário' /> Próximo
-                Pagamento
-              </SummaryCardTitle>
-              <SummaryValue>
-                {formatCurrency(loanSummary.nextPaymentAmount || 0)}
-              </SummaryValue>
-              <SummaryDetails>
-                {loanSummary.nextPaymentDate &&
-                  `Vencimento: ${new Date(loanSummary.nextPaymentDate).toLocaleDateString('pt-BR')}`}
-              </SummaryDetails>
-            </SummaryCard>
-          </SummaryGrid>
-        </SummarySection>
+          <SummaryCard $theme={theme} $variant='primary'>
+            <SummaryCardTitle>
+              <AccessibleEmoji emoji='📅' label='Calendário' /> Próximo
+              Pagamento
+            </SummaryCardTitle>
+            <SummaryValue>
+              {formatCurrency(loanSummary.nextPaymentAmount || 0)}
+            </SummaryValue>
+            <SummaryDetails>
+              {loanSummary.nextPaymentDate &&
+                `Vencimento: ${new Date(loanSummary.nextPaymentDate).toLocaleDateString('pt-BR')}`}
+            </SummaryDetails>
+          </SummaryCard>
+        </SummaryGrid>
+      </SummarySection>
 
-        {/* Formulário de Solicitação */}
-        <RequestSection $theme={theme}>
-          <RequestSectionTitle>Nova Solicitação</RequestSectionTitle>
-          <Form onSubmit={handleSubmitRequest}>
-            <FormRow>
-              <FormGroupFlex>
-                <Label>Tipo de Operação</Label>
-                <Select
-                  $theme={theme}
-                  value={newRequest.type}
-                  onChange={e =>
-                    setNewRequest(prev => ({
-                      ...prev,
-                      type: e.target.value as 'loan' | 'advance',
-                    }))
-                  }
-                  aria-label='Selecionar tipo de operação'
-                  title='Selecionar tipo de operação'
-                >
-                  <option value='advance'>Adiantamento de Salário</option>
-                  <option value='loan'>Empréstimo</option>
-                </Select>
-              </FormGroupFlex>
-              <FormGroupFlex>
-                <Label>Valor Solicitado</Label>
-                <CurrencyInput
-                  $theme={theme}
-                  type='text'
-                  value={newRequest.amount}
-                  onChange={e =>
-                    setNewRequest(prev => ({
-                      ...prev,
-                      amount: formatCurrencyInput(e.target.value),
-                    }))
-                  }
-                  placeholder='R$ 0,00'
-                  required
-                />
-              </FormGroupFlex>
-              <FormGroupFlex>
-                <Label>Parcelas</Label>
-                <Input
-                  $theme={theme}
-                  type='number'
-                  min='1'
-                  max={newRequest.type === 'advance' ? '1' : '12'}
-                  value={newRequest.installments}
-                  onChange={e =>
-                    setNewRequest(prev => ({
-                      ...prev,
-                      installments: parseInt(e.target.value) || 1,
-                    }))
-                  }
-                  required
-                />
-              </FormGroupFlex>
-            </FormRow>
-
-            <FormGroup>
-              <Label>Justificativa</Label>
-              <Input
+      {/* Formulário de Solicitação */}
+      <RequestSection $theme={theme}>
+        <RequestSectionTitle>Nova Solicitação</RequestSectionTitle>
+        <Form onSubmit={handleSubmitRequest}>
+          <FormRow>
+            <FormGroupFlex>
+              <Label>Tipo de Operação</Label>
+              <Select
                 $theme={theme}
-                type='text'
-                value={newRequest.justification}
+                value={newRequest.type}
                 onChange={e =>
                   setNewRequest(prev => ({
                     ...prev,
-                    justification: e.target.value,
+                    type: e.target.value as 'loan' | 'advance',
                   }))
                 }
-                placeholder='Descreva o motivo da solicitação...'
-                required
-              />
-            </FormGroup>
-
-            {conditions && (
-              <ConditionsSection $theme={theme}>
-                <ConditionsTitle>Resumo das Condições</ConditionsTitle>
-                <ConditionRow>
-                  <ConditionLabel>Valor solicitado:</ConditionLabel>
-                  <ConditionValue>
-                    {formatCurrency(conditions.amount)}
-                  </ConditionValue>
-                </ConditionRow>
-                <ConditionRow>
-                  <ConditionLabel>Taxa de juros:</ConditionLabel>
-                  <ConditionValue>
-                    {conditions.interestRate}% ao mês
-                  </ConditionValue>
-                </ConditionRow>
-                <ConditionRow>
-                  <ConditionLabel>Valor total:</ConditionLabel>
-                  <ConditionValue>
-                    {formatCurrency(conditions.totalAmount)}
-                  </ConditionValue>
-                </ConditionRow>
-                <ConditionRow>
-                  <ConditionLabel>Valor da parcela:</ConditionLabel>
-                  <ConditionValue>
-                    {formatCurrency(conditions.monthlyPayment)}
-                  </ConditionValue>
-                </ConditionRow>
-                <ConditionRow>
-                  <ConditionLabel>Data de vencimento:</ConditionLabel>
-                  <ConditionValue>{conditions.dueDate}</ConditionValue>
-                </ConditionRow>
-              </ConditionsSection>
-            )}
-
-            <ButtonGroup>
-              <ActionButton type='submit' variant='primary' theme={theme}>
-                <AccessibleEmoji emoji='📤' label='Exportar' /> Enviar
-                Solicitação
-              </ActionButton>
-            </ButtonGroup>
-          </Form>
-        </RequestSection>
-
-        {/* Seção de Aprovação (apenas para empregadores) */}
-        {selectedProfile?.role === 'Empregador' && (
-          <ApprovalSection $theme={theme}>
-            <ApprovalTitle>Aprovação de Solicitações</ApprovalTitle>
-            <ApprovalSection $theme={theme}>
-              <ActionButton variant='secondary' theme={theme}>
-                <AccessibleEmoji emoji='📊' label='Dashboard' /> Exportar
-                Relatório
-              </ActionButton>
-            </ApprovalSection>
-          </ApprovalSection>
-        )}
-
-        {/* Filtros */}
-        <FilterSection theme={theme} title='Filtros e Busca'>
-          <FormRow>
-            <FormGroup>
-              <Label>Status</Label>
-              <Select
-                $theme={theme}
-                value={filters.status}
-                onChange={e =>
-                  setFilters(prev => ({ ...prev, status: e.target.value }))
-                }
-                aria-label='Filtrar por status'
-                title='Filtrar por status'
+                aria-label='Selecionar tipo de operação'
+                title='Selecionar tipo de operação'
               >
-                <option value=''>Todos os status</option>
-                <option value='pending'>Pendente</option>
-                <option value='approved'>Aprovado</option>
-                <option value='rejected'>Rejeitado</option>
-                <option value='paid'>Pago</option>
-              </Select>
-            </FormGroup>
-            <FormGroup>
-              <Label>Tipo</Label>
-              <Select
-                $theme={theme}
-                value={filters.type}
-                onChange={e =>
-                  setFilters(prev => ({ ...prev, type: e.target.value }))
-                }
-                aria-label='Filtrar por tipo'
-                title='Filtrar por tipo'
-              >
-                <option value=''>Todos os tipos</option>
-                <option value='advance'>Adiantamento</option>
+                <option value='advance'>Adiantamento de Salário</option>
                 <option value='loan'>Empréstimo</option>
               </Select>
-            </FormGroup>
-            <FormGroup>
-              <Label>Funcionário</Label>
-              <Input
+            </FormGroupFlex>
+            <FormGroupFlex>
+              <Label>Valor Solicitado</Label>
+              <CurrencyInput
                 $theme={theme}
                 type='text'
-                value={filters.employee}
+                value={newRequest.amount}
                 onChange={e =>
-                  setFilters(prev => ({ ...prev, employee: e.target.value }))
+                  setNewRequest(prev => ({
+                    ...prev,
+                    amount: formatCurrencyInput(e.target.value),
+                  }))
                 }
-                placeholder='Nome do funcionário...'
+                placeholder='R$ 0,00'
+                required
               />
-            </FormGroup>
+            </FormGroupFlex>
+            <FormGroupFlex>
+              <Label>Parcelas</Label>
+              <Input
+                $theme={theme}
+                type='number'
+                min='1'
+                max={newRequest.type === 'advance' ? '1' : '12'}
+                value={newRequest.installments}
+                onChange={e =>
+                  setNewRequest(prev => ({
+                    ...prev,
+                    installments: parseInt(e.target.value) || 1,
+                  }))
+                }
+                required
+              />
+            </FormGroupFlex>
           </FormRow>
-        </FilterSection>
 
-        {/* Listagem de Solicitações */}
-        <RequestsSection $theme={theme}>
-          <RequestsTitle>Histórico de Solicitações</RequestsTitle>
+          <FormGroup>
+            <Label>Justificativa</Label>
+            <Input
+              $theme={theme}
+              type='text'
+              value={newRequest.justification}
+              onChange={e =>
+                setNewRequest(prev => ({
+                  ...prev,
+                  justification: e.target.value,
+                }))
+              }
+              placeholder='Descreva o motivo da solicitação...'
+              required
+            />
+          </FormGroup>
 
-          {getFilteredRequests().length === 0 ? (
-            <EmptyState>
-              <div className='empty-icon'>
-                <AccessibleEmoji emoji='💵' label='Dinheiro' />
-              </div>
-              <h3 className='empty-title'>Nenhuma solicitação encontrada</h3>
-              <p className='empty-description'>
-                Não há solicitações que correspondam aos filtros selecionados.
-              </p>
-            </EmptyState>
-          ) : (
-            <RequestsGrid>
-              {getFilteredRequests().map(request => (
-                <RequestCard
-                  key={request.id}
-                  $theme={theme}
-                  $status={request.status}
-                >
-                  <RequestHeader>
-                    <RequestType $type={request.type}>
-                      <span>{getRequestTypeIcon(request.type)}</span>
-                      <span>{getRequestTypeName(request.type)}</span>
-                    </RequestType>
-                    <RequestStatus $status={request.status}>
-                      {getStatusName(request.status)}
-                    </RequestStatus>
-                  </RequestHeader>
+          {conditions && (
+            <ConditionsSection $theme={theme}>
+              <ConditionsTitle>Resumo das Condições</ConditionsTitle>
+              <ConditionRow>
+                <ConditionLabel>Valor solicitado:</ConditionLabel>
+                <ConditionValue>
+                  {formatCurrency(conditions.amount)}
+                </ConditionValue>
+              </ConditionRow>
+              <ConditionRow>
+                <ConditionLabel>Taxa de juros:</ConditionLabel>
+                <ConditionValue>
+                  {conditions.interestRate}% ao mês
+                </ConditionValue>
+              </ConditionRow>
+              <ConditionRow>
+                <ConditionLabel>Valor total:</ConditionLabel>
+                <ConditionValue>
+                  {formatCurrency(conditions.totalAmount)}
+                </ConditionValue>
+              </ConditionRow>
+              <ConditionRow>
+                <ConditionLabel>Valor da parcela:</ConditionLabel>
+                <ConditionValue>
+                  {formatCurrency(conditions.monthlyPayment)}
+                </ConditionValue>
+              </ConditionRow>
+              <ConditionRow>
+                <ConditionLabel>Data de vencimento:</ConditionLabel>
+                <ConditionValue>{conditions.dueDate}</ConditionValue>
+              </ConditionRow>
+            </ConditionsSection>
+          )}
 
-                  <RequestInfo>
-                    <RequestTitle>{request.employeeName}</RequestTitle>
-                    <RequestDetails>
-                      Data:{' '}
-                      {new Date(request.requestDate).toLocaleDateString(
-                        'pt-BR'
-                      )}
-                    </RequestDetails>
-                    <RequestDetails>
-                      Parcelas: {request.installments}x de{' '}
-                      {formatCurrency(request.monthlyPayment)}
-                    </RequestDetails>
-                    <RequestDetails>
-                      Vencimento:{' '}
-                      {new Date(request.dueDate).toLocaleDateString('pt-BR')}
-                    </RequestDetails>
-                    <RequestAmount>
-                      {formatCurrency(request.totalAmount)}
-                    </RequestAmount>
-                  </RequestInfo>
+          <ButtonGroup>
+            <ActionButton type='submit' variant='primary' theme={theme}>
+              <AccessibleEmoji emoji='📤' label='Exportar' /> Enviar Solicitação
+            </ActionButton>
+          </ButtonGroup>
+        </Form>
+      </RequestSection>
 
-                  <RequestActions>
-                    <RequestActionButton
-                      $theme={theme}
-                      onClick={() => handleViewRequest(request)}
-                    >
-                      <AccessibleEmoji emoji='👁' label='Ver' /> Detalhes
-                    </RequestActionButton>
+      {/* Seção de Aprovação (apenas para empregadores) */}
+      {currentProfile?.role === 'Empregador' && (
+        <ApprovalSection $theme={theme}>
+          <ApprovalTitle>Aprovação de Solicitações</ApprovalTitle>
+          <ApprovalSection $theme={theme}>
+            <ActionButton variant='secondary' theme={theme}>
+              <AccessibleEmoji emoji='📊' label='Dashboard' /> Exportar
+              Relatório
+            </ActionButton>
+          </ApprovalSection>
+        </ApprovalSection>
+      )}
 
-                    {request.status === 'pending' &&
-                      selectedProfile?.role === 'Empregador' && (
-                        <>
-                          <RequestActionButton
-                            $theme={theme}
-                            $variant='success'
-                            onClick={() =>
-                              handleApprovalAction(request.id, 'approve')
-                            }
-                          >
-                            <AccessibleEmoji emoji='✅' label='Sucesso' />{' '}
-                            Aprovar
-                          </RequestActionButton>
-                          <RequestActionButton
-                            $theme={theme}
-                            $variant='danger'
-                            onClick={() =>
-                              handleApprovalAction(request.id, 'reject')
-                            }
-                          >
-                            <AccessibleEmoji emoji='❌' label='Erro' /> Rejeitar
-                          </RequestActionButton>
-                        </>
-                      )}
+      {/* Filtros */}
+      <FilterSection theme={theme} title='Filtros e Busca'>
+        <FormRow>
+          <FormGroup>
+            <Label>Status</Label>
+            <Select
+              $theme={theme}
+              value={filters.status}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, status: e.target.value }))
+              }
+              aria-label='Filtrar por status'
+              title='Filtrar por status'
+            >
+              <option value=''>Todos os status</option>
+              <option value='pending'>Pendente</option>
+              <option value='approved'>Aprovado</option>
+              <option value='rejected'>Rejeitado</option>
+              <option value='paid'>Pago</option>
+            </Select>
+          </FormGroup>
+          <FormGroup>
+            <Label>Tipo</Label>
+            <Select
+              $theme={theme}
+              value={filters.type}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, type: e.target.value }))
+              }
+              aria-label='Filtrar por tipo'
+              title='Filtrar por tipo'
+            >
+              <option value=''>Todos os tipos</option>
+              <option value='advance'>Adiantamento</option>
+              <option value='loan'>Empréstimo</option>
+            </Select>
+          </FormGroup>
+          <FormGroup>
+            <Label>Funcionário</Label>
+            <Input
+              $theme={theme}
+              type='text'
+              value={filters.employee}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, employee: e.target.value }))
+              }
+              placeholder='Nome do funcionário...'
+            />
+          </FormGroup>
+        </FormRow>
+      </FilterSection>
 
-                    {request.status === 'pending' &&
-                      selectedProfile?.role !== 'Empregador' && (
+      {/* Listagem de Solicitações */}
+      <RequestsSection $theme={theme}>
+        <RequestsTitle>Histórico de Solicitações</RequestsTitle>
+
+        {getFilteredRequests().length === 0 ? (
+          <EmptyState>
+            <div className='empty-icon'>
+              <AccessibleEmoji emoji='💵' label='Dinheiro' />
+            </div>
+            <h3 className='empty-title'>Nenhuma solicitação encontrada</h3>
+            <p className='empty-description'>
+              Não há solicitações que correspondam aos filtros selecionados.
+            </p>
+          </EmptyState>
+        ) : (
+          <RequestsGrid>
+            {getFilteredRequests().map(request => (
+              <RequestCard
+                key={request.id}
+                $theme={theme}
+                $status={request.status}
+              >
+                <RequestHeader>
+                  <RequestType $type={request.type}>
+                    <span>{getRequestTypeIcon(request.type)}</span>
+                    <span>{getRequestTypeName(request.type)}</span>
+                  </RequestType>
+                  <RequestStatus $status={request.status}>
+                    {getStatusName(request.status)}
+                  </RequestStatus>
+                </RequestHeader>
+
+                <RequestInfo>
+                  <RequestTitle>{request.employeeName}</RequestTitle>
+                  <RequestDetails>
+                    Data:{' '}
+                    {new Date(request.requestDate).toLocaleDateString('pt-BR')}
+                  </RequestDetails>
+                  <RequestDetails>
+                    Parcelas: {request.installments}x de{' '}
+                    {formatCurrency(request.monthlyPayment)}
+                  </RequestDetails>
+                  <RequestDetails>
+                    Vencimento:{' '}
+                    {new Date(request.dueDate).toLocaleDateString('pt-BR')}
+                  </RequestDetails>
+                  <RequestAmount>
+                    {formatCurrency(request.totalAmount)}
+                  </RequestAmount>
+                </RequestInfo>
+
+                <RequestActions>
+                  <RequestActionButton
+                    $theme={theme}
+                    onClick={() => handleViewRequest(request)}
+                  >
+                    <AccessibleEmoji emoji='👁' label='Ver' /> Detalhes
+                  </RequestActionButton>
+
+                  {request.status === 'pending' &&
+                    currentProfile?.role === 'Empregador' && (
+                      <>
                         <RequestActionButton
                           $theme={theme}
-                          $variant='secondary'
-                          onClick={() => handleCancelRequest(request.id)}
+                          $variant='success'
+                          onClick={() =>
+                            handleApprovalAction(request.id, 'approve')
+                          }
                         >
-                          <AccessibleEmoji emoji='❌' label='Excluir' />{' '}
-                          Cancelar
+                          <AccessibleEmoji emoji='✅' label='Sucesso' /> Aprovar
                         </RequestActionButton>
-                      )}
-                  </RequestActions>
-                </RequestCard>
-              ))}
-            </RequestsGrid>
-          )}
-        </RequestsSection>
+                        <RequestActionButton
+                          $theme={theme}
+                          $variant='danger'
+                          onClick={() =>
+                            handleApprovalAction(request.id, 'reject')
+                          }
+                        >
+                          <AccessibleEmoji emoji='❌' label='Erro' /> Rejeitar
+                        </RequestActionButton>
+                      </>
+                    )}
 
-        {/* Termos e Condições */}
-        <TermsSection $theme={theme}>
-          <TermsTitle>Termos e Condições</TermsTitle>
-          <TermsContent>
-            <h3>Adiantamento de Salário</h3>
-            <ul>
-              <li>Sem taxa de juros ou custos adicionais</li>
-              <li>Desconto integral no próximo holerite</li>
-              <li>Limite de até 50% do salário bruto</li>
-              <li>Aprovação imediata para valores até R$ 500,00</li>
-            </ul>
+                  {request.status === 'pending' &&
+                    currentProfile?.role !== 'Empregador' && (
+                      <RequestActionButton
+                        $theme={theme}
+                        $variant='secondary'
+                        onClick={() => handleCancelRequest(request.id)}
+                      >
+                        <AccessibleEmoji emoji='❌' label='Excluir' /> Cancelar
+                      </RequestActionButton>
+                    )}
+                </RequestActions>
+              </RequestCard>
+            ))}
+          </RequestsGrid>
+        )}
+      </RequestsSection>
 
-            <h3>Empréstimo</h3>
-            <ul>
-              <li>Taxa de juros de 2,5% ao mês (CET: 2,5% a.m.)</li>
-              <li>Parcelamento em até 12 vezes</li>
-              <li>Desconto automático no holerite</li>
-              <li>Análise de crédito obrigatória</li>
-            </ul>
+      {/* Termos e Condições */}
+      <TermsSection $theme={theme}>
+        <TermsTitle>Termos e Condições</TermsTitle>
+        <TermsContent>
+          <h3>Adiantamento de Salário</h3>
+          <ul>
+            <li>Sem taxa de juros ou custos adicionais</li>
+            <li>Desconto integral no próximo holerite</li>
+            <li>Limite de até 50% do salário bruto</li>
+            <li>Aprovação imediata para valores até R$ 500,00</li>
+          </ul>
 
-            <h3>Condições Gerais</h3>
-            <ul>
-              <li>
-                Funcionário deve estar em dia com as obrigações trabalhistas
-              </li>
-              <li>Prazo mínimo de 30 dias de trabalho na empresa</li>
-              <li>Possibilidade de cancelamento em até 24h após aprovação</li>
-              <li>Conformidade com a legislação trabalhista vigente</li>
-            </ul>
-          </TermsContent>
-        </TermsSection>
+          <h3>Empréstimo</h3>
+          <ul>
+            <li>Taxa de juros de 2,5% ao mês (CET: 2,5% a.m.)</li>
+            <li>Parcelamento em até 12 vezes</li>
+            <li>Desconto automático no holerite</li>
+            <li>Análise de crédito obrigatória</li>
+          </ul>
+
+          <h3>Condições Gerais</h3>
+          <ul>
+            <li>
+              Funcionário deve estar em dia com as obrigações trabalhistas
+            </li>
+            <li>Prazo mínimo de 30 dias de trabalho na empresa</li>
+            <li>Possibilidade de cancelamento em até 24h após aprovação</li>
+            <li>Conformidade com a legislação trabalhista vigente</li>
+          </ul>
+        </TermsContent>
+      </TermsSection>
 
       {/* Modal de Detalhes da Solicitação */}
       <Modal

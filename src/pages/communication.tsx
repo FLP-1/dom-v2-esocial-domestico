@@ -13,6 +13,7 @@ import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Types
@@ -540,30 +541,9 @@ export default function Communication() {
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mock data
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      nickname: 'João',
-      role: 'Empregador',
-      group: 'Família Silva',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      nickname: 'Maria',
-      role: 'Empregada',
-      group: 'Família Silva',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
-  const { theme, updateTheme } = useTheme(selectedProfile?.role.toLowerCase());
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const contacts: Contact[] = [
     {
@@ -615,8 +595,7 @@ export default function Communication() {
     {
       id: '2',
       name: 'Família Silva',
-      avatar:
-        '<AccessibleEmoji emoji="👨" label="Homem" />‍<AccessibleEmoji emoji="👩" label="Mulher" />‍<AccessibleEmoji emoji="👧" label="Menina" />‍<AccessibleEmoji emoji="👦" label="Menino" />',
+      avatar: '👨‍👩‍👧‍👦',
       lastMessage: 'Ana: Lembrem-se da reunião de amanhã às 14h',
       lastMessageTime: '09:45',
       unreadCount: 0,
@@ -720,22 +699,14 @@ export default function Communication() {
     ],
   });
 
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
-
   const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedConversation || !selectedProfile) return;
+    if (!newMessage.trim() || !selectedConversation || !currentProfile) return;
 
     const message: Message = {
       id: Date.now().toString(),
-      senderId: selectedProfile.id,
-      senderName: selectedProfile.name,
-      senderAvatar: selectedProfile.avatar,
+      senderId: currentProfile.id,
+      senderName: currentProfile.name,
+      senderAvatar: currentProfile.avatar,
       content: newMessage,
       timestamp: new Date().toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -763,7 +734,7 @@ export default function Communication() {
   };
 
   const handleCreateGroup = () => {
-    if (!groupName.trim() || selectedContacts.length < 2 || !selectedProfile) {
+    if (!groupName.trim() || selectedContacts.length < 2 || !currentProfile) {
       toast.error('Nome do grupo e pelo menos 2 membros são obrigatórios!');
       return;
     }
@@ -771,7 +742,7 @@ export default function Communication() {
     const newGroup: Conversation = {
       id: Date.now().toString(),
       name: groupName,
-      avatar: '<AccessibleEmoji emoji="👥" label="Equipe" />',
+      avatar: '👥',
       lastMessage: 'Grupo criado',
       lastMessageTime: new Date().toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -781,7 +752,7 @@ export default function Communication() {
       isGroup: true,
       isPinned: false,
       isMuted: false,
-      participants: [selectedProfile.id, ...selectedContacts],
+      participants: [currentProfile.id, ...selectedContacts],
       onlineStatus: 'online',
     };
 
@@ -819,17 +790,14 @@ export default function Communication() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={
             conversations.filter(c => c.unreadCount > 0).length
           }
@@ -845,176 +813,172 @@ export default function Communication() {
         subtitle='Mantenha-se conectado com sua equipe através de mensagens instantâneas'
       />
 
-        <ChatLayout>
-          <ConversationsSidebar $theme={theme}>
-            <SidebarHeader $theme={theme}>
-              <HeaderTitle>Conversas</HeaderTitle>
-              <HeaderActions>
-                <ActionIcon
-                  $theme={theme}
-                  onClick={() => setShowGroupModal(true)}
-                >
-                  <AccessibleEmoji emoji='👥' label='Equipe' />
-                </ActionIcon>
-                <ActionIcon $theme={theme}>
-                  <AccessibleEmoji emoji='⚙' label='Configurações' />
-                </ActionIcon>
-              </HeaderActions>
-            </SidebarHeader>
-
-            <SearchContainer>
-              <SearchInput
+      <ChatLayout>
+        <ConversationsSidebar $theme={theme}>
+          <SidebarHeader $theme={theme}>
+            <HeaderTitle>Conversas</HeaderTitle>
+            <HeaderActions>
+              <ActionIcon
                 $theme={theme}
-                type='text'
-                placeholder='Pesquisar conversas...'
-              />
-            </SearchContainer>
+                onClick={() => setShowGroupModal(true)}
+              >
+                <AccessibleEmoji emoji='👥' label='Equipe' />
+              </ActionIcon>
+              <ActionIcon $theme={theme}>
+                <AccessibleEmoji emoji='⚙' label='Configurações' />
+              </ActionIcon>
+            </HeaderActions>
+          </SidebarHeader>
 
-            <ConversationsList>
-              {conversations.map(conversation => (
-                <ConversationItem
-                  key={conversation.id}
-                  $active={selectedConversation === conversation.id}
-                  $theme={theme}
-                  onClick={() => setSelectedConversation(conversation.id)}
-                >
+          <SearchContainer>
+            <SearchInput
+              $theme={theme}
+              type='text'
+              placeholder='Pesquisar conversas...'
+            />
+          </SearchContainer>
+
+          <ConversationsList>
+            {conversations.map(conversation => (
+              <ConversationItem
+                key={conversation.id}
+                $active={selectedConversation === conversation.id}
+                $theme={theme}
+                onClick={() => setSelectedConversation(conversation.id)}
+              >
+                <AvatarContainer>
+                  <Avatar $color={conversation.isGroup ? '#9B59B6' : '#29ABE2'}>
+                    {conversation.avatar}
+                  </Avatar>
+                  {!conversation.isGroup && (
+                    <OnlineIndicator $status={conversation.onlineStatus} />
+                  )}
+                </AvatarContainer>
+
+                <ConversationContent>
+                  <ConversationName>
+                    {conversation.isPinned && '📌 '}
+                    {conversation.name}
+                    {conversation.isMuted && ' 🔇'}
+                  </ConversationName>
+                  <LastMessage>{conversation.lastMessage}</LastMessage>
+                </ConversationContent>
+
+                <ConversationMeta>
+                  <MessageTime $isOwn={false}>
+                    {conversation.lastMessageTime}
+                  </MessageTime>
+                  {conversation.unreadCount > 0 && (
+                    <UnreadBadge $theme={theme}>
+                      {conversation.unreadCount}
+                    </UnreadBadge>
+                  )}
+                </ConversationMeta>
+              </ConversationItem>
+            ))}
+          </ConversationsList>
+        </ConversationsSidebar>
+
+        <ChatArea>
+          {selectedConv ? (
+            <>
+              <ChatHeader $theme={theme}>
+                <ChatHeaderInfo>
                   <AvatarContainer>
                     <Avatar
-                      $color={conversation.isGroup ? '#9B59B6' : '#29ABE2'}
+                      $color={selectedConv.isGroup ? '#9B59B6' : '#29ABE2'}
                     >
-                      {conversation.avatar}
+                      {selectedConv.avatar}
                     </Avatar>
-                    {!conversation.isGroup && (
-                      <OnlineIndicator $status={conversation.onlineStatus} />
+                    {!selectedConv.isGroup && (
+                      <OnlineIndicator $status={selectedConv.onlineStatus} />
                     )}
                   </AvatarContainer>
+                  <div>
+                    <ConversationName>{selectedConv.name}</ConversationName>
+                    <ConversationStatus>
+                      {selectedConv.isGroup
+                        ? `${selectedConv.participants.length} membros`
+                        : selectedConv.onlineStatus === 'online'
+                          ? 'Online'
+                          : 'Offline'}
+                    </ConversationStatus>
+                  </div>
+                </ChatHeaderInfo>
 
-                  <ConversationContent>
-                    <ConversationName>
-                      {conversation.isPinned &&
-                        '<AccessibleEmoji emoji="📌" label="Marcador" /> '}
-                      {conversation.name}
-                      {conversation.isMuted &&
-                        ' <AccessibleEmoji emoji="🔇" label="Silenciado" />'}
-                    </ConversationName>
-                    <LastMessage>{conversation.lastMessage}</LastMessage>
-                  </ConversationContent>
+                <ChatHeaderActions>
+                  <ActionIcon $theme={theme}>
+                    <AccessibleEmoji emoji='📞' label='Contato' />
+                  </ActionIcon>
+                  <ActionIcon $theme={theme}>
+                    <AccessibleEmoji emoji='📹' label='Vídeo' />
+                  </ActionIcon>
+                  <ActionIcon $theme={theme}>
+                    <AccessibleEmoji emoji='🔍' label='Pesquisa' />
+                  </ActionIcon>
+                  <ActionIcon $theme={theme}>⋯</ActionIcon>
+                </ChatHeaderActions>
+              </ChatHeader>
 
-                  <ConversationMeta>
-                    <MessageTime $isOwn={false}>
-                      {conversation.lastMessageTime}
-                    </MessageTime>
-                    {conversation.unreadCount > 0 && (
-                      <UnreadBadge $theme={theme}>
-                        {conversation.unreadCount}
-                      </UnreadBadge>
-                    )}
-                  </ConversationMeta>
-                </ConversationItem>
-              ))}
-            </ConversationsList>
-          </ConversationsSidebar>
-
-          <ChatArea>
-            {selectedConv ? (
-              <>
-                <ChatHeader $theme={theme}>
-                  <ChatHeaderInfo>
-                    <AvatarContainer>
-                      <Avatar
-                        $color={selectedConv.isGroup ? '#9B59B6' : '#29ABE2'}
-                      >
-                        {selectedConv.avatar}
-                      </Avatar>
-                      {!selectedConv.isGroup && (
-                        <OnlineIndicator $status={selectedConv.onlineStatus} />
-                      )}
-                    </AvatarContainer>
-                    <div>
-                      <ConversationName>{selectedConv.name}</ConversationName>
-                      <ConversationStatus>
-                        {selectedConv.isGroup
-                          ? `${selectedConv.participants.length} membros`
-                          : selectedConv.onlineStatus === 'online'
-                            ? 'Online'
-                            : 'Offline'}
-                      </ConversationStatus>
-                    </div>
-                  </ChatHeaderInfo>
-
-                  <ChatHeaderActions>
-                    <ActionIcon $theme={theme}>
-                      <AccessibleEmoji emoji='📞' label='Contato' />
-                    </ActionIcon>
-                    <ActionIcon $theme={theme}>
-                      <AccessibleEmoji emoji='📹' label='Vídeo' />
-                    </ActionIcon>
-                    <ActionIcon $theme={theme}>
-                      <AccessibleEmoji emoji='🔍' label='Pesquisa' />
-                    </ActionIcon>
-                    <ActionIcon $theme={theme}>⋯</ActionIcon>
-                  </ChatHeaderActions>
-                </ChatHeader>
-
-                <ChatMessages>
-                  {currentMessages.map(message => (
-                    <MessageBubble
-                      key={message.id}
-                      $isOwn={message.isOwn}
-                      $theme={theme}
-                    >
-                      <MessageContent $isOwn={message.isOwn} $theme={theme}>
-                        <MessageText>{message.content}</MessageText>
-                      </MessageContent>
-                      <MessageTime $isOwn={message.isOwn}>
-                        {message.timestamp}
-                      </MessageTime>
-                    </MessageBubble>
-                  ))}
-                  <div ref={messagesEndRef} />
-                </ChatMessages>
-
-                <MessageInput $theme={theme}>
-                  <AttachmentButton $theme={theme}>
-                    <AccessibleEmoji emoji='📎' label='Anexo' />
-                  </AttachmentButton>
-
-                  <InputContainer>
-                    <MessageTextarea
-                      value={newMessage}
-                      onChange={e => setNewMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder='Digite sua mensagem...'
-                      rows={1}
-                    />
-                    <EmojiButton $theme={theme}>
-                      <AccessibleEmoji emoji='😊' label='Sorriso' />
-                    </EmojiButton>
-                  </InputContainer>
-
-                  <SendButton
+              <ChatMessages>
+                {currentMessages.map(message => (
+                  <MessageBubble
+                    key={message.id}
+                    $isOwn={message.isOwn}
                     $theme={theme}
-                    $disabled={!newMessage.trim()}
-                    onClick={handleSendMessage}
-                    disabled={!newMessage.trim()}
                   >
-                    <AccessibleEmoji emoji='➤' label='Enviar' />
-                  </SendButton>
-                </MessageInput>
-              </>
-            ) : (
-              <EmptyState>
-                <EmptyStateIcon>
-                  <AccessibleEmoji emoji='💬' label='Comunicação' />
-                </EmptyStateIcon>
-                <EmptyStateTitle>Selecione uma conversa</EmptyStateTitle>
-                <EmptyStateDescription>
-                  Escolha uma conversa da lista ao lado para começar a conversar
-                </EmptyStateDescription>
-              </EmptyState>
-            )}
-          </ChatArea>
-        </ChatLayout>
+                    <MessageContent $isOwn={message.isOwn} $theme={theme}>
+                      <MessageText>{message.content}</MessageText>
+                    </MessageContent>
+                    <MessageTime $isOwn={message.isOwn}>
+                      {message.timestamp}
+                    </MessageTime>
+                  </MessageBubble>
+                ))}
+                <div ref={messagesEndRef} />
+              </ChatMessages>
+
+              <MessageInput $theme={theme}>
+                <AttachmentButton $theme={theme}>
+                  <AccessibleEmoji emoji='📎' label='Anexo' />
+                </AttachmentButton>
+
+                <InputContainer>
+                  <MessageTextarea
+                    value={newMessage}
+                    onChange={e => setNewMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder='Digite sua mensagem...'
+                    rows={1}
+                  />
+                  <EmojiButton $theme={theme}>
+                    <AccessibleEmoji emoji='😊' label='Sorriso' />
+                  </EmojiButton>
+                </InputContainer>
+
+                <SendButton
+                  $theme={theme}
+                  $disabled={!newMessage.trim()}
+                  onClick={handleSendMessage}
+                  disabled={!newMessage.trim()}
+                >
+                  <AccessibleEmoji emoji='➤' label='Enviar' />
+                </SendButton>
+              </MessageInput>
+            </>
+          ) : (
+            <EmptyState>
+              <EmptyStateIcon>
+                <AccessibleEmoji emoji='💬' label='Comunicação' />
+              </EmptyStateIcon>
+              <EmptyStateTitle>Selecione uma conversa</EmptyStateTitle>
+              <EmptyStateDescription>
+                Escolha uma conversa da lista ao lado para começar a conversar
+              </EmptyStateDescription>
+            </EmptyState>
+          )}
+        </ChatArea>
+      </ChatLayout>
 
       <Modal
         isOpen={showGroupModal}

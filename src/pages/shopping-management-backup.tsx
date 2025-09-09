@@ -20,6 +20,7 @@ import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Interfaces
@@ -342,31 +343,14 @@ const EmptyState = styled.div`
 
 export default function ShoppingManagement() {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedList, setSelectedList] = useState<ShoppingList | null>(null);
   const [newItemName, setNewItemName] = useState('');
 
-  // Mock data
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregada',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const categories: ShoppingCategory[] = [
     {
@@ -468,14 +452,6 @@ export default function ShoppingManagement() {
     category: '',
     showCompleted: false,
   });
-
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
 
   const handleCreateList = (e: React.FormEvent) => {
     e.preventDefault();
@@ -619,17 +595,14 @@ export default function ShoppingManagement() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={getTotalLists()}
           onNotificationClick={() =>
             toast.info('Notificações em desenvolvimento')
@@ -643,202 +616,200 @@ export default function ShoppingManagement() {
         subtitle='Organize suas listas de compras e mantenha o lar sempre abastecido'
       />
 
-        <CreateListSection $theme={theme}>
-          <SectionTitle>Criar Nova Lista</SectionTitle>
-          <Form onSubmit={handleCreateList}>
-            <FormRow>
-              <FormGroupFlex>
-                <Label>Nome da Lista</Label>
-                <Input
-                  $theme={theme}
-                  type='text'
-                  value={newList.name}
-                  onChange={e =>
-                    setNewList(prev => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder='Ex: Compras da semana'
-                  required
-                />
-              </FormGroupFlex>
-
-              <FormGroupFlex>
-                <Label>Categoria</Label>
-                <Select
-                  $theme={theme}
-                  value={newList.category}
-                  onChange={e =>
-                    setNewList(prev => ({ ...prev, category: e.target.value }))
-                  }
-                  required
-                  aria-label='Selecionar categoria'
-                  title='Selecionar categoria'
-                >
-                  <option value=''>Selecionar categoria</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.name}>
-                      {category.icon} {category.name}
-                    </option>
-                  ))}
-                </Select>
-              </FormGroupFlex>
-
-              <ActionButton type='submit' variant='primary' theme={theme}>
-                <AccessibleEmoji emoji='➕' label='Novo' /> Criar Lista
-              </ActionButton>
-            </FormRow>
-          </Form>
-        </CreateListSection>
-
-        <FilterSection theme={theme} title='Filtros e Busca'>
+      <CreateListSection $theme={theme}>
+        <SectionTitle>Criar Nova Lista</SectionTitle>
+        <Form onSubmit={handleCreateList}>
           <FormRow>
-            <FormGroup>
-              <Label>Buscar Listas</Label>
+            <FormGroupFlex>
+              <Label>Nome da Lista</Label>
               <Input
                 $theme={theme}
                 type='text'
-                value={filters.search}
+                value={newList.name}
                 onChange={e =>
-                  setFilters(prev => ({ ...prev, search: e.target.value }))
+                  setNewList(prev => ({ ...prev, name: e.target.value }))
                 }
-                placeholder='Digite o nome da lista...'
+                placeholder='Ex: Compras da semana'
+                required
               />
-            </FormGroup>
+            </FormGroupFlex>
 
-            <FormGroup>
-              <Label>Filtrar por Categoria</Label>
+            <FormGroupFlex>
+              <Label>Categoria</Label>
               <Select
                 $theme={theme}
-                value={filters.category}
+                value={newList.category}
                 onChange={e =>
-                  setFilters(prev => ({ ...prev, category: e.target.value }))
+                  setNewList(prev => ({ ...prev, category: e.target.value }))
                 }
-                aria-label='Filtrar por categoria'
-                title='Filtrar por categoria'
+                required
+                aria-label='Selecionar categoria'
+                title='Selecionar categoria'
               >
-                <option value=''>Todas as categorias</option>
+                <option value=''>Selecionar categoria</option>
                 {categories.map(category => (
                   <option key={category.id} value={category.name}>
                     {category.icon} {category.name}
                   </option>
                 ))}
               </Select>
-            </FormGroup>
+            </FormGroupFlex>
 
-            <FormGroup>
-              <Label>Mostrar apenas</Label>
-              <Select
-                $theme={theme}
-                value={filters.showCompleted ? 'completed' : 'all'}
-                onChange={e =>
-                  setFilters(prev => ({
-                    ...prev,
-                    showCompleted: e.target.value === 'completed',
-                  }))
-                }
-                aria-label='Filtrar listas'
-                title='Filtrar listas'
-              >
-                <option value='all'>Todas as listas</option>
-                <option value='completed'>Listas completas</option>
-              </Select>
-            </FormGroup>
+            <ActionButton type='submit' variant='primary' theme={theme}>
+              <AccessibleEmoji emoji='➕' label='Novo' /> Criar Lista
+            </ActionButton>
           </FormRow>
-        </FilterSection>
+        </Form>
+      </CreateListSection>
 
-        {getFilteredLists().length === 0 ? (
-          <EmptyState>
-            <div className='empty-icon'>
-              <AccessibleEmoji emoji='🛍' label='Carrinho' />
-            </div>
-            <h3 className='empty-title'>Nenhuma lista encontrada</h3>
-            <p className='empty-description'>
-              Crie sua primeira lista de compras para começar a organizar suas
-              compras.
-            </p>
-          </EmptyState>
-        ) : (
-          <ListsGrid>
-            {getFilteredLists().map(list => {
-              const categoryInfo = getCategoryInfo(list.category);
-              return (
-                <ListCard
-                  key={list.id}
-                  $theme={theme}
-                  onClick={() => openListModal(list)}
-                >
-                  <ListHeader>
-                    <ListTitle>{list.name}</ListTitle>
-                    <CategoryBadge $color={categoryInfo.color}>
-                      {categoryInfo.icon} {list.category}
-                    </CategoryBadge>
-                  </ListHeader>
+      <FilterSection theme={theme} title='Filtros e Busca'>
+        <FormRow>
+          <FormGroup>
+            <Label>Buscar Listas</Label>
+            <Input
+              $theme={theme}
+              type='text'
+              value={filters.search}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, search: e.target.value }))
+              }
+              placeholder='Digite o nome da lista...'
+            />
+          </FormGroup>
 
-                  <ListStats>
-                    <StatItem>
-                      <p className='stat-number'>{list.totalItems}</p>
-                      <p className='stat-label'>Total</p>
-                    </StatItem>
-                    <StatItem>
-                      <p className='stat-number'>{list.boughtItems}</p>
-                      <p className='stat-label'>Comprados</p>
-                    </StatItem>
-                    <StatItem>
-                      <p className='stat-number'>
-                        {list.totalItems > 0
-                          ? Math.round(
-                              (list.boughtItems / list.totalItems) * 100
-                            )
-                          : 0}
-                        %
-                      </p>
-                      <p className='stat-label'>Progresso</p>
-                    </StatItem>
-                  </ListStats>
+          <FormGroup>
+            <Label>Filtrar por Categoria</Label>
+            <Select
+              $theme={theme}
+              value={filters.category}
+              onChange={e =>
+                setFilters(prev => ({ ...prev, category: e.target.value }))
+              }
+              aria-label='Filtrar por categoria'
+              title='Filtrar por categoria'
+            >
+              <option value=''>Todas as categorias</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.name}>
+                  {category.icon} {category.name}
+                </option>
+              ))}
+            </Select>
+          </FormGroup>
 
-                  <ListMeta>
-                    <AccessibleEmoji emoji='📅' label='Calendário' /> Criada em:{' '}
-                    {new Date(list.createdAt).toLocaleDateString('pt-BR')}
-                    <br />
-                    <AccessibleEmoji emoji='✏' label='Editar' /> Modificada em:{' '}
-                    {new Date(list.lastModified).toLocaleDateString('pt-BR')}
-                  </ListMeta>
+          <FormGroup>
+            <Label>Mostrar apenas</Label>
+            <Select
+              $theme={theme}
+              value={filters.showCompleted ? 'completed' : 'all'}
+              onChange={e =>
+                setFilters(prev => ({
+                  ...prev,
+                  showCompleted: e.target.value === 'completed',
+                }))
+              }
+              aria-label='Filtrar listas'
+              title='Filtrar listas'
+            >
+              <option value='all'>Todas as listas</option>
+              <option value='completed'>Listas completas</option>
+            </Select>
+          </FormGroup>
+        </FormRow>
+      </FilterSection>
 
-                  <ListActions>
-                    <ActionButtonSmall
-                      $theme={theme}
-                      onClick={e => {
-                        e.stopPropagation();
-                        openListModal(list);
-                      }}
-                    >
-                      <AccessibleEmoji emoji='👁' label='Ver' /> Ver
-                    </ActionButtonSmall>
-                    <ActionButtonSmall
-                      $theme={theme}
-                      onClick={e => {
-                        e.stopPropagation();
-                        toast.info('Compartilhamento em desenvolvimento');
-                      }}
-                    >
-                      <AccessibleEmoji emoji='🔗' label='Compartilhar' />{' '}
-                      Compartilhar
-                    </ActionButtonSmall>
-                    <ActionButtonSmall
-                      $theme={theme}
-                      $variant='danger'
-                      onClick={e => {
-                        e.stopPropagation();
-                        handleDeleteList(list.id);
-                      }}
-                    >
-                      <AccessibleEmoji emoji='❌' label='Excluir' /> Excluir
-                    </ActionButtonSmall>
-                  </ListActions>
-                </ListCard>
-              );
-            })}
-          </ListsGrid>
-        )}
+      {getFilteredLists().length === 0 ? (
+        <EmptyState>
+          <div className='empty-icon'>
+            <AccessibleEmoji emoji='🛍' label='Carrinho' />
+          </div>
+          <h3 className='empty-title'>Nenhuma lista encontrada</h3>
+          <p className='empty-description'>
+            Crie sua primeira lista de compras para começar a organizar suas
+            compras.
+          </p>
+        </EmptyState>
+      ) : (
+        <ListsGrid>
+          {getFilteredLists().map(list => {
+            const categoryInfo = getCategoryInfo(list.category);
+            return (
+              <ListCard
+                key={list.id}
+                $theme={theme}
+                onClick={() => openListModal(list)}
+              >
+                <ListHeader>
+                  <ListTitle>{list.name}</ListTitle>
+                  <CategoryBadge $color={categoryInfo.color}>
+                    {categoryInfo.icon} {list.category}
+                  </CategoryBadge>
+                </ListHeader>
+
+                <ListStats>
+                  <StatItem>
+                    <p className='stat-number'>{list.totalItems}</p>
+                    <p className='stat-label'>Total</p>
+                  </StatItem>
+                  <StatItem>
+                    <p className='stat-number'>{list.boughtItems}</p>
+                    <p className='stat-label'>Comprados</p>
+                  </StatItem>
+                  <StatItem>
+                    <p className='stat-number'>
+                      {list.totalItems > 0
+                        ? Math.round((list.boughtItems / list.totalItems) * 100)
+                        : 0}
+                      %
+                    </p>
+                    <p className='stat-label'>Progresso</p>
+                  </StatItem>
+                </ListStats>
+
+                <ListMeta>
+                  <AccessibleEmoji emoji='📅' label='Calendário' /> Criada em:{' '}
+                  {new Date(list.createdAt).toLocaleDateString('pt-BR')}
+                  <br />
+                  <AccessibleEmoji emoji='✏' label='Editar' /> Modificada em:{' '}
+                  {new Date(list.lastModified).toLocaleDateString('pt-BR')}
+                </ListMeta>
+
+                <ListActions>
+                  <ActionButtonSmall
+                    $theme={theme}
+                    onClick={e => {
+                      e.stopPropagation();
+                      openListModal(list);
+                    }}
+                  >
+                    <AccessibleEmoji emoji='👁' label='Ver' /> Ver
+                  </ActionButtonSmall>
+                  <ActionButtonSmall
+                    $theme={theme}
+                    onClick={e => {
+                      e.stopPropagation();
+                      toast.info('Compartilhamento em desenvolvimento');
+                    }}
+                  >
+                    <AccessibleEmoji emoji='🔗' label='Compartilhar' />{' '}
+                    Compartilhar
+                  </ActionButtonSmall>
+                  <ActionButtonSmall
+                    $theme={theme}
+                    $variant='danger'
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleDeleteList(list.id);
+                    }}
+                  >
+                    <AccessibleEmoji emoji='❌' label='Excluir' /> Excluir
+                  </ActionButtonSmall>
+                </ListActions>
+              </ListCard>
+            );
+          })}
+        </ListsGrid>
+      )}
 
       <Modal
         isOpen={modalOpen}

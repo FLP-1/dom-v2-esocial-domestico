@@ -10,6 +10,7 @@ import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { WidgetGrid } from '../components/WidgetGrid';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Animações
@@ -194,37 +195,9 @@ export default function Dashboard() {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Perfis disponíveis
-  const [userProfiles] = useState([
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregado',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Empregador',
-      avatar: 'MS',
-      color: '#E74C3C',
-    },
-    {
-      id: '3',
-      name: 'Família Silva',
-      role: 'Família',
-      avatar: 'FS',
-      color: '#9B59B6',
-    },
-  ]);
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
-  const { theme, updateTheme } = useTheme(selectedProfile?.role.toLowerCase());
-
-  const handleProfileChange = (profile: any) => {
-    setSelectedProfile(profile);
-    updateTheme(profile.role.toLowerCase());
-  };
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -408,17 +381,14 @@ export default function Dashboard() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile || userProfiles[0]}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={3}
           onNotificationClick={() =>
             toast.info('Notificações em desenvolvimento')

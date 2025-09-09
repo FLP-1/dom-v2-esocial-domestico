@@ -558,7 +558,7 @@ export default function WelcomeTutorial() {
         'Sistema anti-fraude com geolocalização, verificação de dispositivo e rede Wi-Fi para registros confiáveis.',
       icon: '⏰',
       color: '#2ECC71',
-      illustration: '<AccessibleEmoji emoji="🔒" label="Privado" />',
+      illustration: '🔒',
       features: [
         'Geolocalização com geofencing',
         'Verificação de dispositivo',

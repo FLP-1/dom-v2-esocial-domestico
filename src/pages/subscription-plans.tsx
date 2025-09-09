@@ -12,6 +12,7 @@ import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
 // Interfaces
@@ -97,7 +98,7 @@ const PlanCard = styled.div<{
   border: 2px solid
     ${props => {
       if (props.$isPopular) return '#90EE90';
-      if (props.$isRecommended) return props.$theme.colors.primary;
+      if (props.$isRecommended) return '#ff6b35';
       return 'transparent';
     }};
   position: relative;
@@ -130,18 +131,16 @@ const RecommendedBadge = styled.div<{ $theme: any }>`
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(
-    135deg,
-    ${props => props.$theme.colors.primary},
-    ${props => props.$theme.colors.primaryHover}
-  );
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
   color: white;
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 700;
-  box-shadow: 0 4px 12px ${props => props.$theme.colors.primary}30;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
   z-index: 10;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 `;
 
 const PlanHeader = styled.div`
@@ -487,30 +486,13 @@ const ContactText = styled.p`
 
 export default function SubscriptionPlans() {
   const router = useRouter();
-  const { theme, updateTheme } = useTheme();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
-  // Mock data
-  const userProfiles = [
-    {
-      id: '1',
-      name: 'João Silva',
-      role: 'Empregador',
-      avatar: 'JS',
-      color: '#29ABE2',
-    },
-    {
-      id: '2',
-      name: 'Maria Santos',
-      role: 'Familiar',
-      avatar: 'MS',
-      color: '#90EE90',
-    },
-  ];
-
-  const [selectedProfile, setSelectedProfile] = useState(userProfiles[0]);
+  // Hook do contexto de perfil
+  const { currentProfile } = useUserProfile();
+  const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   const plans: Plan[] = [
     {
@@ -682,14 +664,6 @@ export default function SubscriptionPlans() {
     },
   ];
 
-  const handleProfileChange = (profileId: string) => {
-    const profile = userProfiles.find(p => p.id === profileId);
-    if (profile) {
-      setSelectedProfile(profile);
-      updateTheme(profile.role.toLowerCase());
-    }
-  };
-
   const handlePlanSelect = (plan: Plan) => {
     setSelectedPlan(plan);
     setModalOpen(true);
@@ -716,17 +690,14 @@ export default function SubscriptionPlans() {
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
-        userProfiles={userProfiles}
-        selectedProfile={selectedProfile}
-        onProfileChange={handleProfileChange}
       />
 
       <TopBar theme={theme}>
         <WelcomeSection
           theme={theme}
-          userAvatar={selectedProfile?.avatar || 'U'}
-          userName={selectedProfile?.name || 'Usuário'}
-          userRole={selectedProfile?.role || 'Usuário'}
+          userAvatar={currentProfile?.avatar || 'U'}
+          userName={currentProfile?.name || 'Usuário'}
+          userRole={currentProfile?.role || 'Usuário'}
           notificationCount={0}
           onNotificationClick={() =>
             toast.info('Notificações em desenvolvimento')
@@ -740,401 +711,399 @@ export default function SubscriptionPlans() {
         subtitle='Escolha o plano ideal para transformar sua gestão doméstica'
       />
 
-        {/* Seção de Planos */}
-        <PlansSection>
-          <PlansGrid>
-            {plans.map(plan => (
-              <PlanCard
-                key={plan.id}
-                $theme={theme}
-                $isPopular={plan.isPopular}
-                $isRecommended={plan.isRecommended}
-              >
-                {plan.isPopular && (
-                  <PopularBadge $theme={theme}>
-                    <AccessibleEmoji emoji='🔥' label='Emoji' /> MAIS POPULAR
-                  </PopularBadge>
+      {/* Seção de Planos */}
+      <PlansSection>
+        <PlansGrid>
+          {plans.map(plan => (
+            <PlanCard
+              key={plan.id}
+              $theme={theme}
+              $isPopular={plan.isPopular}
+              $isRecommended={plan.isRecommended}
+            >
+              {plan.isPopular && (
+                <PopularBadge $theme={theme}>
+                  <AccessibleEmoji emoji='🔥' label='Fogo' /> MAIS POPULAR
+                </PopularBadge>
+              )}
+              {plan.isRecommended && (
+                <RecommendedBadge $theme={theme}>
+                  <AccessibleEmoji emoji='★' label='Estrela' /> RECOMENDADO
+                </RecommendedBadge>
+              )}
+
+              <PlanHeader>
+                <PlanName>{plan.name}</PlanName>
+                <PlanTagline>{plan.tagline}</PlanTagline>
+                <PlanDescription>{plan.description}</PlanDescription>
+              </PlanHeader>
+
+              <PriceSection>
+                <MonthlyPrice>{formatPrice(plan.monthlyPrice)}</MonthlyPrice>
+                {plan.monthlyPrice > 0 && (
+                  <>
+                    <AnnualPrice>
+                      {formatPrice(plan.annualPrice)}/ano
+                    </AnnualPrice>
+                    <AnnualDiscount>({plan.annualDiscount})</AnnualDiscount>
+                  </>
                 )}
-                {plan.isRecommended && (
-                  <RecommendedBadge $theme={theme}>
-                    <AccessibleEmoji emoji='⭐' label='Recomendado' />{' '}
-                    RECOMENDADO
-                  </RecommendedBadge>
-                )}
+              </PriceSection>
 
-                <PlanHeader>
-                  <PlanName>{plan.name}</PlanName>
-                  <PlanTagline>{plan.tagline}</PlanTagline>
-                  <PlanDescription>{plan.description}</PlanDescription>
-                </PlanHeader>
+              <FeaturesList>
+                {plan.features.map((feature, index) => (
+                  <FeatureItem key={index}>
+                    <FeatureIcon>
+                      <AccessibleEmoji emoji='✓' label='Check' />
+                    </FeatureIcon>
+                    <span>{feature}</span>
+                  </FeatureItem>
+                ))}
+              </FeaturesList>
 
-                <PriceSection>
-                  <MonthlyPrice>{formatPrice(plan.monthlyPrice)}</MonthlyPrice>
-                  {plan.monthlyPrice > 0 && (
-                    <>
-                      <AnnualPrice>
-                        {formatPrice(plan.annualPrice)}/ano
-                      </AnnualPrice>
-                      <AnnualDiscount>({plan.annualDiscount})</AnnualDiscount>
-                    </>
-                  )}
-                </PriceSection>
+              <PlanButton>
+                <ActionButton
+                  variant={plan.buttonVariant}
+                  theme={theme}
+                  onClick={() => handlePlanSelect(plan)}
+                >
+                  {plan.buttonText}
+                </ActionButton>
+              </PlanButton>
+            </PlanCard>
+          ))}
+        </PlansGrid>
+      </PlansSection>
 
-                <FeaturesList>
-                  {plan.features.map((feature, index) => (
-                    <FeatureItem key={index}>
-                      <FeatureIcon>
-                        <AccessibleEmoji emoji='✓' label='Emoji' />
-                      </FeatureIcon>
-                      <span>{feature}</span>
-                    </FeatureItem>
+      {/* Tabela Comparativa */}
+      <ComparisonSection $theme={theme}>
+        <ComparisonTitle>Comparativo de Recursos</ComparisonTitle>
+        <ComparisonTable>
+          <TableHeader>
+            <TableHeaderCell>Recursos</TableHeaderCell>
+            <TableHeaderCell>Free</TableHeaderCell>
+            <TableHeaderCell>Lar Doce Lar</TableHeaderCell>
+            <TableHeaderCell>Super Doméstica</TableHeaderCell>
+            <TableHeaderCell>Ultra Pro</TableHeaderCell>
+            <TableHeaderCell>Parceria Master</TableHeaderCell>
+          </TableHeader>
+          <TableRow>
+            <TableCell>Dashboard Básico</TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Dashboard Personalizado</TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Gestão de Tarefas</TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Gestão Financeira</TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Comunicação Unificada</TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Assistente Virtual</TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Integração com Wearables</TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>Gamificação</TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>White Label</TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <XIcon>
+                <AccessibleEmoji emoji='✗' label='X' />
+              </XIcon>
+            </TableCell>
+            <TableCell>
+              <CheckIcon>
+                <AccessibleEmoji emoji='✓' label='Check' />
+              </CheckIcon>
+            </TableCell>
+          </TableRow>
+        </ComparisonTable>
+      </ComparisonSection>
+
+      {/* FAQ */}
+      <FAQSection $theme={theme}>
+        <FAQTitle>Perguntas Frequentes</FAQTitle>
+        <FAQGrid>
+          {faqs.map(faq => (
+            <FAQItem key={faq.id} $theme={theme}>
+              <FAQQuestion>{faq.question}</FAQQuestion>
+              <FAQAnswer>{faq.answer}</FAQAnswer>
+            </FAQItem>
+          ))}
+        </FAQGrid>
+      </FAQSection>
+
+      {/* Depoimentos */}
+      <TestimonialsSection $theme={theme}>
+        <TestimonialsTitle>O que nossos clientes dizem</TestimonialsTitle>
+        <TestimonialsGrid>
+          {testimonials.map(testimonial => (
+            <TestimonialCard key={testimonial.id} $theme={theme}>
+              <TestimonialText>
+                &ldquo;{testimonial.text}&rdquo;
+              </TestimonialText>
+              <TestimonialAuthor>
+                <AuthorInfo>
+                  <AuthorName>{testimonial.name}</AuthorName>
+                  <AuthorRole>{testimonial.role}</AuthorRole>
+                </AuthorInfo>
+                <Rating>
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} $filled={i < testimonial.rating}>
+                      <AccessibleEmoji emoji='★' label='Estrela' />
+                    </Star>
                   ))}
-                </FeaturesList>
+                </Rating>
+              </TestimonialAuthor>
+            </TestimonialCard>
+          ))}
+        </TestimonialsGrid>
+      </TestimonialsSection>
 
-                <PlanButton>
-                  <ActionButton
-                    variant={plan.buttonVariant}
-                    theme={theme}
-                    onClick={() => handlePlanSelect(plan)}
-                  >
-                    {plan.buttonText}
-                  </ActionButton>
-                </PlanButton>
-              </PlanCard>
-            ))}
-          </PlansGrid>
-        </PlansSection>
+      {/* Garantia */}
+      <GuaranteeSection $theme={theme}>
+        <GuaranteeTitle>
+          <AccessibleEmoji emoji='🛡' label='Escudo' /> Garantia de Satisfação
+        </GuaranteeTitle>
+        <GuaranteeText>
+          Oferecemos 30 dias de garantia total. Se não ficar satisfeito,
+          devolvemos seu dinheiro sem perguntas.
+        </GuaranteeText>
+      </GuaranteeSection>
 
-        {/* Tabela Comparativa */}
-        <ComparisonSection $theme={theme}>
-          <ComparisonTitle>Comparativo de Recursos</ComparisonTitle>
-          <ComparisonTable>
-            <TableHeader>
-              <TableHeaderCell>Recursos</TableHeaderCell>
-              <TableHeaderCell>Free</TableHeaderCell>
-              <TableHeaderCell>Lar Doce Lar</TableHeaderCell>
-              <TableHeaderCell>Super Doméstica</TableHeaderCell>
-              <TableHeaderCell>Ultra Pro</TableHeaderCell>
-              <TableHeaderCell>Parceria Master</TableHeaderCell>
-            </TableHeader>
-            <TableRow>
-              <TableCell>Dashboard Básico</TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Dashboard Personalizado</TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Gestão de Tarefas</TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Gestão Financeira</TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Comunicação Unificada</TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Assistente Virtual</TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Integração com Wearables</TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>Gamificação</TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell>White Label</TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <XIcon>
-                  <AccessibleEmoji emoji='✗' label='Emoji' />
-                </XIcon>
-              </TableCell>
-              <TableCell>
-                <CheckIcon>
-                  <AccessibleEmoji emoji='✓' label='Emoji' />
-                </CheckIcon>
-              </TableCell>
-            </TableRow>
-          </ComparisonTable>
-        </ComparisonSection>
-
-        {/* FAQ */}
-        <FAQSection $theme={theme}>
-          <FAQTitle>Perguntas Frequentes</FAQTitle>
-          <FAQGrid>
-            {faqs.map(faq => (
-              <FAQItem key={faq.id} $theme={theme}>
-                <FAQQuestion>{faq.question}</FAQQuestion>
-                <FAQAnswer>{faq.answer}</FAQAnswer>
-              </FAQItem>
-            ))}
-          </FAQGrid>
-        </FAQSection>
-
-        {/* Depoimentos */}
-        <TestimonialsSection $theme={theme}>
-          <TestimonialsTitle>O que nossos clientes dizem</TestimonialsTitle>
-          <TestimonialsGrid>
-            {testimonials.map(testimonial => (
-              <TestimonialCard key={testimonial.id} $theme={theme}>
-                <TestimonialText>
-                  &ldquo;{testimonial.text}&rdquo;
-                </TestimonialText>
-                <TestimonialAuthor>
-                  <AuthorInfo>
-                    <AuthorName>{testimonial.name}</AuthorName>
-                    <AuthorRole>{testimonial.role}</AuthorRole>
-                  </AuthorInfo>
-                  <Rating>
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} $filled={i < testimonial.rating}>
-                        <AccessibleEmoji emoji='★' label='Emoji' />
-                      </Star>
-                    ))}
-                  </Rating>
-                </TestimonialAuthor>
-              </TestimonialCard>
-            ))}
-          </TestimonialsGrid>
-        </TestimonialsSection>
-
-        {/* Garantia */}
-        <GuaranteeSection $theme={theme}>
-          <GuaranteeTitle>
-            <AccessibleEmoji emoji='🛡' label='Emoji' />️ Garantia de Satisfação
-          </GuaranteeTitle>
-          <GuaranteeText>
-            Oferecemos 30 dias de garantia total. Se não ficar satisfeito,
-            devolvemos seu dinheiro sem perguntas.
-          </GuaranteeText>
-        </GuaranteeSection>
-
-        {/* Contato */}
-        <ContactSection $theme={theme}>
-          <ContactTitle>Precisa de ajuda para escolher?</ContactTitle>
-          <ContactText>
-            Nossa equipe está pronta para ajudar você a encontrar o plano ideal
-            para suas necessidades.
-          </ContactText>
-          <ActionButton variant='secondary' theme={theme}>
-            <AccessibleEmoji emoji='📞' label='Contato' /> Falar com
-            Especialista
-          </ActionButton>
-        </ContactSection>
+      {/* Contato */}
+      <ContactSection $theme={theme}>
+        <ContactTitle>Precisa de ajuda para escolher?</ContactTitle>
+        <ContactText>
+          Nossa equipe está pronta para ajudar você a encontrar o plano ideal
+          para suas necessidades.
+        </ContactText>
+        <ActionButton variant='secondary' theme={theme}>
+          <AccessibleEmoji emoji='📞' label='Contato' /> Falar com Especialista
+        </ActionButton>
+      </ContactSection>
 
       {/* Modal de Confirmação */}
       <Modal

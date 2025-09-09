@@ -28,9 +28,13 @@ const TermsModal = styled(Modal)`
 `;
 
 const TermsContent = styled(ModalContent)`
-  max-width: 900px;
+  max-width: 1000px;
+  width: 90vw;
   max-height: 90vh;
+  height: 90vh;
   animation: ${fadeIn} 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
 `;
 
 const TermsHeader = styled(ModalHeader)`
@@ -57,7 +61,7 @@ const TermsSubtitle = styled.p`
 
 const TermsBody = styled(ModalBody)`
   padding: 0;
-  max-height: 60vh;
+  flex: 1;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -96,6 +100,28 @@ const DocumentViewer = styled.div`
   overflow-y: auto;
   padding: 2rem;
   background: white;
+  border: 1px solid #e0e0e0;
+  margin: 0 1rem;
+  border-radius: 8px;
+
+  /* Custom scrollbar */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
 `;
 
 const DocumentHeader = styled.div`
@@ -136,9 +162,10 @@ const EffectiveDate = styled.span`
 `;
 
 const DocumentContent = styled.div`
-  line-height: 1.6;
-  font-size: 0.95rem;
+  line-height: 1.8;
+  font-size: 1rem;
   color: #333;
+  max-width: none;
 
   h3 {
     color: ${props => props.theme?.colors?.primary || '#29ABE2'};
@@ -177,8 +204,9 @@ const DocumentContent = styled.div`
 
 const AcceptanceSection = styled.div`
   background: #f8f9fa;
-  padding: 2rem;
+  padding: 1.5rem 2rem;
   border-top: 2px solid #e0e0e0;
+  flex-shrink: 0;
 `;
 
 const AcceptanceTitle = styled.h4`
@@ -243,6 +271,8 @@ const TermsFooter = styled(ModalFooter)`
   display: flex;
   gap: 1rem;
   justify-content: center;
+  flex-shrink: 0;
+  border-top: 1px solid #e0e0e0;
 `;
 
 const AcceptButton = styled(ActionButton)<{ $accepted?: boolean; $theme: any }>`
