@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
@@ -16,14 +16,15 @@ import {
 import ProxyUploadModal from '../components/ProxyUploadModal';
 import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
+import { ESOCIAL_CONFIG } from '../config/esocial';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 import type {
   CertificateInfo,
   ESocialConfig,
   ProxyInfo,
-} from '../services/esocialApi';
-import { getESocialApiService } from '../services/esocialApi';
+} from '../services/esocialHybridApi';
+import { getESocialApiService } from '../services/esocialHybridApi';
 import { validateCpf } from '../utils/cpfValidator';
 
 // Animações
@@ -53,6 +54,11 @@ const ErrorText = styled.div`
 const SmallText = styled.div`
   font-size: 0.8rem;
   color: #7f8c8d;
+`;
+
+const ApiStatusIndicator = styled.span<{ $isReal: boolean }>`
+  color: ${props => (props.$isReal ? '#27ae60' : '#f39c12')};
+  font-weight: bold;
 `;
 
 const FlexContainer = styled.div`
@@ -607,8 +613,9 @@ const ESocialIntegration: React.FC = () => {
     useState<CertificateInfo | null>(null);
   const [proxyInfo, setProxyInfo] = useState<ProxyInfo | null>(null);
   const [esocialConfig, setEsocialConfig] = useState<ESocialConfig>({
-    environment: 'test',
-    companyId: '12345678000199',
+    environment: ESOCIAL_CONFIG.environment,
+    companyId: ESOCIAL_CONFIG.empregador.cpf,
+    useRealApi: true, // Usar API real do eSocial
   });
 
   const [employerData, setEmployerData] = useState<EmployerData>({
@@ -1486,6 +1493,40 @@ const ESocialIntegration: React.FC = () => {
                   <option value='production'>Produção</option>
                 </SelectStyled>
               </SelectWrapper>
+            </FlexContainer>
+          </ConfigItem>
+          <ConfigItem>
+            <ConfigLabel>Modo de Operação</ConfigLabel>
+            <FlexContainer>
+              <ConfigValue>
+                {esocialConfig.useRealApi ? (
+                  <ApiStatusIndicator $isReal={true}>
+                    <span role='img' aria-label='Globo'>
+                      🌐
+                    </span>{' '}
+                    API Real do eSocial
+                  </ApiStatusIndicator>
+                ) : (
+                  <ApiStatusIndicator $isReal={false}>
+                    <span role='img' aria-label='Máscara'>
+                      🎭
+                    </span>{' '}
+                    Modo Simulação
+                  </ApiStatusIndicator>
+                )}
+              </ConfigValue>
+              <ActionButton
+                variant='secondary'
+                size='small'
+                onClick={() => {
+                  setEsocialConfig(prev => ({
+                    ...prev,
+                    useRealApi: !prev.useRealApi,
+                  }));
+                }}
+              >
+                {esocialConfig.useRealApi ? 'Usar Simulação' : 'Usar API Real'}
+              </ActionButton>
             </FlexContainer>
           </ConfigItem>
           <ConfigItem>
