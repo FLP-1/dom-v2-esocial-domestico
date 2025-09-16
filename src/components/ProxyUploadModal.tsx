@@ -1,17 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
-import type { ProxyInfo } from '../services/esocialApi';
-import { getESocialApiService } from '../services/esocialApi';
+import { useAlertManager } from '../hooks/useAlertManager';
+import type { ProxyInfo } from '../services/esocialHybridApi';
+import { getESocialApiService } from '../services/esocialHybridApi';
 import AccessibleEmoji from './AccessibleEmoji';
 import { ActionButton } from './ActionButton';
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from './Modal';
+import SimpleModal from './SimpleModal';
 
 // Animações
 const fadeIn = keyframes`
@@ -216,6 +210,7 @@ interface ProxyUploadModalProps {
   onClose: () => void;
   onSuccess: (proxyInfo: ProxyInfo) => void;
   theme: any;
+  esocialConfig?: any;
 }
 
 const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
@@ -223,7 +218,9 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
   onClose,
   onSuccess,
   theme,
+  esocialConfig,
 }) => {
+  const alertManager = useAlertManager();
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [proxyInfo, setProxyInfo] = useState<ProxyInfo | null>(null);
@@ -287,11 +284,16 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
     setError(null);
 
     try {
-      const esocialApi = getESocialApiService();
+      if (!esocialConfig) {
+        throw new Error('Configuração do eSocial não fornecida');
+      }
+      const esocialApi = getESocialApiService(esocialConfig);
       const proxyInfo = await esocialApi.configureProxy(selectedFile);
 
       setProxyInfo(proxyInfo);
-      toast.success('Procuração eletrônica configurada com sucesso!');
+      alertManager.showSuccess(
+        'Procuração eletrônica configurada com sucesso!'
+      );
 
       // Chamar callback de sucesso após um pequeno delay
       setTimeout(() => {
@@ -302,7 +304,7 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
       const errorMessage =
         error instanceof Error ? error.message : 'Erro ao processar procuração';
       setError(errorMessage);
-      toast.error(errorMessage);
+      alertManager.showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -345,114 +347,19 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <ModalContent>
-        <ModalHeader>
-          <h2>
-            <AccessibleEmoji emoji='📋' label='Checklist' /> Configurar
-            Procuração Eletrônica
-          </h2>
-        </ModalHeader>
-        <ModalBody>
-          {!proxyInfo ? (
-            <>
-              <UploadArea
-                $isDragOver={isDragOver}
-                $theme={theme}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <UploadIcon $theme={theme}>
-                  <AccessibleEmoji emoji='📄' label='Documento' />
-                </UploadIcon>
-                <UploadText>
-                  {isDragOver
-                    ? 'Solte o arquivo aqui'
-                    : 'Arraste a procuração eletrônica ou clique para selecionar'}
-                </UploadText>
-                <UploadSubtext>
-                  Formatos suportados: .pdf, .xml, .json (máximo 10MB)
-                </UploadSubtext>
-
-                <FileInput
-                  ref={fileInputRef}
-                  type='file'
-                  accept='.pdf,.xml,.json'
-                  onChange={handleFileInputChange}
-                />
-              </UploadArea>
-
-              {selectedFile && (
-                <FileInfo $theme={theme}>
-                  <FileName>
-                    <AccessibleEmoji emoji='📄' label='Documento' />{' '}
-                    {selectedFile.name}
-                  </FileName>
-                  <FileSize>
-                    Tamanho: {formatFileSize(selectedFile.size)}
-                  </FileSize>
-                </FileInfo>
-              )}
-
-              {error && <ErrorMessage>{error}</ErrorMessage>}
-
-              <HelpSection $theme={theme}>
-                <HelpTitle $theme={theme}>
-                  <AccessibleEmoji emoji='ℹ️' label='Informação' /> Informações
-                  sobre Procuração Eletrônica
-                </HelpTitle>
-                <HelpText>
-                  A procuração eletrônica é um documento que autoriza o envio de
-                  eventos para o eSocial em nome da empresa. Ela deve conter as
-                  permissões específicas e estar devidamente assinada
-                  digitalmente.
-                </HelpText>
-              </HelpSection>
-            </>
-          ) : (
-            <ProxyInfo $theme={theme}>
-              <InfoTitle $theme={theme}>
-                <AccessibleEmoji emoji='✅' label='Sucesso' /> Procuração
-                Eletrônica Configurada
-                <StatusBadge $isValid={proxyInfo.isValid} $theme={theme}>
-                  {proxyInfo.isValid ? 'Válida' : 'Inválida'}
-                </StatusBadge>
-              </InfoTitle>
-
-              <InfoRow>
-                <InfoLabel>Número do Documento:</InfoLabel>
-                <InfoValue>{proxyInfo.documentNumber}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Válida de:</InfoLabel>
-                <InfoValue>{formatDate(proxyInfo.validFrom)}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Válida até:</InfoLabel>
-                <InfoValue>{formatDate(proxyInfo.validTo)}</InfoValue>
-              </InfoRow>
-
-              <PermissionsList>
-                <InfoLabel style={{ marginBottom: '0.5rem', display: 'block' }}>
-                  Permissões:
-                </InfoLabel>
-                {proxyInfo.permissions.map((permission, index) => (
-                  <PermissionItem key={index} $theme={theme}>
-                    <span>
-                      <AccessibleEmoji emoji='✅' label='Sucesso' />
-                    </span>
-                    {getPermissionLabel(permission)}
-                  </PermissionItem>
-                ))}
-              </PermissionsList>
-            </ProxyInfo>
-          )}
-        </ModalBody>
-        <ModalFooter>
+    <SimpleModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={
+        <>
+          <AccessibleEmoji emoji='📋' label='Checklist' /> Configurar Procuração
+          Eletrônica
+        </>
+      }
+      maxWidth='600px'
+      theme={theme}
+      footer={
+        <>
           <ActionButton
             variant='secondary'
             theme={theme}
@@ -482,9 +389,104 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
               )}
             </ActionButton>
           )}
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </>
+      }
+    >
+      {!proxyInfo ? (
+        <>
+          <UploadArea
+            $isDragOver={isDragOver}
+            $theme={theme}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <UploadIcon $theme={theme}>
+              <AccessibleEmoji emoji='📄' label='Documento' />
+            </UploadIcon>
+            <UploadText>
+              {isDragOver
+                ? 'Solte o arquivo aqui'
+                : 'Arraste a procuração eletrônica ou clique para selecionar'}
+            </UploadText>
+            <UploadSubtext>
+              Formatos suportados: .pdf, .xml, .json (máximo 10MB)
+            </UploadSubtext>
+
+            <FileInput
+              ref={fileInputRef}
+              type='file'
+              accept='.pdf,.xml,.json'
+              onChange={handleFileInputChange}
+            />
+          </UploadArea>
+
+          {selectedFile && (
+            <FileInfo $theme={theme}>
+              <FileName>
+                <AccessibleEmoji emoji='📄' label='Documento' />{' '}
+                {selectedFile.name}
+              </FileName>
+              <FileSize>Tamanho: {formatFileSize(selectedFile.size)}</FileSize>
+            </FileInfo>
+          )}
+
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+
+          <HelpSection $theme={theme}>
+            <HelpTitle $theme={theme}>
+              <AccessibleEmoji emoji='ℹ️' label='Informação' /> Informações
+              sobre Procuração Eletrônica
+            </HelpTitle>
+            <HelpText>
+              A procuração eletrônica é um documento que autoriza o envio de
+              eventos para o eSocial em nome da empresa. Ela deve conter as
+              permissões específicas e estar devidamente assinada digitalmente.
+            </HelpText>
+          </HelpSection>
+        </>
+      ) : (
+        <ProxyInfo $theme={theme}>
+          <InfoTitle $theme={theme}>
+            <AccessibleEmoji emoji='✅' label='Sucesso' /> Procuração Eletrônica
+            Configurada
+            <StatusBadge $isValid={proxyInfo.isValid} $theme={theme}>
+              {proxyInfo.isValid ? 'Válida' : 'Inválida'}
+            </StatusBadge>
+          </InfoTitle>
+
+          <InfoRow>
+            <InfoLabel>Número do Documento:</InfoLabel>
+            <InfoValue>{proxyInfo.documentNumber}</InfoValue>
+          </InfoRow>
+
+          <InfoRow>
+            <InfoLabel>Válida de:</InfoLabel>
+            <InfoValue>{formatDate(proxyInfo.validFrom)}</InfoValue>
+          </InfoRow>
+
+          <InfoRow>
+            <InfoLabel>Válida até:</InfoLabel>
+            <InfoValue>{formatDate(proxyInfo.validTo)}</InfoValue>
+          </InfoRow>
+
+          <PermissionsList>
+            <InfoLabel style={{ marginBottom: '0.5rem', display: 'block' }}>
+              Permissões:
+            </InfoLabel>
+            {proxyInfo.permissions.map((permission, index) => (
+              <PermissionItem key={index} $theme={theme}>
+                <span>
+                  <AccessibleEmoji emoji='✅' label='Sucesso' />
+                </span>
+                {getPermissionLabel(permission)}
+              </PermissionItem>
+            ))}
+          </PermissionsList>
+        </ProxyInfo>
+      )}
+    </SimpleModal>
   );
 };
 

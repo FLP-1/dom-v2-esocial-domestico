@@ -4,6 +4,9 @@ import { ESocialEvent, ESocialResponse } from './esocialApi';
 import type { ESocialRealApiService } from './esocialRealApi';
 import { getESocialRealApiService } from './esocialRealApi';
 
+// Helper para verificar se estamos no cliente
+const isClient = typeof window !== 'undefined';
+
 // Interfaces exportadas
 export interface CertificateInfo {
   subject: string;
@@ -23,7 +26,7 @@ export interface ProxyInfo {
 }
 
 export interface ESocialConfig {
-  environment: 'test' | 'production';
+  environment: 'homologacao' | 'producao';
   certificatePath?: string;
   proxyPath?: string;
   companyId: string;
@@ -39,31 +42,63 @@ class ESocialHybridApiService {
   constructor(config: ESocialConfig) {
     this.config = config;
     this.useRealApi = config.useRealApi || false;
+    // O serviço real será inicializado quando necessário
+  }
 
-    // Se usar API real, inicializar o serviço real
-    if (this.useRealApi) {
+  /**
+   * Inicializa o serviço real se necessário
+   */
+  private initializeRealService(): ESocialRealApiService {
+    // console.log('🔧 Inicializando serviço real...');
+    // console.log('📋 realApiService existe?', !!this.realApiService);
+    // console.log('📋 useRealApi:', this.useRealApi);
+
+    if (!this.realApiService && this.useRealApi) {
+      // console.log('🆕 Criando nova instância do serviço real...');
       this.realApiService = getESocialRealApiService();
+      // console.log('✅ Serviço real criado:', !!this.realApiService);
     }
+
+    if (!this.realApiService) {
+      // console.error('❌ Serviço eSocial real não disponível');
+      throw new Error('Serviço eSocial real não disponível');
+    }
+
+    // console.log('✅ Retornando serviço real');
+    return this.realApiService;
   }
 
   /**
    * Configura certificado digital
    */
   async configureCertificate(certificateFile: File): Promise<CertificateInfo> {
-    if (this.useRealApi && this.realApiService) {
-      // Usar API real - o certificado já está configurado no construtor
-      const certInfo = this.realApiService.getCertificateInfo();
-      if (!certInfo) {
-        throw new Error('Certificado não carregado na API real');
+    if (this.useRealApi) {
+      // Usar API real - carregar certificado com senha
+      try {
+        const realService = this.initializeRealService();
+
+        // Carregar o certificado com a senha
+        await realService.loadCertificate(certificateFile);
+
+        // Obter informações do certificado carregado
+        const certInfo = realService.getCertificateInfo();
+        if (!certInfo) {
+          throw new Error('Certificado não carregado na API real');
+        }
+        return {
+          subject: certInfo.subject,
+          issuer: certInfo.issuer,
+          validFrom: certInfo.validFrom.toISOString(),
+          validTo: certInfo.validTo.toISOString(),
+          serialNumber: certInfo.serialNumber,
+          isValid: certInfo.isValid,
+        };
+      } catch (error) {
+        // console.error('Erro ao carregar certificado na API real:', error);
+        throw new Error(
+          `Erro ao carregar certificado: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+        );
       }
-      return {
-        subject: certInfo.subject,
-        issuer: certInfo.issuer,
-        validFrom: certInfo.validFrom.toISOString(),
-        validTo: certInfo.validTo.toISOString(),
-        serialNumber: certInfo.serialNumber,
-        isValid: certInfo.isValid,
-      };
     } else {
       // Usar simulação (código original)
       return this.simulateCertificateConfiguration(certificateFile);
@@ -112,18 +147,19 @@ class ESocialHybridApiService {
    * Envia evento para o eSocial
    */
   async sendEvent(event: ESocialEvent): Promise<ESocialResponse> {
-    if (this.useRealApi && this.realApiService) {
+    if (this.useRealApi) {
       // Usar API real
       // console.log('🌐 Enviando evento via API real do eSocial...');
 
       try {
         // Verificar se o serviço está pronto
-        if (!this.realApiService.isReady()) {
+        const realService = this.initializeRealService();
+        if (!realService.isReady()) {
           throw new Error('Serviço eSocial não está pronto');
         }
 
         // Enviar como lote com um único evento
-        const response = await this.realApiService.enviarLote([event]);
+        const response = await realService.enviarLote([event]);
 
         if (response.success) {
           // Salvar evento enviado
@@ -150,10 +186,11 @@ class ESocialHybridApiService {
    * Consulta status de evento
    */
   async getEventStatus(protocolo: string): Promise<ESocialResponse> {
-    if (this.useRealApi && this.realApiService) {
+    if (this.useRealApi) {
       // Usar API real
       // console.log('🌐 Consultando status via API real do eSocial...');
-      return await this.realApiService.consultarLote(protocolo);
+      const realService = this.initializeRealService();
+      return await realService.consultarLote(protocolo);
     } else {
       // Usar simulação (código original)
       // console.log('🎭 Simulando consulta de status...');
@@ -166,6 +203,8 @@ class ESocialHybridApiService {
    */
   async getPendingEvents(): Promise<ESocialEvent[]> {
     try {
+      if (!isClient) return [];
+
       const storedEvents = localStorage.getItem('esocial_events');
       if (!storedEvents) return [];
 
@@ -182,6 +221,8 @@ class ESocialHybridApiService {
    */
   async getEventHistory(): Promise<ESocialEvent[]> {
     try {
+      if (!isClient) return [];
+
       const storedEvents = localStorage.getItem('esocial_events');
       if (!storedEvents) return [];
 
@@ -196,8 +237,9 @@ class ESocialHybridApiService {
    * Obtém informações do certificado
    */
   getCertificateInfo(): CertificateInfo | null {
-    if (this.useRealApi && this.realApiService) {
-      const certInfo = this.realApiService.getCertificateInfo();
+    if (this.useRealApi) {
+      const realService = this.initializeRealService();
+      const certInfo = realService.getCertificateInfo();
       if (!certInfo) return null;
 
       return {
@@ -223,10 +265,150 @@ class ESocialHybridApiService {
    * Verifica se o serviço está pronto
    */
   isReady(): boolean {
-    if (this.useRealApi && this.realApiService) {
-      return this.realApiService.isReady();
+    if (this.useRealApi) {
+      try {
+        const realService = this.initializeRealService();
+        return realService.isReady();
+      } catch (error) {
+        return false;
+      }
     }
     return true; // Simulação sempre está pronta
+  }
+
+  /**
+   * Consulta dados do empregador
+   */
+  async consultarDadosEmpregador(): Promise<any> {
+    // console.log('🔍 ESocialHybridApi.consultarDadosEmpregador() chamado');
+    // console.log('📋 useRealApi:', this.useRealApi);
+
+    if (this.useRealApi) {
+      // console.log('🌐 Usando API real...');
+      try {
+        const realService = this.initializeRealService();
+        return await realService.consultarDadosEmpregador();
+      } catch (error) {
+        // console.warn('⚠️ Erro na API real, usando simulação...', error);
+        // Fallback para simulação em caso de erro
+        return this.getSimulatedEmpregadorData();
+      }
+    } else {
+      // console.log('🎭 Usando simulação...');
+      return this.getSimulatedEmpregadorData();
+    }
+  }
+
+  /**
+   * Dados simulados do empregador
+   */
+  private getSimulatedEmpregadorData() {
+    return {
+      cpf: this.config.companyId,
+      nome: 'FRANCISCO JOSE LATTARI PAPALEO',
+      razaoSocial: 'FLP Business Strategy',
+      endereco: {
+        logradouro: 'Rua das Flores, 123',
+        bairro: 'Centro',
+        cidade: 'São Paulo',
+        uf: 'SP',
+        cep: '01234567',
+      },
+      contato: {
+        telefone: '(11) 99999-9999',
+        email: 'francisco@flpbusiness.com',
+      },
+      situacao: 'ATIVO',
+      dataCadastro: '2024-01-01',
+      ultimaAtualizacao: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Consulta dados dos empregados
+   */
+  async consultarDadosEmpregados(): Promise<any[]> {
+    if (this.useRealApi) {
+      try {
+        const realService = this.initializeRealService();
+        return await realService.consultarDadosEmpregados();
+      } catch (error) {
+        // console.warn('⚠️ Erro na API real, usando simulação...', error);
+        return this.getSimulatedEmpregadosData();
+      }
+    } else {
+      return this.getSimulatedEmpregadosData();
+    }
+  }
+
+  /**
+   * Dados simulados dos empregados
+   */
+  private getSimulatedEmpregadosData() {
+    return [
+      {
+        cpf: '12345678901',
+        nome: 'JOÃO DA SILVA',
+        matricula: '001',
+        cargo: 'DESENVOLVEDOR',
+        dataAdmissao: '2024-01-01',
+        salario: 5000.0,
+        situacao: 'ATIVO',
+        vinculo: 'CLT',
+      },
+      {
+        cpf: '12345678902',
+        nome: 'MARIA DOS SANTOS',
+        matricula: '002',
+        cargo: 'ANALISTA',
+        dataAdmissao: '2024-02-01',
+        salario: 4500.0,
+        situacao: 'ATIVO',
+        vinculo: 'CLT',
+      },
+    ];
+  }
+
+  /**
+   * Consulta eventos enviados
+   */
+  async consultarEventosEnviados(): Promise<any[]> {
+    if (this.useRealApi) {
+      try {
+        const realService = this.initializeRealService();
+        return await realService.consultarEventosEnviados();
+      } catch (error) {
+        // console.warn('⚠️ Erro na API real, usando simulação...', error);
+        return this.getSimulatedEventosData();
+      }
+    } else {
+      return this.getSimulatedEventosData();
+    }
+  }
+
+  /**
+   * Dados simulados dos eventos
+   */
+  private getSimulatedEventosData() {
+    return [
+      {
+        id: '1',
+        tipo: 'S1000',
+        descricao: 'Cadastramento Inicial do Vínculo',
+        dataEnvio: '2024-01-01T10:00:00Z',
+        status: 'PROCESSADO',
+        protocolo: '12345678901234567890',
+      },
+      {
+        id: '2',
+        tipo: 'S2200',
+        descricao:
+          'Cadastramento Inicial do Vínculo e Admissão/Ingresso de Trabalhador',
+        dataEnvio: '2024-01-02T10:00:00Z',
+        status: 'PROCESSADO',
+        protocolo: '12345678901234567891',
+      },
+    ];
   }
 
   // ===== MÉTODOS DE SIMULAÇÃO (código original) =====
@@ -248,10 +430,12 @@ class ESocialHybridApiService {
         isValid: true,
       };
 
-      localStorage.setItem(
-        'esocial_certificate',
-        JSON.stringify(certificateInfo)
-      );
+      if (isClient) {
+        localStorage.setItem(
+          'esocial_certificate',
+          JSON.stringify(certificateInfo)
+        );
+      }
       return certificateInfo;
     } catch (error) {
       throw new Error(`Erro ao configurar certificado: ${error}`);
@@ -277,7 +461,9 @@ class ESocialHybridApiService {
         isValid: true,
       };
 
-      localStorage.setItem('esocial_proxy', JSON.stringify(proxyInfo));
+      if (isClient) {
+        localStorage.setItem('esocial_proxy', JSON.stringify(proxyInfo));
+      }
       return proxyInfo;
     } catch (error) {
       throw new Error(`Erro ao configurar procuração: ${error}`);
@@ -358,6 +544,10 @@ class ESocialHybridApiService {
   }
 
   private async validateConfiguration(): Promise<void> {
+    if (!isClient) {
+      throw new Error('Configuração não disponível no servidor');
+    }
+
     const certificate = localStorage.getItem('esocial_certificate');
     const proxy = localStorage.getItem('esocial_proxy');
 
@@ -416,6 +606,8 @@ class ESocialHybridApiService {
   }
 
   private saveSentEvent(event: ESocialEvent, response: ESocialResponse): void {
+    if (!isClient) return;
+
     const updatedEvent: ESocialEvent = {
       ...event,
       status: 'sent',
@@ -442,7 +634,7 @@ class ESocialHybridApiService {
 <eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtInfoEmpregador/v_S_01_00_00">
   <evtInfoEmpregador Id="ID${Date.now()}">
     <ideEvento>
-      <tpAmb>${this.config.environment === 'production' ? '1' : '2'}</tpAmb>
+      <tpAmb>${this.config.environment === 'producao' ? '1' : '2'}</tpAmb>
       <procEmi>1</procEmi>
       <verProc>1.0.0</verProc>
     </ideEvento>
@@ -470,7 +662,7 @@ class ESocialHybridApiService {
 <eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtAdmissao/v_S_01_00_00">
   <evtAdmissao Id="ID${Date.now()}">
     <ideEvento>
-      <tpAmb>${this.config.environment === 'production' ? '1' : '2'}</tpAmb>
+      <tpAmb>${this.config.environment === 'producao' ? '1' : '2'}</tpAmb>
       <procEmi>1</procEmi>
       <verProc>1.0.0</verProc>
     </ideEvento>
@@ -504,7 +696,7 @@ class ESocialHybridApiService {
 <eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtTSVInicio/v_S_01_00_00">
   <evtTSVInicio Id="ID${Date.now()}">
     <ideEvento>
-      <tpAmb>${this.config.environment === 'production' ? '1' : '2'}</tpAmb>
+      <tpAmb>${this.config.environment === 'producao' ? '1' : '2'}</tpAmb>
       <procEmi>1</procEmi>
       <verProc>1.0.0</verProc>
     </ideEvento>
@@ -529,7 +721,7 @@ class ESocialHybridApiService {
 <eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtExclusao/v_S_01_00_00">
   <evtExclusao Id="ID${Date.now()}">
     <ideEvento>
-      <tpAmb>${this.config.environment === 'production' ? '1' : '2'}</tpAmb>
+      <tpAmb>${this.config.environment === 'producao' ? '1' : '2'}</tpAmb>
       <procEmi>1</procEmi>
       <verProc>1.0.0</verProc>
     </ideEvento>

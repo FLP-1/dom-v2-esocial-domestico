@@ -1,12 +1,14 @@
 import AccessibleEmoji from '../components/AccessibleEmoji';
+import EmployerModal from '../components/EmployerModal';
 // src/pages/login-biometric.tsx
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled, { keyframes } from 'styled-components';
 import { UserProfile, useUserProfile } from '../contexts/UserProfileContext';
+import { useAlertManager } from '../hooks/useAlertManager';
 import { validateCpf } from '../utils/cpfValidator';
 
 // Carrega o MotivationCarousel dinamicamente
@@ -358,6 +360,7 @@ const ErrorMessage = styled.div`
 
 export default function LoginBiometric() {
   const router = useRouter();
+  const alertManager = useAlertManager();
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -365,6 +368,7 @@ export default function LoginBiometric() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isEmployerModalOpen, setIsEmployerModalOpen] = useState(false);
   const [errors, setErrors] = useState<{
     cpf?: string;
     password?: string;
@@ -431,7 +435,7 @@ export default function LoginBiometric() {
     // Simula uma requisição de login
     setTimeout(() => {
       setIsLoading(false);
-      toast.success('Login realizado com sucesso!');
+      alertManager.showSuccess('Login realizado com sucesso!');
 
       // Simula busca de perfis do usuário
       const userProfiles: UserProfile[] = [
@@ -515,6 +519,7 @@ export default function LoginBiometric() {
         }
       } else {
         // Se há múltiplos perfis, mostra o modal de seleção
+        // console.log('🔍 Mostrando modal de seleção de perfil...');
         setShowProfileModal(true);
       }
     }, 1500);
@@ -532,7 +537,7 @@ export default function LoginBiometric() {
       // Simula uma requisição de login
       setTimeout(() => {
         setIsLoading(false);
-        toast.success('Login realizado com sucesso!');
+        alertManager.showSuccess('Login realizado com sucesso!');
 
         // Simula busca de perfis do usuário
         const userProfiles: UserProfile[] = [
@@ -580,9 +585,19 @@ export default function LoginBiometric() {
       return;
     }
 
-    toast.info(
+    alertManager.showInfo(
       `Login com ${type === 'face' ? 'reconhecimento facial' : 'impressão digital'} em desenvolvimento`
     );
+  };
+
+  const handleSaveEmployer = (employer: any) => {
+    try {
+      alertManager.showSuccess('Empregador cadastrado com sucesso!');
+      setIsEmployerModalOpen(false);
+      // Aqui você implementaria a lógica real de cadastro do empregador
+    } catch (error) {
+      alertManager.showError('Erro ao cadastrar empregador');
+    }
   };
 
   return (
@@ -636,6 +651,7 @@ export default function LoginBiometric() {
               onBlur={() => setFocusedField(null)}
               placeholder='••••••••'
               $hasError={!!errors.password}
+              autoComplete='current-password'
             />
             <PasswordToggle
               type='button'
@@ -736,7 +752,7 @@ export default function LoginBiometric() {
               </span>
               <span className='label'>Digital</span>
             </BiometricButton>
-            <BiometricButton as='a' href='/register'>
+            <BiometricButton onClick={() => setIsEmployerModalOpen(true)}>
               <span className='icon'>
                 <AccessibleEmoji emoji='📝' label='Formulário' />
               </span>
@@ -745,6 +761,21 @@ export default function LoginBiometric() {
           </BiometricOptions>
         </BiometricSection>
       </LoginCard>
+
+      <EmployerModal
+        isOpen={isEmployerModalOpen}
+        onClose={() => setIsEmployerModalOpen(false)}
+        onSave={handleSaveEmployer}
+        theme={{
+          colors: {
+            primary: '#29abe2',
+            secondary: '#2c3e50',
+            success: '#27ae60',
+            warning: '#f39c12',
+            error: '#e74c3c',
+          },
+        }}
+      />
 
       <ToastContainer
         position='top-center'

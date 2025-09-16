@@ -1,0 +1,18 @@
+# Configuração do gov.br OAuth2
+# IMPORTANTE: Renomeie este arquivo para .env.local e configure com seus valores reais
+
+# Client ID obtido no portal gov.br
+GOV_BR_CLIENT_ID=SEU_CLIENT_ID_AQUI
+
+# Client Secret obtido no portal gov.br
+GOV_BR_CLIENT_SECRET=SEU_CLIENT_SECRET_AQUI
+
+# URI de redirecionamento (deve ser exatamente o mesmo configurado no gov.br)
+GOV_BR_REDIRECT_URI=http://localhost:3000/api/esocial-real-govbr/callback
+
+# Ambiente de execução
+NODE_ENV=development
+
+# Para produção, use:
+# NODE_ENV=production
+# GOV_BR_REDIRECT_URI=https://seudominio.com/api/esocial-real-govbr/callback

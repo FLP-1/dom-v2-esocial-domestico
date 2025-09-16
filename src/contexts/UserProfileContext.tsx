@@ -60,6 +60,8 @@ export const UserProfileProvider: React.FC<{ children: ReactNode }> = ({
 
   // Carregar perfil do localStorage ao inicializar
   useEffect(() => {
+    if (typeof window === 'undefined') return; // Proteção SSR
+
     const savedProfile = localStorage.getItem(STORAGE_KEY);
     if (savedProfile) {
       try {
@@ -74,6 +76,8 @@ export const UserProfileProvider: React.FC<{ children: ReactNode }> = ({
 
   // Salvar perfil no localStorage quando mudar
   useEffect(() => {
+    if (typeof window === 'undefined') return; // Proteção SSR
+
     if (currentProfile) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(currentProfile));
     } else {
@@ -91,7 +95,9 @@ export const UserProfileProvider: React.FC<{ children: ReactNode }> = ({
 
   const clearProfile = () => {
     setCurrentProfileState(null);
-    localStorage.removeItem(STORAGE_KEY);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEY);
+    }
   };
 
   const handleProfileSelection = (profile: UserProfile) => {

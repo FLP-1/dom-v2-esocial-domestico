@@ -2,7 +2,7 @@
 // Baseado na documentação oficial do eSocial
 
 export interface ESocialConfig {
-  environment: 'test' | 'production';
+  environment: 'homologacao' | 'producao';
   certificatePath?: string;
   proxyPath?: string;
   companyId: string;
@@ -327,7 +327,7 @@ class ESocialApiService {
 <eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtInfoEmpregador/v_S_01_00_00">
   <evtInfoEmpregador Id="ID${Date.now()}">
     <ideEvento>
-      <tpAmb>${this.config.environment === 'production' ? '1' : '2'}</tpAmb>
+      <tpAmb>${this.config.environment === 'producao' ? '1' : '2'}</tpAmb>
       <procEmi>1</procEmi>
       <verProc>1.0.0</verProc>
     </ideEvento>
@@ -355,7 +355,7 @@ class ESocialApiService {
 <eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtAdmissao/v_S_01_00_00">
   <evtAdmissao Id="ID${Date.now()}">
     <ideEvento>
-      <tpAmb>${this.config.environment === 'production' ? '1' : '2'}</tpAmb>
+      <tpAmb>${this.config.environment === 'producao' ? '1' : '2'}</tpAmb>
       <procEmi>1</procEmi>
       <verProc>1.0.0</verProc>
     </ideEvento>
@@ -389,7 +389,7 @@ class ESocialApiService {
 <eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtTSVInicio/v_S_01_00_00">
   <evtTSVInicio Id="ID${Date.now()}">
     <ideEvento>
-      <tpAmb>${this.config.environment === 'production' ? '1' : '2'}</tpAmb>
+      <tpAmb>${this.config.environment === 'producao' ? '1' : '2'}</tpAmb>
       <procEmi>1</procEmi>
       <verProc>1.0.0</verProc>
     </ideEvento>
@@ -414,7 +414,7 @@ class ESocialApiService {
 <eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtExclusao/v_S_01_00_00">
   <evtExclusao Id="ID${Date.now()}">
     <ideEvento>
-      <tpAmb>${this.config.environment === 'production' ? '1' : '2'}</tpAmb>
+      <tpAmb>${this.config.environment === 'producao' ? '1' : '2'}</tpAmb>
       <procEmi>1</procEmi>
       <verProc>1.0.0</verProc>
     </ideEvento>

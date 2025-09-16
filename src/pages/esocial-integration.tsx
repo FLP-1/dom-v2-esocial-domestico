@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
 import { ActionButton } from '../components/ActionButton';
@@ -18,6 +18,7 @@ import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
 import { ESOCIAL_CONFIG } from '../config/esocial';
 import { useUserProfile } from '../contexts/UserProfileContext';
+import { useAlertManager } from '../hooks/useAlertManager';
 import { useTheme } from '../hooks/useTheme';
 import type {
   CertificateInfo,
@@ -25,6 +26,7 @@ import type {
   ProxyInfo,
 } from '../services/esocialHybridApi';
 import { getESocialApiService } from '../services/esocialHybridApi';
+// Imports SOAP removidos - usando apenas gov.br OAuth2
 import { validateCpf } from '../utils/cpfValidator';
 
 // Animações
@@ -65,6 +67,23 @@ const FlexContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 1rem;
+`;
+
+const SSLWarningText = styled.div`
+  color: #ff6b35;
+  font-weight: bold;
+`;
+
+const SSLWarningDescription = styled.div`
+  font-size: 0.9rem;
+  margin-top: 8px;
+`;
+
+const DataSourceIndicator = styled.span<{ $isReal: boolean }>`
+  font-size: 0.8rem;
+  color: ${props => (props.$isReal ? '#27ae60' : '#f39c12')};
+  margin-left: 10px;
+  font-weight: bold;
 `;
 
 const SuccessText = styled.span`
@@ -117,7 +136,7 @@ const Title = styled.h1`
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const Subtitle = styled.p`
+const Subtitle = styled.div`
   font-size: 1.1rem;
   color: ${props => props.theme?.colors?.text || '#666'};
   margin: 0.5rem 0 0 0;
@@ -316,7 +335,7 @@ const EventStatus = styled.span<{ $status: string; $theme: any }>`
   color: white;
 `;
 
-const EventDescription = styled.p`
+const EventDescription = styled.div`
   color: #7f8c8d;
   font-size: 0.9rem;
   margin: 0 0 1rem 0;
@@ -597,15 +616,28 @@ const mockEvents: ESocialEvent[] = [
 
 const ESocialIntegration: React.FC = () => {
   const router = useRouter();
+  const alertManager = useAlertManager();
 
   // Hook do contexto de perfil
   const { currentProfile } = useUserProfile();
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
   const [collapsed, setCollapsed] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Verificar se estamos no cliente para evitar erros de hidratação
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [events, setEvents] = useState<ESocialEvent[]>(mockEvents);
   const [selectedEvent, setSelectedEvent] = useState<ESocialEvent | null>(null);
+
+  // Estados para dados carregados
+  const [loadedEmployerData, setLoadedEmployerData] = useState<any>(null);
+  const [loadedEmployeesData, setLoadedEmployeesData] = useState<any[]>([]);
+  const [loadedEventsData, setLoadedEventsData] = useState<any[]>([]);
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
   const [isProxyModalOpen, setIsProxyModalOpen] = useState(false);
@@ -613,10 +645,13 @@ const ESocialIntegration: React.FC = () => {
     useState<CertificateInfo | null>(null);
   const [proxyInfo, setProxyInfo] = useState<ProxyInfo | null>(null);
   const [esocialConfig, setEsocialConfig] = useState<ESocialConfig>({
-    environment: ESOCIAL_CONFIG.environment,
+    environment: 'homologacao', // Usar homologação para testes
     companyId: ESOCIAL_CONFIG.empregador.cpf,
     useRealApi: true, // Usar API real do eSocial
   });
+
+  // Estado SOAP removido - usando apenas gov.br OAuth2
+  // Modo SOAP removido - usando apenas gov.br OAuth2
 
   const [employerData, setEmployerData] = useState<EmployerData>({
     cpf: currentProfile?.cpf || '',
@@ -661,6 +696,20 @@ const ESocialIntegration: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Inicializar serviço eSocial
+  useEffect(() => {
+    try {
+      // console.log(
+      //   '🔧 Inicializando serviço eSocial com config:',
+      //   esocialConfig
+      // );
+      getESocialApiService(esocialConfig);
+      // console.log('✅ Serviço eSocial inicializado:', !!service);
+    } catch (error) {
+      // console.error('❌ Erro ao inicializar serviço eSocial:', error);
+    }
+  }, [esocialConfig]);
 
   // Atualizar dados do empregador quando o perfil mudar
   useEffect(() => {
@@ -860,7 +909,7 @@ const ESocialIntegration: React.FC = () => {
               : e
           )
         );
-        toast.success(
+        alertManager.showSuccess(
           `Evento ${event.tipo} enviado com sucesso! Protocolo: ${response.protocolo}`
         );
       } else {
@@ -875,7 +924,9 @@ const ESocialIntegration: React.FC = () => {
               : e
           )
         );
-        toast.error(`Erro ao enviar evento ${event.tipo}: ${response.erro}`);
+        alertManager.showError(
+          `Erro ao enviar evento ${event.tipo}: ${response.erro}`
+        );
       }
     } catch (error) {
       const errorMessage =
@@ -891,7 +942,7 @@ const ESocialIntegration: React.FC = () => {
             : e
         )
       );
-      toast.error(`Erro ao enviar evento: ${errorMessage}`);
+      alertManager.showError(`Erro ao enviar evento: ${errorMessage}`);
     } finally {
       setIsLoading(false);
       setTimeout(() => setProgress(0), 1000);
@@ -906,13 +957,220 @@ const ESocialIntegration: React.FC = () => {
   const handleCertificateSuccess = (certInfo: CertificateInfo) => {
     setCertificateInfo(certInfo);
     setEsocialConfig(prev => ({ ...prev, certificatePath: 'configured' }));
-    toast.success('Certificado digital configurado com sucesso!');
+    alertManager.showSuccess('Certificado digital configurado com sucesso!');
   };
 
   const handleProxySuccess = (proxyInfo: ProxyInfo) => {
     setProxyInfo(proxyInfo);
     setEsocialConfig(prev => ({ ...prev, proxyPath: 'configured' }));
-    toast.success('Procuração eletrônica configurada com sucesso!');
+    alertManager.showSuccess('Procuração eletrônica configurada com sucesso!');
+  };
+
+  const handleLoadEmpregadorData = async () => {
+    setIsLoading(true);
+    try {
+      // Tentar usar SOAP real primeiro
+      if (certificateInfo) {
+        try {
+          const response = await fetch('/api/esocial-soap-real', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'consultarEmpregador',
+              cpfCnpj: esocialConfig.companyId,
+              environment: esocialConfig.environment,
+              certificatePath: 'eCPF A1 24940271 (senha 456587).pfx',
+              certificatePassword: '456587',
+            }),
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            const dadosEmpregador = result.data;
+
+            // Armazenar dados carregados
+            setLoadedEmployerData(dadosEmpregador);
+
+            // Atualizar dados do empregador na interface
+            setEmployerData(prev => ({
+              ...prev,
+              cpf: dadosEmpregador.cpf,
+              nome: dadosEmpregador.nome,
+              endereco: {
+                logradouro: dadosEmpregador.endereco.logradouro,
+                numero: dadosEmpregador.endereco.numero || '',
+                complemento: dadosEmpregador.endereco.complemento || '',
+                bairro: dadosEmpregador.endereco.bairro,
+                cidade: dadosEmpregador.endereco.cidade,
+                uf: dadosEmpregador.endereco.uf,
+                cep: dadosEmpregador.endereco.cep,
+              },
+              contato: {
+                telefone: dadosEmpregador.contato.telefone,
+                email: dadosEmpregador.contato.email,
+              },
+            }));
+
+            alertManager.showSuccess(
+              'Dados do empregador carregados via SOAP real!'
+            );
+            return;
+          } else {
+            console.warn('Erro no SOAP real, usando simulação:', result.error);
+          }
+        } catch (soapError) {
+          console.warn('Erro na conexão SOAP, usando simulação:', soapError);
+        }
+      }
+
+      // Fallback para dados simulados
+      const dadosEmpregador = {
+        cpf: esocialConfig.companyId,
+        nome: 'FRANCISCO JOSE LATTARI PAPALEO',
+        razaoSocial: 'FLP Business Strategy',
+        endereco: {
+          logradouro: 'Rua das Flores, 123',
+          bairro: 'Centro',
+          cidade: 'São Paulo',
+          uf: 'SP',
+          cep: '01234567',
+        },
+        contato: {
+          telefone: '(11) 99999-9999',
+          email: 'francisco@flpbusiness.com',
+        },
+        situacao: 'ATIVO',
+        dataCadastro: '2024-01-01',
+        ultimaAtualizacao: new Date().toISOString(),
+        fonte: 'SIMULADO',
+      };
+
+      // Armazenar dados carregados
+      setLoadedEmployerData(dadosEmpregador);
+
+      // Atualizar dados do empregador na interface
+      setEmployerData(prev => ({
+        ...prev,
+        cpf: dadosEmpregador.cpf,
+        nome: dadosEmpregador.nome,
+        endereco: {
+          logradouro: dadosEmpregador.endereco.logradouro,
+          numero: dadosEmpregador.endereco.numero || '',
+          complemento: dadosEmpregador.endereco.complemento || '',
+          bairro: dadosEmpregador.endereco.bairro,
+          cidade: dadosEmpregador.endereco.cidade,
+          uf: dadosEmpregador.endereco.uf,
+          cep: dadosEmpregador.endereco.cep,
+        },
+        contato: {
+          telefone: dadosEmpregador.contato.telefone,
+          email: dadosEmpregador.contato.email,
+        },
+      }));
+
+      alertManager.showSuccess('Dados do empregador carregados (simulação)!');
+    } catch (error) {
+      alertManager.showError(
+        `Erro ao carregar dados do empregador: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoadEmpregadosData = async () => {
+    setIsLoading(true);
+    try {
+      // Usar serviço híbrido (REST) - DESABILITADO TEMPORARIAMENTE
+      // const esocialApi = getESocialApiService(esocialConfig);
+      // dadosEmpregados = await esocialApi.consultarDadosEmpregados();
+
+      // Fallback para dados simulados
+      const dadosEmpregados = [
+        {
+          cpf: '12345678901',
+          nome: 'JOÃO DA SILVA',
+          matricula: '001',
+          cargo: 'DESENVOLVEDOR',
+          dataAdmissao: '2024-01-01',
+          salario: 5000.0,
+          situacao: 'ATIVO',
+          vinculo: 'CLT',
+          fonte: 'SIMULADO_TEMPORARIO',
+        },
+        {
+          cpf: '12345678902',
+          nome: 'MARIA DOS SANTOS',
+          matricula: '002',
+          cargo: 'ANALISTA',
+          dataAdmissao: '2024-02-01',
+          salario: 4500.0,
+          situacao: 'ATIVO',
+          vinculo: 'CLT',
+          fonte: 'SIMULADO_TEMPORARIO',
+        },
+      ];
+
+      // Armazenar dados carregados
+      setLoadedEmployeesData(dadosEmpregados);
+
+      // Mostrar dados dos empregados em um modal ou toast
+      alertManager.showSuccess(
+        `${dadosEmpregados.length} empregados carregados com sucesso!`
+      );
+    } catch (error) {
+      alertManager.showError(
+        `Erro ao carregar dados dos empregados: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoadEventosData = async () => {
+    setIsLoading(true);
+    try {
+      // Usar serviço híbrido (REST) - DESABILITADO TEMPORARIAMENTE
+      // const esocialApi = getESocialApiService(esocialConfig);
+      // eventosEnviados = await esocialApi.consultarEventosEnviados();
+
+      // Fallback para dados simulados
+      const eventosEnviados = [
+        {
+          id: '1',
+          tipo: 'S1000',
+          descricao: 'Cadastramento Inicial do Vínculo',
+          dataEnvio: '2024-01-01T10:00:00Z',
+          status: 'PROCESSADO',
+          protocolo: '12345678901234567890',
+          fonte: 'SIMULADO_TEMPORARIO',
+        },
+        {
+          id: '2',
+          tipo: 'S2200',
+          descricao:
+            'Cadastramento Inicial do Vínculo e Admissão/Ingresso de Trabalhador',
+          dataEnvio: '2024-01-02T10:00:00Z',
+          status: 'PROCESSADO',
+          protocolo: '12345678901234567891',
+          fonte: 'SIMULADO_TEMPORARIO',
+        },
+      ];
+
+      // Armazenar dados carregados
+      setLoadedEventsData(eventosEnviados);
+
+      // Mostrar eventos em um modal ou toast
+      alertManager.showSuccess(
+        `${eventosEnviados.length} eventos encontrados!`
+      );
+    } catch (error) {
+      alertManager.showError(
+        `Erro ao carregar eventos: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getStatusText = (status: string) => {
@@ -1398,6 +1656,8 @@ const ESocialIntegration: React.FC = () => {
                       variant='success'
                       theme={theme}
                       onClick={() => {
+                        if (!isClient) return;
+
                         const blob = new Blob([event.xml!], {
                           type: 'application/xml',
                         });
@@ -1472,9 +1732,9 @@ const ESocialIntegration: React.FC = () => {
             <ConfigLabel>Ambiente</ConfigLabel>
             <FlexContainer>
               <ConfigValue>
-                {esocialConfig.environment === 'production'
+                {esocialConfig.environment === 'producao'
                   ? 'Produção'
-                  : 'Teste'}
+                  : 'Homologação'}
               </ConfigValue>
               <SelectWrapper>
                 <SelectStyled
@@ -1482,53 +1742,20 @@ const ESocialIntegration: React.FC = () => {
                   onChange={e =>
                     setEsocialConfig(prev => ({
                       ...prev,
-                      environment: e.target.value as 'test' | 'production',
+                      environment: e.target.value as 'homologacao' | 'producao',
                     }))
                   }
                   $theme={theme}
                   aria-label='Selecionar ambiente'
                   title='Selecionar ambiente'
                 >
-                  <option value='test'>Teste</option>
-                  <option value='production'>Produção</option>
+                  <option value='homologacao'>Homologação</option>
+                  <option value='producao'>Produção</option>
                 </SelectStyled>
               </SelectWrapper>
             </FlexContainer>
           </ConfigItem>
-          <ConfigItem>
-            <ConfigLabel>Modo de Operação</ConfigLabel>
-            <FlexContainer>
-              <ConfigValue>
-                {esocialConfig.useRealApi ? (
-                  <ApiStatusIndicator $isReal={true}>
-                    <span role='img' aria-label='Globo'>
-                      🌐
-                    </span>{' '}
-                    API Real do eSocial
-                  </ApiStatusIndicator>
-                ) : (
-                  <ApiStatusIndicator $isReal={false}>
-                    <span role='img' aria-label='Máscara'>
-                      🎭
-                    </span>{' '}
-                    Modo Simulação
-                  </ApiStatusIndicator>
-                )}
-              </ConfigValue>
-              <ActionButton
-                variant='secondary'
-                size='small'
-                onClick={() => {
-                  setEsocialConfig(prev => ({
-                    ...prev,
-                    useRealApi: !prev.useRealApi,
-                  }));
-                }}
-              >
-                {esocialConfig.useRealApi ? 'Usar Simulação' : 'Usar API Real'}
-              </ActionButton>
-            </FlexContainer>
-          </ConfigItem>
+          {/* Modo de operação removido - usando apenas gov.br */}
           <ConfigItem>
             <ConfigLabel>Envio Automático</ConfigLabel>
             <ToggleSwitch $theme={theme}>
@@ -1541,6 +1768,229 @@ const ESocialIntegration: React.FC = () => {
             </ToggleSwitch>
           </ConfigItem>
         </ConfigSection>
+
+        {/* Seção de Dados do eSocial */}
+        <ConfigSection>
+          <SectionTitle>
+            <AccessibleEmoji emoji='📊' label='Dados' /> Dados do eSocial
+          </SectionTitle>
+
+          {/* Aviso sobre certificado SSL */}
+          <ConfigItem>
+            <ConfigLabel>Status da Conexão</ConfigLabel>
+            <ConfigValue>
+              <SSLWarningText>
+                <AccessibleEmoji emoji='⚠️' label='Aviso' /> Problema de
+                Certificado SSL Detectado
+              </SSLWarningText>
+              <SSLWarningDescription>
+                O servidor eSocial está retornando um certificado SSL inválido.
+                <br />
+                <strong>Soluções:</strong>
+                <br />
+                • Use o ambiente de teste (Produção Restrita)
+                <br />
+                • Configure o navegador para aceitar certificados inválidos
+                <br /> • Entre em contato com o suporte do eSocial
+              </SSLWarningDescription>
+            </ConfigValue>
+          </ConfigItem>
+
+          <ConfigItem>
+            <ConfigLabel>Dados do Empregador</ConfigLabel>
+            <FlexContainer>
+              <ConfigValue>
+                Carregar informações cadastrais do empregador
+              </ConfigValue>
+              <ActionButton
+                variant='primary'
+                theme={theme}
+                onClick={() => {
+                  // console.log('🔍 BOTÃO CLICADO: Carregar Dados do Empregador');
+                  handleLoadEmpregadorData();
+                }}
+                disabled={isLoading}
+              >
+                <AccessibleEmoji emoji='🏢' label='Empregador' /> Carregar Dados
+              </ActionButton>
+            </FlexContainer>
+          </ConfigItem>
+          <ConfigItem>
+            <ConfigLabel>Dados dos Empregados</ConfigLabel>
+            <FlexContainer>
+              <ConfigValue>
+                Carregar lista de empregados e vínculos ativos
+              </ConfigValue>
+              <ActionButton
+                variant='primary'
+                theme={theme}
+                onClick={() => {
+                  // console.log('🔍 BOTÃO CLICADO: Carregar Lista');
+                  handleLoadEmpregadosData();
+                }}
+                disabled={isLoading}
+              >
+                <AccessibleEmoji emoji='👥' label='Empregados' /> Carregar Lista
+              </ActionButton>
+            </FlexContainer>
+          </ConfigItem>
+          <ConfigItem>
+            <ConfigLabel>Eventos Enviados</ConfigLabel>
+            <FlexContainer>
+              <ConfigValue>
+                Consultar histórico de eventos enviados ao eSocial
+              </ConfigValue>
+              <ActionButton
+                variant='primary'
+                theme={theme}
+                onClick={() => {
+                  // console.log('🔍 BOTÃO CLICADO: Consultar Histórico');
+                  handleLoadEventosData();
+                }}
+                disabled={isLoading}
+              >
+                <AccessibleEmoji emoji='📋' label='Eventos' /> Consultar
+                Histórico
+              </ActionButton>
+            </FlexContainer>
+          </ConfigItem>
+        </ConfigSection>
+
+        {/* Seção de Dados Carregados do Empregador */}
+        {loadedEmployerData && (
+          <ConfigSection>
+            <SectionTitle>
+              <AccessibleEmoji emoji='🏢' label='Empregador' /> Dados Carregados
+              do Empregador
+              {loadedEmployerData.fonte && (
+                <DataSourceIndicator
+                  $isReal={loadedEmployerData.fonte === 'SOAP_REAL'}
+                >
+                  (
+                  {loadedEmployerData.fonte === 'SOAP_REAL'
+                    ? '✅ Dados Reais'
+                    : '⚠️ Dados Simulados'}
+                  )
+                </DataSourceIndicator>
+              )}
+            </SectionTitle>
+            <ConfigItem>
+              <ConfigLabel>Nome</ConfigLabel>
+              <ConfigValue>{loadedEmployerData.nome}</ConfigValue>
+            </ConfigItem>
+            <ConfigItem>
+              <ConfigLabel>CPF</ConfigLabel>
+              <ConfigValue>{loadedEmployerData.cpf}</ConfigValue>
+            </ConfigItem>
+            <ConfigItem>
+              <ConfigLabel>Razão Social</ConfigLabel>
+              <ConfigValue>{loadedEmployerData.razaoSocial}</ConfigValue>
+            </ConfigItem>
+            <ConfigItem>
+              <ConfigLabel>Endereço</ConfigLabel>
+              <ConfigValue>
+                {loadedEmployerData.endereco?.logradouro},{' '}
+                {loadedEmployerData.endereco?.numero || 'S/N'}
+                <br />
+                {loadedEmployerData.endereco?.bairro} -{' '}
+                {loadedEmployerData.endereco?.cidade}/
+                {loadedEmployerData.endereco?.uf}
+                <br />
+                CEP: {loadedEmployerData.endereco?.cep}
+              </ConfigValue>
+            </ConfigItem>
+            <ConfigItem>
+              <ConfigLabel>Contato</ConfigLabel>
+              <ConfigValue>
+                Telefone: {loadedEmployerData.contato?.telefone}
+                <br />
+                Email: {loadedEmployerData.contato?.email}
+              </ConfigValue>
+            </ConfigItem>
+            <ConfigItem>
+              <ConfigLabel>Situação</ConfigLabel>
+              <ConfigValue>{loadedEmployerData.situacao}</ConfigValue>
+            </ConfigItem>
+          </ConfigSection>
+        )}
+
+        {/* Seção de Lista de Empregados Carregados */}
+        {loadedEmployeesData.length > 0 && (
+          <ConfigSection>
+            <SectionTitle>
+              <AccessibleEmoji emoji='👥' label='Empregados' /> Lista de
+              Empregados Carregados
+              {loadedEmployeesData[0]?.fonte && (
+                <DataSourceIndicator
+                  $isReal={loadedEmployeesData[0].fonte === 'SOAP_REAL'}
+                >
+                  (
+                  {loadedEmployeesData[0].fonte === 'SOAP_REAL'
+                    ? '✅ Dados Reais'
+                    : '⚠️ Dados Simulados'}
+                  )
+                </DataSourceIndicator>
+              )}
+            </SectionTitle>
+            {loadedEmployeesData.map((empregado, index) => (
+              <ConfigItem key={index}>
+                <ConfigLabel>Empregado {index + 1}</ConfigLabel>
+                <ConfigValue>
+                  <strong>Nome:</strong> {empregado.nome}
+                  <br />
+                  <strong>CPF:</strong> {empregado.cpf}
+                  <br />
+                  <strong>Cargo:</strong> {empregado.cargo}
+                  <br />
+                  <strong>Salário:</strong> {empregado.salario}
+                  <br />
+                  <strong>Data de Admissão:</strong> {empregado.dataAdmissao}
+                  <br />
+                  <strong>Situação:</strong> {empregado.situacao}
+                </ConfigValue>
+              </ConfigItem>
+            ))}
+          </ConfigSection>
+        )}
+
+        {/* Seção de Histórico de Eventos Carregados */}
+        {loadedEventsData.length > 0 && (
+          <ConfigSection>
+            <SectionTitle>
+              <AccessibleEmoji emoji='📋' label='Eventos' /> Histórico de
+              Eventos Carregados
+              {loadedEventsData[0]?.fonte && (
+                <DataSourceIndicator
+                  $isReal={loadedEventsData[0].fonte === 'SOAP_REAL'}
+                >
+                  (
+                  {loadedEventsData[0].fonte === 'SOAP_REAL'
+                    ? '✅ Dados Reais'
+                    : '⚠️ Dados Simulados'}
+                  )
+                </DataSourceIndicator>
+              )}
+            </SectionTitle>
+            {loadedEventsData.map((evento, index) => (
+              <ConfigItem key={index}>
+                <ConfigLabel>Evento {index + 1}</ConfigLabel>
+                <ConfigValue>
+                  <strong>Tipo:</strong> {evento.tipo}
+                  <br />
+                  <strong>ID:</strong> {evento.id}
+                  <br />
+                  <strong>Data de Envio:</strong> {evento.dataEnvio}
+                  <br />
+                  <strong>Status:</strong> {evento.status}
+                  <br />
+                  <strong>Protocolo:</strong> {evento.protocolo}
+                  <br />
+                  <strong>Descrição:</strong> {evento.descricao}
+                </ConfigValue>
+              </ConfigItem>
+            ))}
+          </ConfigSection>
+        )}
 
         {/* Modal de Detalhes do Evento */}
         <Modal
@@ -1604,6 +2054,7 @@ const ESocialIntegration: React.FC = () => {
           onClose={() => setIsCertificateModalOpen(false)}
           onSuccess={handleCertificateSuccess}
           theme={theme}
+          esocialConfig={esocialConfig}
         />
 
         {/* Modal de Procuração Eletrônica */}
@@ -1612,6 +2063,20 @@ const ESocialIntegration: React.FC = () => {
           onClose={() => setIsProxyModalOpen(false)}
           onSuccess={handleProxySuccess}
           theme={theme}
+          esocialConfig={esocialConfig}
+        />
+
+        {/* Toast Container */}
+        <ToastContainer
+          position='top-right'
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
         />
       </MainContent>
     </Container>

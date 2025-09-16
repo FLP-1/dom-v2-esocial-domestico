@@ -72,9 +72,54 @@ export class CertificateService {
       }
 
       // Obter o primeiro certificado
-      this.certificate = certBags[0] as unknown as forge.pki.Certificate;
+      const certBag = certBags[0];
+      // console.log('CertBag extraído:', certBag);
+
+      // Verificar se é um certificado válido
+      if (!certBag || typeof certBag !== 'object') {
+        throw new Error('Certificado extraído não é um objeto válido');
+      }
+
+      // Tentar diferentes formas de extrair o certificado
+      if ((certBag as any).cert) {
+        this.certificate = (certBag as any).cert;
+      } else if ((certBag as any).certificate) {
+        this.certificate = (certBag as any).certificate;
+      } else {
+        this.certificate = certBag as unknown as forge.pki.Certificate;
+      }
+
+      // Validar se o certificado foi extraído corretamente
+      if (!this.certificate) {
+        throw new Error('Falha ao extrair certificado do arquivo PFX');
+      }
+
+      // console.log('Certificado extraído:', this.certificate);
+      // console.log('Propriedades do certificado:', Object.keys(this.certificate));
+
+      // Extrair a chave privada corretamente
+      const keyBag = keyBagsArray[0];
+      if (!keyBag || typeof keyBag !== 'object') {
+        throw new Error('Chave privada extraída não é um objeto válido');
+      }
+
+      // Verificar se a chave privada tem a estrutura correta
+      let privateKey: forge.pki.PrivateKey;
+      if ((keyBag as any).key) {
+        privateKey = (keyBag as any).key;
+      } else if ((keyBag as any).privateKey) {
+        privateKey = (keyBag as any).privateKey;
+      } else {
+        privateKey = keyBag as unknown as forge.pki.PrivateKey;
+      }
+
+      // Validar se a chave privada tem o método sign
+      if (!privateKey || typeof (privateKey as any).sign !== 'function') {
+        throw new Error('Chave privada inválida: método sign não disponível');
+      }
+
       this.privateKey = {
-        key: keyBagsArray[0] as unknown as forge.pki.PrivateKey,
+        key: privateKey,
         algorithm: 'RSA',
         keySize: 2048,
       };
@@ -82,7 +127,13 @@ export class CertificateService {
       // Extrair informações do certificado
       this.certificateInfo = this.extractCertificateInfo(this.certificate);
 
+      // Validar se o certificado foi extraído corretamente
+      if (!this.certificateInfo) {
+        throw new Error('Falha ao extrair informações do certificado');
+      }
+
       // Certificado digital carregado com sucesso
+      // console.log('✅ Certificado carregado:', this.certificateInfo.subject);
 
       return this.certificateInfo;
     } catch (error) {
@@ -97,6 +148,48 @@ export class CertificateService {
    * Extrai informações do certificado
    */
   private extractCertificateInfo(cert: forge.pki.Certificate): CertificateInfo {
+    // Validar se o certificado foi parseado corretamente
+    if (!cert) {
+      throw new Error('Certificado não foi parseado corretamente');
+    }
+
+    // console.log('Propriedades do certificado:', Object.keys(cert));
+    // console.log('Tipo do certificado:', typeof cert);
+    // console.log('Constructor do certificado:', cert.constructor.name);
+
+    // Verificar se é um certificado válido do node-forge
+    if (!cert.validity) {
+      // Tentar verificar se é um certificado válido de outra forma
+      if ((cert as any).validityNotBefore && (cert as any).validityNotAfter) {
+        // Certificado com propriedades diferentes
+        const now = new Date();
+        const validFrom = (cert as any).validityNotBefore;
+        const validTo = (cert as any).validityNotAfter;
+
+        const daysUntilExpiry = Math.ceil(
+          (validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        const isValid = now >= validFrom && now <= validTo;
+
+        return {
+          subject: cert.subject?.getField?.('CN')?.value || 'N/A',
+          issuer: cert.issuer?.getField?.('CN')?.value || 'N/A',
+          validFrom,
+          validTo,
+          serialNumber: cert.serialNumber || 'N/A',
+          isValid,
+          daysUntilExpiry,
+          fingerprint: 'N/A', // Não conseguimos calcular sem validity
+        };
+      }
+
+      throw new Error('Certificado não possui informações de validade');
+    }
+
+    if (!cert.validity.notBefore || !cert.validity.notAfter) {
+      throw new Error('Certificado não possui datas de validade válidas');
+    }
+
     const now = new Date();
     const validFrom = cert.validity.notBefore;
     const validTo = cert.validity.notAfter;
@@ -106,12 +199,32 @@ export class CertificateService {
     );
     const isValid = now >= validFrom && now <= validTo;
 
+    // Validar subject e issuer
+    let subject = 'N/A';
+    let issuer = 'N/A';
+
+    try {
+      if (cert.subject && cert.subject.getField) {
+        subject = cert.subject.getField('CN')?.value || 'N/A';
+      }
+    } catch (error) {
+      // console.warn('Erro ao extrair subject:', error);
+    }
+
+    try {
+      if (cert.issuer && cert.issuer.getField) {
+        issuer = cert.issuer.getField('CN')?.value || 'N/A';
+      }
+    } catch (error) {
+      // console.warn('Erro ao extrair issuer:', error);
+    }
+
     return {
-      subject: cert.subject.getField('CN')?.value || 'N/A',
-      issuer: cert.issuer.getField('CN')?.value || 'N/A',
+      subject,
+      issuer,
       validFrom,
       validTo,
-      serialNumber: cert.serialNumber,
+      serialNumber: cert.serialNumber || 'N/A',
       isValid,
       daysUntilExpiry,
       fingerprint: forge.md.sha1
@@ -161,6 +274,11 @@ export class CertificateService {
     try {
       const md = forge.md.sha256.create();
       md.update(data, 'utf8');
+
+      // Verificar se a chave privada tem o método sign
+      if (!this.privateKey.key || typeof (this.privateKey.key as any).sign !== 'function') {
+        throw new Error('Chave privada inválida ou método sign não disponível');
+      }
 
       const signature = (this.privateKey.key as any).sign(md);
       return forge.util.encode64(signature);

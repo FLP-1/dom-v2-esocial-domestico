@@ -124,3 +124,18 @@ temp/
 *.njsproj
 *.sln
 *.sw?
+
+# Certificados sensíveis
+certificados/serpro/*.p12
+certificados/serpro/*.pfx
+certificados/serpro/private/
+
+# Arquivos de configuração sensíveis
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Relatórios e análises
+lighthouse-report.json
+*.report.json

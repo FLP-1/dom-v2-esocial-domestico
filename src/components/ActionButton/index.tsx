@@ -1,124 +1,188 @@
 import React, { ReactNode } from 'react';
 import styled from 'styled-components';
+import {
+  componentShadows,
+  createThemedStyles,
+  designConstants,
+  stateShadows,
+} from '../../design-system';
 
 const ButtonContainer = styled.button<{
   $variant: 'primary' | 'secondary' | 'success' | 'warning' | 'danger';
   $theme?: any;
   $size?: 'small' | 'medium' | 'large';
+  $loading?: boolean;
 }>`
-  background: ${props => {
-    if (props.$theme?.colors) {
+  ${props => {
+    const themedStyles = createThemedStyles(props.$theme);
+
+    const getVariantStyles = () => {
       switch (props.$variant) {
         case 'primary':
-          return `linear-gradient(135deg, ${props.$theme.colors.primary}, ${props.$theme.colors.secondary})`;
+          return {
+            background: `linear-gradient(135deg, ${themedStyles.primary}, ${themedStyles.secondary})`,
+            color: '#FFFFFF',
+            border: 'none',
+          };
         case 'secondary':
-          return 'rgba(255, 255, 255, 0.9)';
+          return {
+            background: 'rgba(255, 255, 255, 0.9)',
+            color: themedStyles.text,
+            border: `2px solid ${themedStyles.border}`,
+          };
         case 'success':
-          return `linear-gradient(135deg, ${props.$theme.colors.secondary}, #2ecc71)`;
+          return {
+            background: `linear-gradient(135deg, ${themedStyles.success}, #2ECC71)`,
+            color: '#FFFFFF',
+            border: 'none',
+          };
         case 'warning':
-          return `linear-gradient(135deg, ${props.$theme.colors.accent}, #e67e22)`;
+          return {
+            background: `linear-gradient(135deg, ${themedStyles.warning}, #E67E22)`,
+            color: '#FFFFFF',
+            border: 'none',
+          };
         case 'danger':
-          return 'linear-gradient(135deg, #e74c3c, #c0392b)';
+          return {
+            background: `linear-gradient(135deg, ${themedStyles.error}, #C0392B)`,
+            color: '#FFFFFF',
+            border: 'none',
+          };
         default:
-          return `linear-gradient(135deg, ${props.$theme.colors.primary}, ${props.$theme.colors.secondary})`;
+          return {
+            background: `linear-gradient(135deg, ${themedStyles.primary}, ${themedStyles.secondary})`,
+            color: '#FFFFFF',
+            border: 'none',
+          };
       }
-    }
+    };
 
-    // Fallback colors
-    switch (props.$variant) {
-      case 'primary':
-        return 'linear-gradient(135deg, #29abe2, #90ee90)';
-      case 'secondary':
-        return 'rgba(255, 255, 255, 0.9)';
-      case 'success':
-        return 'linear-gradient(135deg, #90ee90, #2ecc71)';
-      case 'warning':
-        return 'linear-gradient(135deg, #f39c12, #e67e22)';
-      case 'danger':
-        return 'linear-gradient(135deg, #e74c3c, #c0392b)';
-      default:
-        return 'linear-gradient(135deg, #29abe2, #90ee90)';
-    }
-  }};
-
-  color: ${props => (props.$variant === 'secondary' ? '#2c3e50' : '#fff')};
-  border: ${props =>
-    props.$variant === 'secondary'
-      ? `2px solid ${props.$theme?.colors.primary + '20' || 'rgba(41, 171, 226, 0.2)'}`
-      : 'none'};
-  border-radius: 12px;
-  padding: ${props => {
-    switch (props.$size) {
-      case 'small':
-        return '0.5rem 1rem';
-      case 'large':
-        return '1rem 2rem';
-      default:
-        return '0.75rem 1.5rem';
-    }
-  }};
-  font-size: ${props => {
-    switch (props.$size) {
-      case 'small':
-        return '0.9rem';
-      case 'large':
-        return '1.1rem';
-      default:
-        return '1rem';
-    }
-  }};
-  font-family: 'Montserrat', sans-serif;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: ${props =>
-    props.$variant === 'secondary'
-      ? '0 2px 8px rgba(0, 0, 0, 0.1)'
-      : `0 4px 16px ${props.$theme?.colors.primary + '50' || 'rgba(41, 171, 226, 0.3)'}`};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-width: ${props => {
-    switch (props.$size) {
-      case 'small':
-        return '80px';
-      case 'large':
-        return '200px';
-      default:
-        return '120px';
-    }
-  }};
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: ${props =>
-      props.$variant === 'secondary'
-        ? `0 4px 16px ${props.$theme?.colors.primary + '20' || 'rgba(41, 171, 226, 0.2)'}`
-        : `0 8px 24px ${props.$theme?.colors.primary + '60' || 'rgba(41, 171, 226, 0.4)'}`};
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .icon {
-    font-size: ${props => {
+    const getSizeStyles = () => {
       switch (props.$size) {
         case 'small':
-          return '1rem';
+          return {
+            padding: '0.5rem 1rem',
+            fontSize: '0.875rem',
+            minWidth: '80px',
+            borderRadius: designConstants.borderRadius.md,
+          };
         case 'large':
-          return '1.5rem';
+          return {
+            padding: '1rem 2rem',
+            fontSize: '1.125rem',
+            minWidth: '200px',
+            borderRadius: designConstants.borderRadius.xl,
+          };
         default:
-          return '1.25rem';
+          return {
+            padding: '0.75rem 1.5rem',
+            fontSize: '1rem',
+            minWidth: '120px',
+            borderRadius: designConstants.borderRadius.lg,
+          };
       }
-    }};
+    };
+
+    const variantStyles = getVariantStyles();
+    const sizeStyles = getSizeStyles();
+
+    return `
+      /* Base styles */
+      background: ${variantStyles.background};
+      color: ${variantStyles.color};
+      border: ${variantStyles.border};
+      border-radius: ${sizeStyles.borderRadius};
+      padding: ${sizeStyles.padding};
+      font-size: ${sizeStyles.fontSize};
+      min-width: ${sizeStyles.minWidth};
+
+      /* Typography */
+      font-family: 'Inter', system-ui, sans-serif;
+      font-weight: 600;
+      letter-spacing: 0.025em;
+      text-align: center;
+
+      /* Layout */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      position: relative;
+      overflow: hidden;
+
+      /* Interaction */
+      cursor: pointer;
+      user-select: none;
+      transition: ${designConstants.transition.base};
+      box-shadow: ${componentShadows.button};
+
+      /* Hover state */
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: ${componentShadows.buttonHover};
+      }
+
+      /* Active state */
+      &:active:not(:disabled) {
+        transform: translateY(0);
+        box-shadow: ${componentShadows.buttonActive};
+      }
+
+      /* Focus state */
+      &:focus:not(:disabled) {
+        outline: none;
+        box-shadow: ${componentShadows.buttonHover}, ${stateShadows.focus(themedStyles.primary)};
+      }
+
+      /* Disabled state */
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+
+        &:hover {
+          transform: none;
+          box-shadow: none;
+        }
+      }
+
+      /* Loading state */
+      ${
+        props.$loading
+          ? `
+        cursor: wait;
+        pointer-events: none;
+      `
+          : ''
+      }
+
+      /* Icon styles */
+      .icon {
+        font-size: ${props.$size === 'small' ? '1rem' : props.$size === 'large' ? '1.5rem' : '1.25rem'};
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    `;
+  }}
+`;
+
+const LoadingSpinner = styled.div`
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -130,7 +194,9 @@ export interface ActionButtonProps {
   size?: 'small' | 'medium' | 'large';
   onClick?: () => void;
   disabled?: boolean;
+  loading?: boolean;
   type?: 'button' | 'submit' | 'reset';
+  'aria-label'?: string;
 }
 
 export const ActionButton: React.FC<ActionButtonProps> = ({
@@ -141,7 +207,9 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
   size = 'medium',
   onClick,
   disabled = false,
+  loading = false,
   type = 'button',
+  'aria-label': ariaLabel,
 }) => {
   return (
     <ButtonContainer
@@ -149,9 +217,12 @@ export const ActionButton: React.FC<ActionButtonProps> = ({
       $theme={theme}
       $size={size}
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || loading}
       type={type}
+      $loading={loading}
+      aria-label={ariaLabel}
     >
+      {loading && <LoadingSpinner />}
       {icon && <span className='icon'>{icon}</span>}
       {children}
     </ButtonContainer>

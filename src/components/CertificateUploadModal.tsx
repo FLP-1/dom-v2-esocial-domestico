@@ -1,17 +1,11 @@
 import React, { useRef, useState } from 'react';
-import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
-import type { CertificateInfo } from '../services/esocialApi';
-import { getESocialApiService } from '../services/esocialApi';
+import { useAlertManager } from '../hooks/useAlertManager';
+import type { CertificateInfo } from '../services/esocialHybridApi';
+import { getESocialApiService } from '../services/esocialHybridApi';
 import AccessibleEmoji from './AccessibleEmoji';
 import { ActionButton } from './ActionButton';
-import {
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-} from './Modal';
+import SimpleModal from './SimpleModal';
 
 // Animações
 const fadeIn = keyframes`
@@ -177,6 +171,7 @@ interface CertificateUploadModalProps {
   onClose: () => void;
   onSuccess: (certificateInfo: CertificateInfo) => void;
   theme: any;
+  esocialConfig?: any;
 }
 
 const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
@@ -184,7 +179,9 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
   onClose,
   onSuccess,
   theme,
+  esocialConfig,
 }) => {
+  const alertManager = useAlertManager();
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [certificateInfo, setCertificateInfo] =
@@ -251,12 +248,15 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
     setError(null);
 
     try {
-      const esocialApi = getESocialApiService();
+      if (!esocialConfig) {
+        throw new Error('Configuração do eSocial não fornecida');
+      }
+      const esocialApi = getESocialApiService(esocialConfig);
       const certificateInfo =
         await esocialApi.configureCertificate(selectedFile);
 
       setCertificateInfo(certificateInfo);
-      toast.success('Certificado digital configurado com sucesso!');
+      alertManager.showSuccess('Certificado digital configurado com sucesso!');
 
       // Chamar callback de sucesso após um pequeno delay
       setTimeout(() => {
@@ -269,7 +269,7 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
           ? error.message
           : 'Erro ao processar certificado';
       setError(errorMessage);
-      toast.error(errorMessage);
+      alertManager.showError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -302,97 +302,19 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <ModalContent>
-        <ModalHeader>
-          <h2>
-            <AccessibleEmoji emoji='🔐' label='Criptografia' /> Configurar
-            Certificado Digital
-          </h2>
-        </ModalHeader>
-        <ModalBody>
-          {!certificateInfo ? (
-            <>
-              <UploadArea
-                $isDragOver={isDragOver}
-                $theme={theme}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <UploadIcon $theme={theme}>
-                  <AccessibleEmoji emoji='📁' label='Pasta' />
-                </UploadIcon>
-                <UploadText>
-                  {isDragOver
-                    ? 'Solte o arquivo aqui'
-                    : 'Arraste o certificado digital ou clique para selecionar'}
-                </UploadText>
-                <UploadSubtext>
-                  Formatos suportados: .pfx, .p12, .cer, .crt, .pem (máximo 5MB)
-                </UploadSubtext>
-
-                <FileInput
-                  ref={fileInputRef}
-                  type='file'
-                  accept='.pfx,.p12,.cer,.crt,.pem'
-                  onChange={handleFileInputChange}
-                />
-              </UploadArea>
-
-              {selectedFile && (
-                <FileInfo $theme={theme}>
-                  <FileName>
-                    <AccessibleEmoji emoji='📄' label='Documento' />{' '}
-                    {selectedFile.name}
-                  </FileName>
-                  <FileSize>
-                    Tamanho: {formatFileSize(selectedFile.size)}
-                  </FileSize>
-                </FileInfo>
-              )}
-
-              {error && <ErrorMessage>{error}</ErrorMessage>}
-            </>
-          ) : (
-            <CertificateInfo $theme={theme}>
-              <InfoTitle $theme={theme}>
-                <AccessibleEmoji emoji='✅' label='Sucesso' /> Certificado
-                Digital Configurado
-                <StatusBadge $isValid={certificateInfo.isValid} $theme={theme}>
-                  {certificateInfo.isValid ? 'Válido' : 'Inválido'}
-                </StatusBadge>
-              </InfoTitle>
-
-              <InfoRow>
-                <InfoLabel>Assunto:</InfoLabel>
-                <InfoValue>{certificateInfo.subject}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Emissor:</InfoLabel>
-                <InfoValue>{certificateInfo.issuer}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Número de Série:</InfoLabel>
-                <InfoValue>{certificateInfo.serialNumber}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Válido de:</InfoLabel>
-                <InfoValue>{formatDate(certificateInfo.validFrom)}</InfoValue>
-              </InfoRow>
-
-              <InfoRow>
-                <InfoLabel>Válido até:</InfoLabel>
-                <InfoValue>{formatDate(certificateInfo.validTo)}</InfoValue>
-              </InfoRow>
-            </CertificateInfo>
-          )}
-        </ModalBody>
-        <ModalFooter>
+    <SimpleModal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={
+        <>
+          <AccessibleEmoji emoji='🔐' label='Criptografia' /> Configurar
+          Certificado Digital
+        </>
+      }
+      maxWidth='600px'
+      theme={theme}
+      footer={
+        <>
           <ActionButton
             variant='secondary'
             theme={theme}
@@ -422,9 +344,88 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
               )}
             </ActionButton>
           )}
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </>
+      }
+    >
+      {!certificateInfo ? (
+        <>
+          <UploadArea
+            $isDragOver={isDragOver}
+            $theme={theme}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <UploadIcon $theme={theme}>
+              <AccessibleEmoji emoji='📁' label='Pasta' />
+            </UploadIcon>
+            <UploadText>
+              {isDragOver
+                ? 'Solte o arquivo aqui'
+                : 'Arraste o certificado digital ou clique para selecionar'}
+            </UploadText>
+            <UploadSubtext>
+              Formatos suportados: .pfx, .p12, .cer, .crt, .pem (máximo 5MB)
+            </UploadSubtext>
+
+            <FileInput
+              ref={fileInputRef}
+              type='file'
+              accept='.pfx,.p12,.cer,.crt,.pem'
+              onChange={handleFileInputChange}
+            />
+          </UploadArea>
+
+          {selectedFile && (
+            <FileInfo $theme={theme}>
+              <FileName>
+                <AccessibleEmoji emoji='📄' label='Documento' />{' '}
+                {selectedFile.name}
+              </FileName>
+              <FileSize>Tamanho: {formatFileSize(selectedFile.size)}</FileSize>
+            </FileInfo>
+          )}
+
+          {error && <ErrorMessage>{error}</ErrorMessage>}
+        </>
+      ) : (
+        <CertificateInfo $theme={theme}>
+          <InfoTitle $theme={theme}>
+            <AccessibleEmoji emoji='✅' label='Sucesso' /> Certificado Digital
+            Configurado
+            <StatusBadge $isValid={certificateInfo.isValid} $theme={theme}>
+              {certificateInfo.isValid ? 'Válido' : 'Inválido'}
+            </StatusBadge>
+          </InfoTitle>
+
+          <InfoRow>
+            <InfoLabel>Assunto:</InfoLabel>
+            <InfoValue>{certificateInfo.subject}</InfoValue>
+          </InfoRow>
+
+          <InfoRow>
+            <InfoLabel>Emissor:</InfoLabel>
+            <InfoValue>{certificateInfo.issuer}</InfoValue>
+          </InfoRow>
+
+          <InfoRow>
+            <InfoLabel>Número de Série:</InfoLabel>
+            <InfoValue>{certificateInfo.serialNumber}</InfoValue>
+          </InfoRow>
+
+          <InfoRow>
+            <InfoLabel>Válido de:</InfoLabel>
+            <InfoValue>{formatDate(certificateInfo.validFrom)}</InfoValue>
+          </InfoRow>
+
+          <InfoRow>
+            <InfoLabel>Válido até:</InfoLabel>
+            <InfoValue>{formatDate(certificateInfo.validTo)}</InfoValue>
+          </InfoRow>
+        </CertificateInfo>
+      )}
+    </SimpleModal>
   );
 };
 

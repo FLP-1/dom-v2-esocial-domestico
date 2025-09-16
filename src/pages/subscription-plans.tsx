@@ -2,17 +2,18 @@ import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/subscription-plans.tsx
 import { useRouter } from 'next/router';
 import { useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
 import ActionButton from '../components/ActionButton';
-import Modal from '../components/Modal';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
+import SimpleModal from '../components/SimpleModal';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
+import { useAlertManager } from '../hooks/useAlertManager';
 import { useTheme } from '../hooks/useTheme';
 
 // Interfaces
@@ -486,6 +487,7 @@ const ContactText = styled.p`
 
 export default function SubscriptionPlans() {
   const router = useRouter();
+  const alertManager = useAlertManager();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
@@ -671,7 +673,7 @@ export default function SubscriptionPlans() {
 
   const handleSubscribe = () => {
     if (selectedPlan) {
-      toast.success(
+      alertManager.showSuccess(
         `Redirecionando para pagamento do plano ${selectedPlan.name}...`
       );
       // Aqui seria implementada a integração com o sistema de pagamento
@@ -700,7 +702,7 @@ export default function SubscriptionPlans() {
           userRole={currentProfile?.role || 'Usuário'}
           notificationCount={0}
           onNotificationClick={() =>
-            toast.info('Notificações em desenvolvimento')
+            alertManager.showInfo('Notificações em desenvolvimento')
           }
         />
       </TopBar>
@@ -1106,7 +1108,7 @@ export default function SubscriptionPlans() {
       </ContactSection>
 
       {/* Modal de Confirmação */}
-      <Modal
+      <SimpleModal
         isOpen={modalOpen}
         onClose={() => {
           setModalOpen(false);
@@ -1116,6 +1118,29 @@ export default function SubscriptionPlans() {
           selectedPlan
             ? `Confirmar Assinatura - ${selectedPlan.name}`
             : 'Confirmar Assinatura'
+        }
+        maxWidth='500px'
+        theme={theme}
+        footer={
+          <>
+            <ActionButton
+              variant='secondary'
+              theme={theme}
+              onClick={() => {
+                setModalOpen(false);
+                setSelectedPlan(null);
+              }}
+            >
+              Cancelar
+            </ActionButton>
+            <ActionButton
+              variant='primary'
+              theme={theme}
+              onClick={handleSubscribe}
+            >
+              {selectedPlan?.buttonText || 'Confirmar'}
+            </ActionButton>
+          </>
         }
       >
         {selectedPlan && (
@@ -1137,33 +1162,9 @@ export default function SubscriptionPlans() {
                 ))}
               </FeaturesList>
             </ModalSection>
-
-            <FlexRow>
-              <FlexColumn>
-                <ActionButton
-                  variant='primary'
-                  theme={theme}
-                  onClick={handleSubscribe}
-                >
-                  {selectedPlan.buttonText}
-                </ActionButton>
-              </FlexColumn>
-              <FlexColumn>
-                <ActionButton
-                  variant='secondary'
-                  theme={theme}
-                  onClick={() => {
-                    setModalOpen(false);
-                    setSelectedPlan(null);
-                  }}
-                >
-                  Cancelar
-                </ActionButton>
-              </FlexColumn>
-            </FlexRow>
           </div>
         )}
-      </Modal>
+      </SimpleModal>
 
       <ToastContainer
         position='top-center'

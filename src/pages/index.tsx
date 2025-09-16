@@ -21,7 +21,7 @@ export default function Splash() {
   }, [router]);
   return (
     <SplashContainer>
-      <Image src='/logo.png' alt='DOM Logo' width={200} height={200} />
+      <Image src='/logo.png' alt='DOM Logo' width={200} height={200} priority />
     </SplashContainer>
   );
 }

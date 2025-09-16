@@ -277,10 +277,10 @@ export default function Sidebar({
       path: '/terms-management',
     },
     {
-      id: 'esocial-integration',
+      id: 'esocial-domestico-completo',
       icon: Icons.government,
       label: 'eSocial Doméstico',
-      path: '/esocial-integration',
+      path: '/esocial-domestico-completo',
     },
     {
       id: 'monitoring-dashboard',

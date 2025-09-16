@@ -1,5 +1,6 @@
 // src/components/FormComponents/index.tsx
 import styled from 'styled-components';
+import { mediaQueries } from '../../design-system/utils/responsive';
 
 // FormGroup
 interface FormGroupProps {
@@ -12,6 +13,23 @@ export const FormGroup = styled.div<FormGroupProps>`
   flex-direction: column;
   gap: 0.5rem;
   min-width: 200px;
+
+  /* Mobile: Full width and larger gaps */
+  ${mediaQueries.mobile} {
+    min-width: auto;
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  /* Touch devices: Larger touch targets */
+  ${mediaQueries.touchDevice} {
+    input,
+    select,
+    textarea {
+      min-height: 44px;
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+  }
 `;
 
 // Label
@@ -36,12 +54,27 @@ export const Input = styled.input<{ $theme: any; $hasError?: boolean }>`
   font-size: 1rem;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.9);
+  width: 100%;
+  box-sizing: border-box;
 
   &:focus {
     outline: none;
     border-color: ${props => props.$theme?.colors?.primary || '#29ABE2'};
     box-shadow: 0 0 0 3px
       ${props => props.$theme?.colors?.primary || '#29ABE2'}20;
+  }
+
+  /* Mobile: Larger touch targets and prevent zoom */
+  ${mediaQueries.mobile} {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 0.875rem;
+  }
+
+  /* Touch devices: Better interaction */
+  ${mediaQueries.touchDevice} {
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
   }
 `;
 
@@ -54,18 +87,7 @@ interface SelectProps {
   id?: string;
 }
 
-export const Select = styled.select.attrs<SelectProps>(props => {
-  const uniqueId =
-    props.id || `select-${Math.random().toString(36).substr(2, 9)}`;
-  return {
-    'aria-label': props['aria-label'] || 'Selecionar opção',
-    'aria-labelledby': props['aria-labelledby'],
-    title: props.title || 'Selecionar opção',
-    id: uniqueId,
-    role: 'combobox',
-    'aria-expanded': 'false',
-  };
-})<SelectProps>`
+export const Select = styled.select<SelectProps>`
   padding: 0.75rem;
   border: 2px solid ${props => props.$theme?.colors?.border || '#e0e0e0'};
   border-radius: 8px;
@@ -73,12 +95,27 @@ export const Select = styled.select.attrs<SelectProps>(props => {
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.9);
   cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
 
   &:focus {
     outline: none;
     border-color: ${props => props.$theme?.colors?.primary || '#29ABE2'};
     box-shadow: 0 0 0 3px
       ${props => props.$theme?.colors?.primary || '#29ABE2'}20;
+  }
+
+  /* Mobile: Larger touch targets */
+  ${mediaQueries.mobile} {
+    min-height: 44px;
+    font-size: 16px; /* Prevent zoom on iOS */
+    padding: 0.875rem;
+  }
+
+  /* Touch devices: Better interaction */
+  ${mediaQueries.touchDevice} {
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
   }
 `;
 
