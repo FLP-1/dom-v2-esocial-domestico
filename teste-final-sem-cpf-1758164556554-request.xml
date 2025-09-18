@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                  xmlns:tns="http://www.esocial.gov.br/servicos/empregador/lote/eventos/envio/consulta/retornoProcessamento/v1_1_0">
+  <soapenv:Header/>
+  <soapenv:Body>
+    <tns:ConsultarLoteEventos>
+      <eSocial xmlns="http://www.esocial.gov.br/schema/lote/eventos/envio/consulta/retornoProcessamento/v1_0_0">
+        <consultaLoteEventos>
+          <protocoloEnvio>1.2.20250918.58742</protocoloEnvio>
+        </consultaLoteEventos>
+      </eSocial>
+    </tns:ConsultarLoteEventos>
+  </soapenv:Body>
+</soapenv:Envelope>

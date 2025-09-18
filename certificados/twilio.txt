@@ -1,0 +1,12 @@
+# Credenciais Twilio (CONFIGURE NO .env.local)
+
+# Adicione no seu .env.local:
+TWILIO_ACCOUNT_SID=SEU_ACCOUNT_SID_AQUI
+TWILIO_AUTH_TOKEN=SEU_AUTH_TOKEN_AQUI
+TWILIO_PHONE_NUMBER=SEU_NUMERO_TWILIO_AQUI
+
+# Para obter suas credenciais:
+# 1. Acesse https://console.twilio.com
+# 2. Copie Account SID e Auth Token
+# 3. Configure um número de telefone
+# 4. Adicione no .env.local

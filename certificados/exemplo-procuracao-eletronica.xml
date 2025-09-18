@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<eSocial xmlns="http://www.esocial.gov.br/schema/evt/evtAdmissao/v_S_01_00_00">
+  <evtAdmissao Id="ID123456789">
+    <ideEvento>
+      <tpAmb>1</tpAmb>
+      <procEmi>1</procEmi>
+      <verProc>1.0.0</verProc>
+    </ideEvento>
+    <ideEmpregador>
+      <tpInsc>1</tpInsc>
+      <nrInsc>59876913700</nrInsc>
+    </ideEmpregador>
+    <trabalhador>
+      <cpfTrab>12345678901</cpfTrab>
+      <nmTrab>FRANCISCO JOSE LATTARI PAPALEO</nmTrab>
+      <sexo>M</sexo>
+      <racaCor>1</racaCor>
+      <estCiv>1</estCiv>
+      <grauInstr>1</grauInstr>
+      <nmSoc>FRANCISCO JOSE LATTARI PAPALEO</nmSoc>
+      <nascimento>
+        <dtNascto>1980-01-01</dtNascto>
+        <codMunic>3550308</codMunic>
+        <uf>SP</uf>
+        <paisNascto>105</paisNascto>
+        <paisNac>105</paisNac>
+        <nmMae>MARIA DA SILVA</nmMae>
+        <nmPai>JOSE DA SILVA</nmPai>
+      </nascimento>
+      <endereco>
+        <brasil>
+          <tpLograd>R</tpLograd>
+          <dscLograd>RUA DAS FLORES</dscLograd>
+          <nrLograd>123</nrLograd>
+          <complemento>APTO 45</complemento>
+          <bairro>CENTRO</bairro>
+          <cep>01234567</cep>
+          <codMunic>3550308</codMunic>
+          <uf>SP</uf>
+        </brasil>
+      </endereco>
+      <trabEstrangeiro>
+        <dtChegada>2020-01-01</dtChegada>
+        <classTrabEstrang>01</classTrabEstrang>
+        <casadoBr>N</casadoBr>
+        <filhosBr>0</filhosBr>
+      </trabEstrangeiro>
+      <infoDeficiencia>
+        <defFisica>N</defFisica>
+        <defVisual>N</defVisual>
+        <defAuditiva>N</defAuditiva>
+        <defMental>N</defMental>
+        <defIntelectual>N</defIntelectual>
+        <reabReadap>N</reabReadap>
+        <infoCota>N</infoCota>
+        <observacao>Nenhuma observação</observacao>
+      </infoDeficiencia>
+      <dependente>
+        <tpDep>01</tpDep>
+        <nmDep>FILHO DA SILVA</nmDep>
+        <dtNascto>2010-01-01</dtNascto>
+        <cpfDep>12345678902</cpfDep>
+        <sexoDep>M</sexoDep>
+        <depIRRF>S</depIRRF>
+        <depSF>S</depSF>
+        <incTrab>S</incTrab>
+      </dependente>
+      <aposentadoria>
+        <trabAposent>N</trabAposent>
+      </aposentadoria>
+      <contato>
+        <fonePrinc>11999999999</fonePrinc>
+        <foneAlternat>11888888888</foneAlternat>
+        <emailPrinc>francisco@exemplo.com</emailPrinc>
+        <emailAlternat>francisco.alt@exemplo.com</emailAlternat>
+      </contato>
+    </trabalhador>
+    <vinculo>
+      <matricula>001</matricula>
+      <tpRegTrab>1</tpRegTrab>
+      <tpRegPrev>1</tpRegPrev>
+      <dtAdm>2024-01-01</dtAdm>
+      <codCateg>101</codCateg>
+      <codCargo>001</codCargo>
+      <codFuncao>001</codFuncao>
+      <codCarreira>001</codCarreira>
+      <dtIngrCarr>2024-01-01</dtIngrCarr>
+      <remuneracao>
+        <vrSalFx>5000.00</vrSalFx>
+        <undSalFixo>1</undSalFixo>
+        <dscSalVar>Salário variável</dscSalVar>
+      </remuneracao>
+      <duracao>
+        <tpContr>1</tpContr>
+        <dtTerm>2024-12-31</dtTerm>
+        <clauAssec>N</clauAssec>
+        <objDet>Objetivo específico</objDet>
+      </duracao>
+      <observacoes>
+        <observacao>Observações gerais</observacao>
+      </observacoes>
+      <sucessaoVinc>
+        <tpInsc>1</tpInsc>
+        <nrInsc>12345678000199</nrInsc>
+        <matricAnt>001</matricAnt>
+        <dtTransf>2024-01-01</dtTransf>
+        <observacao>Transferência de empresa</observacao>
+      </sucessaoVinc>
+      <transfDom>
+        <cpfSubstituido>12345678903</cpfSubstituido>
+        <matricAnt>002</matricAnt>
+        <dtTransf>2024-01-01</dtTransf>
+      </transfDom>
+      <mudancaCPF>
+        <cpfAnt>12345678904</cpfAnt>
+        <matricAnt>003</matricAnt>
+        <dtAltCPF>2024-01-01</dtAltCPF>
+        <observacao>Mudança de CPF</observacao>
+      </mudancaCPF>
+      <afastamento>
+        <dtIniAfast>2024-06-01</dtIniAfast>
+        <codMotAfast>01</codMotAfast>
+      </afastamento>
+      <desligamento>
+        <dtDeslig>2024-12-31</dtDeslig>
+        <mtvDeslig>01</mtvDeslig>
+        <dtProj>2024-12-31</dtProj>
+        <observacao>Desligamento por término de contrato</observacao>
+      </desligamento>
+    </vinculo>
+  </evtAdmissao>
+</eSocial>

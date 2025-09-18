@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚨 EXECUTANDO VALIDAÇÃO RIGOROSA PRÉ-COMMIT..."
+
+# Executar validação rigorosa completa
+echo "🔍 Executando validação rigorosa..."
+npm run validate:rigorous
+if [ $? -ne 0 ]; then
+  echo "❌ VALIDAÇÃO RIGOROSA FALHOU!"
+  echo "🚨 COMMIT BLOQUEADO - Corrija todos os problemas antes de continuar"
+  exit 1
+fi
+
+echo "✅ VALIDAÇÃO RIGOROSA APROVADA!"
+echo "🎉 Commit autorizado - Projeto está em conformidade total!"
