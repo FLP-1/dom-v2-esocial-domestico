@@ -1,0 +1,14 @@
+{
+  "empregador": {
+    "nome": "FRANCISCO JOSE LATTARI PAPALEO",
+    "cpf": "59876913700"
+  },
+  "consulta": {
+    "timestamp": "2025-09-18T09:51:18.774Z",
+    "metodosUsados": 3,
+    "metodosComSucesso": 3,
+    "totalEmpregados": 0
+  },
+  "empregados": [],
+  "erikaEncontrada": false
+}

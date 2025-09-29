@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header/>
+  <soap:Body>
+    <cons:ConsultarLoteEventos xmlns:cons="http://www.esocial.gov.br/servicos/empregador/consultarloteeventos/v1_3_0">
+      <cons:ideEmpregador>
+        <cons:tpInsc>2</cons:tpInsc>
+        <cons:nrInsc>59876913700</cons:nrInsc>
+      </cons:ideEmpregador>
+      <cons:protocolo>1.2.20250917.46410</cons:protocolo>
+    </cons:ConsultarLoteEventos>
+  </soap:Body>
+</soap:Envelope>
