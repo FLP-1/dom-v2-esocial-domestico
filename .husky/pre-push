@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🚀 Executando validações pré-push..."
+
+# Executar testes unitários
+echo "🧪 Executando testes unitários..."
+npm run test:unit
+if [ $? -ne 0 ]; then
+  echo "❌ Testes unitários falharam."
+  exit 1
+fi
+
+# Executar testes de integração
+echo "🔗 Executando testes de integração..."
+npm run test:integration
+if [ $? -ne 0 ]; then
+  echo "❌ Testes de integração falharam."
+  exit 1
+fi
+
+echo "✅ Todas as validações de push passaram!"
