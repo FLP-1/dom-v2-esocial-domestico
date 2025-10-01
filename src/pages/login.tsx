@@ -385,6 +385,7 @@ export default function LoginBiometric() {
   const {
     setAvailableProfiles,
     handleProfileSelection,
+    setShowProfileModal,
   } = useUserProfile();
 
   const motivationalPhrases = [
@@ -587,7 +588,7 @@ export default function LoginBiometric() {
           }
         } else {
           // Se há múltiplos perfis, mostra o modal de seleção
-          // setShowProfileUnifiedModal removido
+          setShowProfileModal(true);
         }
       }, 1500);
       return;

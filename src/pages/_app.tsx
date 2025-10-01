@@ -16,6 +16,7 @@ import {
   UnifiedModal,
   UnifiedCard,
 } from '../components/unified';
+import ProfileSelectionModal from '../components/ProfileSelectionModal';
 
 function AppContent({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -23,6 +24,9 @@ function AppContent({ Component, pageProps }: AppProps) {
   const {
     handleProfileSelection,
     currentProfile,
+    availableProfiles,
+    showProfileModal,
+    setShowProfileModal,
   } = useUserProfile();
 
   // Forçar re-renderização quando a rota mudar (incluindo navegação com seta)
@@ -51,8 +55,14 @@ function AppContent({ Component, pageProps }: AppProps) {
         <GlobalStyle />
         <Component key={key} {...pageProps} />
 
-        {/* UnifiedModal Global de Seleção de Perfil */}
-        {/* ProfileSelectionUnifiedModal removido - componente não existe */}
+        {/* Modal Global de Seleção de Perfil */}
+        <ProfileSelectionModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          profiles={availableProfiles}
+          onProfileSelect={handleProfileSelect}
+          currentProfile={currentProfile}
+        />
       </ThemeProvider>
     </div>
   );
