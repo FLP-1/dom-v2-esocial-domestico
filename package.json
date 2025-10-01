@@ -36,7 +36,19 @@
     "scripts:remove-legacy": "npx ts-node scripts/remove-legacy-code.ts",
     "scripts:optimize-components": "npx ts-node scripts/optimize-duplicate-components.ts",
     "scripts:run-all": "npx ts-node scripts/run-scripts.ts all",
-    "test:coverage": "echo \"Coverage tests not implemented yet\" && exit 0"
+    "test:coverage": "echo \"Coverage tests not implemented yet\" && exit 0",
+    "db:migrate": "npx prisma migrate dev",
+    "db:migrate:deploy": "npx prisma migrate deploy",
+    "db:generate": "npx prisma generate",
+    "db:seed": "npx prisma db seed",
+    "db:reset": "npx prisma migrate reset",
+    "db:studio": "npx prisma studio",
+    "db:validate": "npx prisma validate",
+    "db:format": "npx prisma format",
+    "db:push": "npx prisma db push"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
     "@sendgrid/mail": "^8.1.5",
