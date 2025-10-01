@@ -1,12 +1,11 @@
 import React, { ReactNode, useState } from 'react';
 import styled from 'styled-components';
 import { createThemedStyles, designConstants } from '../../design-system';
-import { Button } from '../../design-system/components';
+import { UnifiedButton } from '../UnifiedButton';
 
 const StyledComponent1 = styled.div`
   cursor: allowSkipSteps ? pointer : default
 `;
-
 
 interface Step {
   id: string;
@@ -332,22 +331,22 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
         </StepInfo>
 
         <div>
-          <Button
-            variant='secondary'
-            theme={theme}
+          <UnifiedButton
+            $variant='secondary'
+            $theme={theme}
             onClick={isFirstStep ? onCancel : handlePrevious}
           >
             {isFirstStep ? 'Cancelar' : 'Anterior'}
-          </Button>
+          </UnifiedButton>
 
-          <Button
-            variant='primary'
-            theme={theme}
+          <UnifiedButton
+            $variant='primary'
+            $theme={theme}
             onClick={handleNext}
-            disabled={!canGoNext}
+            $disabled={!canGoNext}
           >
             {isLastStep ? 'Finalizar' : 'Próximo'}
-          </Button>
+          </UnifiedButton>
         </div>
       </StepNavigation>
     </FormContainer>

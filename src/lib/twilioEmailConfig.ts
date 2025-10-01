@@ -24,14 +24,11 @@ export const configureTwilioEmail = () => {
   if (!apiKey) {
     // Para usar o sistema real, você precisa configurar SENDGRID_API_KEY
     // Obtenha uma API key em: https://app.sendgrid.com/settings/api_keys
-    console.error('❌ SENDGRID_API_KEY não configurada');
+    // ❌ SENDGRID_API_KEY não configurada
     throw new Error('SENDGRID_API_KEY necessária para envio real');
   }
 
-  console.log('📧 Configurando Twilio SendGrid:', {
-    hasApiKey: !!apiKey,
-    keyPrefix: apiKey.substring(0, 8) + '...',
-  });
+  // 📧 Configurando Twilio SendGrid
 
   sgMail.setApiKey(apiKey);
   return sgMail;
@@ -136,11 +133,8 @@ export const sendTwilioEmail = async (
   tipo: 'email' | 'telefone' = 'email'
 ) => {
   try {
-    console.log('📧 Iniciando envio via Twilio SendGrid:', {
-      email: email.substring(0, 3) + '***@' + email.split('@')[1],
-      tipo,
-      codigo,
-    });
+    // 📧 Iniciando envio via Twilio SendGrid
+    // Email: ${email.substring(0, 3)}***@${email.split('@')[1]}
 
     // Validar formato do email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -166,14 +160,11 @@ export const sendTwilioEmail = async (
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('❌ Erro ao enviar email via Twilio SendGrid:', error);
+    // ❌ Erro ao enviar email via Twilio SendGrid
 
     // Log detalhado do erro
     if (error instanceof Error) {
-      console.error('Detalhes do erro SendGrid:', {
-        message: error.message,
-        name: error.name,
-      });
+      // Detalhes do erro SendGrid: ${error.message}
     }
 
     throw error;

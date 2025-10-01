@@ -5,9 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled, { keyframes } from 'styled-components';
-import { UnifiedButton } from '../components/unified';
+import { UnifiedButton, UnifiedModal } from '../components/unified';
 import { FormGroup, Input, Label } from '../components/FormComponents';
-import { UnifiedUnifiedModal } from '../components/unified';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
@@ -15,9 +14,10 @@ import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
+import {
+  UnifiedCard,
+} from '../components/unified';
 import { OptimizedLabel } from '../components/shared/optimized-styles';
-
 
 // Types
 interface Message {
@@ -788,16 +788,15 @@ export default function Communication() {
     : [];
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
-        <WelcomeSection
-          theme={theme}
+      <TopBar $theme={theme}>
+        <WelcomeSection $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -810,32 +809,30 @@ export default function Communication() {
         />
       </TopBar>
 
-      <PageHeader
-        theme={theme}
+      <PageHeader $theme={theme}
         title='Comunicação Unificada'
         subtitle='Mantenha-se conectado com sua equipe através de mensagens instantâneas'
       />
 
       <ChatLayout>
-        <ConversationsSidebar theme={theme}>
-          <SidebarHeader theme={theme}>
+        <ConversationsSidebar $theme={theme}>
+          <SidebarHeader $theme={theme}>
             <HeaderTitle>Conversas</HeaderTitle>
             <HeaderActions>
               <ActionIcon
-                theme={theme}
+                $theme={theme}
                 onClick={() => setShowGroupUnifiedModal(true)}
               >
                 <AccessibleEmoji emoji='👥' label='Equipe' />
               </ActionIcon>
-              <ActionIcon theme={theme}>
+              <ActionIcon $theme={theme}>
                 <AccessibleEmoji emoji='⚙' label='Configurações' />
               </ActionIcon>
             </HeaderActions>
           </SidebarHeader>
 
           <SearchContainer>
-            <SearchInput
-              theme={theme}
+            <SearchInput $theme={theme}
               type='text'
               placeholder='Pesquisar conversas...'
             />
@@ -846,7 +843,7 @@ export default function Communication() {
               <ConversationItem
                 key={conversation.id}
                 $active={selectedConversation === conversation.id}
-                theme={theme}
+                $theme={theme}
                 onClick={() => setSelectedConversation(conversation.id)}
               >
                 <AvatarContainer>
@@ -872,7 +869,7 @@ export default function Communication() {
                     {conversation.lastMessageTime}
                   </MessageTime>
                   {conversation.unreadCount > 0 && (
-                    <UnreadBadge theme={theme}>
+                    <UnreadBadge $theme={theme}>
                       {conversation.unreadCount}
                     </UnreadBadge>
                   )}
@@ -885,7 +882,7 @@ export default function Communication() {
         <ChatArea>
           {selectedConv ? (
             <>
-              <ChatHeader theme={theme}>
+              <ChatHeader $theme={theme}>
                 <ChatHeaderInfo>
                   <AvatarContainer>
                     <Avatar
@@ -910,16 +907,16 @@ export default function Communication() {
                 </ChatHeaderInfo>
 
                 <ChatHeaderActions>
-                  <ActionIcon theme={theme}>
+                  <ActionIcon $theme={theme}>
                     <AccessibleEmoji emoji='📞' label='Contato' />
                   </ActionIcon>
-                  <ActionIcon theme={theme}>
+                  <ActionIcon $theme={theme}>
                     <AccessibleEmoji emoji='📹' label='Vídeo' />
                   </ActionIcon>
-                  <ActionIcon theme={theme}>
+                  <ActionIcon $theme={theme}>
                     <AccessibleEmoji emoji='🔍' label='Pesquisa' />
                   </ActionIcon>
-                  <ActionIcon theme={theme}>⋯</ActionIcon>
+                  <ActionIcon $theme={theme}>⋯</ActionIcon>
                 </ChatHeaderActions>
               </ChatHeader>
 
@@ -928,9 +925,9 @@ export default function Communication() {
                   <MessageBubble
                     key={message.id}
                     $isOwn={message.isOwn}
-                    theme={theme}
+                    $theme={theme}
                   >
-                    <MessageContent $isOwn={message.isOwn} theme={theme}>
+                    <MessageContent $isOwn={message.isOwn} $theme={theme}>
                       <MessageText>{message.content}</MessageText>
                     </MessageContent>
                     <MessageTime $isOwn={message.isOwn}>
@@ -941,8 +938,8 @@ export default function Communication() {
                 <div ref={messagesEndRef} />
               </ChatMessages>
 
-              <MessageInput theme={theme}>
-                <AttachmentButton theme={theme}>
+              <MessageInput $theme={theme}>
+                <AttachmentButton $theme={theme}>
                   <AccessibleEmoji emoji='📎' label='Anexo' />
                 </AttachmentButton>
 
@@ -954,16 +951,15 @@ export default function Communication() {
                     placeholder='Digite sua mensagem...'
                     rows={1}
                   />
-                  <EmojiButton theme={theme}>
+                  <EmojiButton $theme={theme}>
                     <AccessibleEmoji emoji='😊' label='Sorriso' />
                   </EmojiButton>
                 </InputContainer>
 
                 <SendButton
-                  theme={theme}
-                  $disabled={!newMessage.trim()}
-                  onClick={handleSendMessage}
+                  $theme={theme}
                   disabled={!newMessage.trim()}
+                  onClick={handleSendMessage}
                 >
                   <AccessibleEmoji emoji='➤' label='Enviar' />
                 </SendButton>
@@ -987,21 +983,11 @@ export default function Communication() {
         isOpen={showGroupUnifiedModal}
         onClose={() => setShowGroupUnifiedModal(false)}
         title='Criar Novo Grupo'
-        buttonContainer={
-          <UnifiedButton
-            variant='secondary'
-            onClick={() => setShowGroupUnifiedModal(false)}
-            theme={theme}
-          >
-            Cancelar
-          </UnifiedButton>
-        }
       >
         <GroupUnifiedModalContent>
           <FormGroup>
             <OptimizedLabel>Nome do Grupo</OptimizedLabel>
-            <Input
-              theme={theme}
+            <Input $theme={theme}
               type='text'
               value={groupName}
               onChange={e => setGroupName(e.target.value)}
@@ -1018,7 +1004,7 @@ export default function Communication() {
                 <ContactItem
                   key={contact.id}
                   $selected={selectedContacts.includes(contact.id)}
-                  theme={theme}
+                  $theme={theme}
                   onClick={() => handleContactToggle(contact.id)}
                 >
                   <ContactAvatar
@@ -1043,10 +1029,9 @@ export default function Communication() {
           </FormGroup>
 
           <UnifiedButton
-            variant='primary'
+            $variant='primary'
             onClick={handleCreateGroup}
-            theme={theme}
-            disabled={!groupName.trim() || selectedContacts.length < 2}
+            $theme={theme} $disabled={!groupName.trim() || selectedContacts.length < 2}
           >
             Criar Grupo
           </UnifiedButton>

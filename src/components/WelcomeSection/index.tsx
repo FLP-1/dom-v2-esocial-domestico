@@ -3,7 +3,7 @@ import AccessibleEmoji from '../AccessibleEmoji';
 import styled from 'styled-components';
 
 interface WelcomeSectionProps {
-  theme: any;
+  $theme: any;
   userAvatar: string;
   userName: string;
   userRole: string;
@@ -90,7 +90,7 @@ const NotificationButton = styled.button<{ $theme: any }>`
 `;
 
 export default function WelcomeSection({
-  theme,
+  $theme,
   userAvatar,
   userName,
   userRole,
@@ -99,7 +99,7 @@ export default function WelcomeSection({
 }: WelcomeSectionProps) {
   return (
     <WelcomeContainer>
-      <UserAvatar $theme={theme}>{userAvatar}</UserAvatar>
+      <UserAvatar $theme={$theme}>{userAvatar}</UserAvatar>
       <WelcomeText>
         <h3>Bem-vindo(a), {userName}!</h3>
         <p>
@@ -108,7 +108,7 @@ export default function WelcomeSection({
       </WelcomeText>
       {notificationCount > 0 && (
         <NotificationContainer>
-          <NotificationButton $theme={theme} onClick={onNotificationClick}>
+          <NotificationButton $theme={$theme} onClick={onNotificationClick}>
             <AccessibleEmoji emoji='🔔' label='Notificação' />
             <span className='notification-badge'>{notificationCount}</span>
           </NotificationButton>

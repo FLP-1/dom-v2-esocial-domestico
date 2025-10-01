@@ -288,8 +288,7 @@ export default function Layout({
           isOpen={showProfileModal}
           onClose={() => setShowProfileModal(false)}
           title='Selecionar Perfil'
-          size='md'
-          variant='default'
+          maxWidth='500px'
         >
           {profiles.map(profile => (
             <ProfileButton

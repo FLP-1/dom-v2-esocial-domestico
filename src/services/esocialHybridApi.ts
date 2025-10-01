@@ -3,6 +3,7 @@
 import { ESocialEvent, ESocialResponse } from './esocialApi';
 import type { ESocialRealApiService } from './esocialRealApi';
 import { getESocialRealApiService } from './esocialRealApi';
+import { MOCK_EMPREGADOS } from '../data/centralized';
 
 // Helper para verificar se estamos no cliente
 const isClient = typeof window !== 'undefined';
@@ -49,14 +50,14 @@ class ESocialHybridApiService {
    * Inicializa o serviço real se necessário
    */
   private initializeRealService(): ESocialRealApiService {
-    // 
-    // 
-    // 
+    //
+    //
+    //
 
     if (!this.realApiService && this.useRealApi) {
-      // 
+      //
       this.realApiService = getESocialRealApiService();
-      // 
+      //
     }
 
     if (!this.realApiService) {
@@ -64,7 +65,7 @@ class ESocialHybridApiService {
       throw new Error('Serviço eSocial real não disponível');
     }
 
-    // 
+    //
     return this.realApiService;
   }
 
@@ -149,7 +150,7 @@ class ESocialHybridApiService {
   async sendEvent(event: ESocialEvent): Promise<ESocialResponse> {
     if (this.useRealApi) {
       // Usar API real
-      // 
+      //
 
       try {
         // Verificar se o serviço está pronto
@@ -177,7 +178,7 @@ class ESocialHybridApiService {
       }
     } else {
       // Usar simulação (código original)
-      // 
+      //
       return this.simulateEventSending(event);
     }
   }
@@ -188,12 +189,12 @@ class ESocialHybridApiService {
   async getEventStatus(protocolo: string): Promise<ESocialResponse> {
     if (this.useRealApi) {
       // Usar API real
-      // 
+      //
       const realService = this.initializeRealService();
       return await realService.consultarLote(protocolo);
     } else {
       // Usar simulação (código original)
-      // 
+      //
       return this.simulateStatusQuery(protocolo);
     }
   }
@@ -280,11 +281,11 @@ class ESocialHybridApiService {
    * Consulta dados do empregador
    */
   async consultarDadosEmpregador(): Promise<any> {
-    // 
-    // 
+    //
+    //
 
     if (this.useRealApi) {
-      // 
+      //
       try {
         const realService = this.initializeRealService();
         return await realService.consultarDadosEmpregador();
@@ -294,7 +295,7 @@ class ESocialHybridApiService {
         return this.getSimulatedEmpregadorData();
       }
     } else {
-      // 
+      //
       return this.getSimulatedEmpregadorData();
     }
   }
@@ -342,31 +343,10 @@ class ESocialHybridApiService {
   }
 
   /**
-   * Dados simulados dos empregados
+   * Dados simulados dos empregados - Centralizados
    */
   private getSimulatedEmpregadosData() {
-    return [
-      {
-        cpf: '12345678901',
-        nome: 'JOÃO DA SILVA',
-        matricula: '001',
-        cargo: 'DESENVOLVEDOR',
-        dataAdmissao: '2024-01-01',
-        salario: 5000.0,
-        situacao: 'ATIVO',
-        vinculo: 'CLT',
-      },
-      {
-        cpf: '12345678902',
-        nome: 'MARIA DOS SANTOS',
-        matricula: '002',
-        cargo: 'ANALISTA',
-        dataAdmissao: '2024-02-01',
-        salario: 4500.0,
-        situacao: 'ATIVO',
-        vinculo: 'CLT',
-      },
-    ];
+    return MOCK_EMPREGADOS;
   }
 
   /**

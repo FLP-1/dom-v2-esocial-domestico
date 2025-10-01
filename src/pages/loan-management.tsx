@@ -14,7 +14,6 @@ import {
   Label,
   Select,
 } from '../components/FormComponents';
-import { UnifiedUnifiedModal } from '../components/unified';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
@@ -22,9 +21,15 @@ import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
-import { OptimizedFormRow, OptimizedLabel, OptimizedButtonGroup } from '../components/shared/optimized-styles';
-
+import {
+  UnifiedModal,
+  UnifiedCard,
+} from '../components/unified';
+import {
+  OptimizedFormRow,
+  OptimizedLabel,
+  OptimizedButtonGroup,
+} from '../components/shared/optimized-styles';
 
 // Styled Components para substituir estilos inline
 const ButtonGroup = styled.div`
@@ -38,6 +43,37 @@ const UnifiedModalSection = styled.div`
 const FlexRow = styled.div`
   display: flex;
   gap: 1rem;
+`;
+
+const EmptyIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+`;
+
+const EmptyTitle = styled.h3`
+  color: #2c3e50;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+`;
+
+const EmptyDescription = styled.p`
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin: 0;
+`;
+
+const SectionTitle = styled.h3`
+  color: #2c3e50;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+`;
+
+const SectionText = styled.p`
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
 `;
 
 const FlexColumn = styled.div`
@@ -510,7 +546,8 @@ export default function LoanManagement() {
   const [selectedRequest, setSelectedRequest] = useState<LoanRequest | null>(
     null
   );
-  const [showApprovalUnifiedModal, setShowApprovalUnifiedModal] = useState(false);
+  const [showApprovalUnifiedModal, setShowApprovalUnifiedModal] =
+    useState(false);
   const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>(
     'approve'
   );
@@ -763,16 +800,16 @@ export default function LoanManagement() {
   const conditions = calculateConditions();
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
+      <TopBar $theme={theme}>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -786,16 +823,16 @@ export default function LoanManagement() {
       </TopBar>
 
       <PageHeader
-        theme={theme}
+        $theme={theme}
         title='Gestão de Empréstimos e Adiantamentos'
         subtitle='Solicite, aprove e gerencie empréstimos e adiantamentos salariais'
       />
 
       {/* Resumo */}
-      <SummarySection theme={theme}>
+      <SummarySection $theme={theme}>
         <SummaryTitle>Resumo Financeiro</SummaryTitle>
         <SummaryGrid>
-          <SummaryCard theme={theme} variant='warning'>
+          <SummaryCard $theme={theme} $variant='warning'>
             <SummaryCardTitle>
               <AccessibleEmoji emoji='⏳' label='Carregando' /> Pendentes
             </SummaryCardTitle>
@@ -805,7 +842,7 @@ export default function LoanManagement() {
             <SummaryDetails>Solicitações aguardando aprovação</SummaryDetails>
           </SummaryCard>
 
-          <SummaryCard theme={theme} variant='success'>
+          <SummaryCard $theme={theme} $variant='success'>
             <SummaryCardTitle>
               <AccessibleEmoji emoji='✅' label='Sucesso' /> Aprovados
             </SummaryCardTitle>
@@ -815,7 +852,7 @@ export default function LoanManagement() {
             <SummaryDetails>Valor total aprovado</SummaryDetails>
           </SummaryCard>
 
-          <SummaryCard theme={theme} variant='info'>
+          <SummaryCard $theme={theme} $variant='info'>
             <SummaryCardTitle>
               <AccessibleEmoji emoji='💵' label='Pagamento' /> Em Aberto
             </SummaryCardTitle>
@@ -825,7 +862,7 @@ export default function LoanManagement() {
             <SummaryDetails>Valor ainda não pago</SummaryDetails>
           </SummaryCard>
 
-          <SummaryCard theme={theme} variant='primary'>
+          <SummaryCard $theme={theme} $variant='primary'>
             <SummaryCardTitle>
               <AccessibleEmoji emoji='📅' label='Calendário' /> Próximo
               Pagamento
@@ -842,23 +879,23 @@ export default function LoanManagement() {
       </SummarySection>
 
       {/* Formulário de Solicitação */}
-      <RequestSection theme={theme}>
+      <RequestSection $theme={theme}>
         <RequestSectionTitle>Nova Solicitação</RequestSectionTitle>
         <Form onSubmit={handleSubmitRequest}>
           <OptimizedFormRow>
             <FormGroupFlex>
               <OptimizedLabel>Tipo de Operação</OptimizedLabel>
               <Select
-                theme={theme}
+                $theme={theme}
                 value={newRequest.type}
+                aria-label="Tipo de Operação"
+                title="Tipo de Operação"
                 onChange={e =>
                   setNewRequest(prev => ({
                     ...prev,
                     type: e.target.value as 'loan' | 'advance',
                   }))
                 }
-                aria-label='Selecionar tipo de operação'
-                title='Selecionar tipo de operação'
               >
                 <option value='advance'>Adiantamento de Salário</option>
                 <option value='loan'>Empréstimo</option>
@@ -867,7 +904,7 @@ export default function LoanManagement() {
             <FormGroupFlex>
               <OptimizedLabel>Valor Solicitado</OptimizedLabel>
               <CurrencyInput
-                theme={theme}
+                $theme={theme}
                 type='text'
                 value={newRequest.amount}
                 onChange={e =>
@@ -883,7 +920,7 @@ export default function LoanManagement() {
             <FormGroupFlex>
               <OptimizedLabel>Parcelas</OptimizedLabel>
               <Input
-                theme={theme}
+                $theme={theme}
                 type='number'
                 min='1'
                 max={newRequest.type === 'advance' ? '1' : '12'}
@@ -902,7 +939,7 @@ export default function LoanManagement() {
           <FormGroup>
             <OptimizedLabel>Justificativa</OptimizedLabel>
             <Input
-              theme={theme}
+              $theme={theme}
               type='text'
               value={newRequest.justification}
               onChange={e =>
@@ -917,7 +954,7 @@ export default function LoanManagement() {
           </FormGroup>
 
           {conditions && (
-            <ConditionsSection theme={theme}>
+            <ConditionsSection $theme={theme}>
               <ConditionsTitle>Resumo das Condições</ConditionsTitle>
               <ConditionRow>
                 <ConditionLabel>Valor solicitado:</ConditionLabel>
@@ -951,7 +988,7 @@ export default function LoanManagement() {
           )}
 
           <OptimizedButtonGroup>
-            <UnifiedButton type='submit' variant='primary' theme={theme}>
+            <UnifiedButton type='submit' $variant='primary' $theme={theme}>
               <AccessibleEmoji emoji='📤' label='Exportar' /> Enviar Solicitação
             </UnifiedButton>
           </OptimizedButtonGroup>
@@ -960,10 +997,10 @@ export default function LoanManagement() {
 
       {/* Seção de Aprovação (apenas para empregadores) */}
       {currentProfile?.role === 'Empregador' && (
-        <ApprovalSection theme={theme}>
+        <ApprovalSection $theme={theme}>
           <ApprovalTitle>Aprovação de Solicitações</ApprovalTitle>
-          <ApprovalSection theme={theme}>
-            <UnifiedButton variant='secondary' theme={theme}>
+          <ApprovalSection $theme={theme}>
+            <UnifiedButton $variant='secondary' $theme={theme}>
               <AccessibleEmoji emoji='📊' label='Dashboard' /> Exportar
               Relatório
             </UnifiedButton>
@@ -972,18 +1009,18 @@ export default function LoanManagement() {
       )}
 
       {/* Filtros */}
-      <FilterSection theme={theme} title='Filtros e Busca'>
+      <FilterSection $theme={theme} title='Filtros e Busca'>
         <OptimizedFormRow>
           <FormGroup>
             <OptimizedLabel>Status</OptimizedLabel>
             <Select
-              theme={theme}
+              $theme={theme}
               value={filters.status}
+              aria-label="Status do Empréstimo"
+              title="Status do Empréstimo"
               onChange={e =>
                 setFilters(prev => ({ ...prev, status: e.target.value }))
               }
-              aria-label='Filtrar por status'
-              title='Filtrar por status'
             >
               <option value=''>Todos os status</option>
               <option value='pending'>Pendente</option>
@@ -995,13 +1032,13 @@ export default function LoanManagement() {
           <FormGroup>
             <OptimizedLabel>Tipo</OptimizedLabel>
             <Select
-              theme={theme}
+              $theme={theme}
               value={filters.type}
+              aria-label="Tipo de Empréstimo"
+              title="Tipo de Empréstimo"
               onChange={e =>
                 setFilters(prev => ({ ...prev, type: e.target.value }))
               }
-              aria-label='Filtrar por tipo'
-              title='Filtrar por tipo'
             >
               <option value=''>Todos os tipos</option>
               <option value='advance'>Adiantamento</option>
@@ -1011,7 +1048,7 @@ export default function LoanManagement() {
           <FormGroup>
             <OptimizedLabel>Funcionário</OptimizedLabel>
             <Input
-              theme={theme}
+              $theme={theme}
               type='text'
               value={filters.employee}
               onChange={e =>
@@ -1024,25 +1061,25 @@ export default function LoanManagement() {
       </FilterSection>
 
       {/* Listagem de Solicitações */}
-      <RequestsSection theme={theme}>
+      <RequestsSection $theme={theme}>
         <RequestsTitle>Histórico de Solicitações</RequestsTitle>
 
         {getFilteredRequests().length === 0 ? (
           <EmptyState>
-            <div className='empty-icon'>
+            <EmptyIcon>
               <AccessibleEmoji emoji='💵' label='Dinheiro' />
-            </div>
-            <h3 className='empty-title'>Nenhuma solicitação encontrada</h3>
-            <p className='empty-description'>
+            </EmptyIcon>
+            <EmptyTitle>Nenhuma solicitação encontrada</EmptyTitle>
+            <EmptyDescription>
               Não há solicitações que correspondam aos filtros selecionados.
-            </p>
+            </EmptyDescription>
           </EmptyState>
         ) : (
           <RequestsGrid>
             {getFilteredRequests().map(request => (
               <RequestCard
                 key={request.id}
-                theme={theme}
+                $theme={theme}
                 $status={request.status}
               >
                 <RequestHeader>
@@ -1076,7 +1113,7 @@ export default function LoanManagement() {
 
                 <RequestActions>
                   <RequestUnifiedButton
-                    theme={theme}
+                    $theme={theme}
                     onClick={() => handleViewRequest(request)}
                   >
                     <AccessibleEmoji emoji='👁' label='Ver' /> Detalhes
@@ -1086,8 +1123,8 @@ export default function LoanManagement() {
                     currentProfile?.role === 'Empregador' && (
                       <>
                         <RequestUnifiedButton
-                          theme={theme}
-                          variant='success'
+                          $theme={theme}
+                          $variant='success'
                           onClick={() =>
                             handleApprovalAction(request.id, 'approve')
                           }
@@ -1095,8 +1132,8 @@ export default function LoanManagement() {
                           <AccessibleEmoji emoji='✅' label='Sucesso' /> Aprovar
                         </RequestUnifiedButton>
                         <RequestUnifiedButton
-                          theme={theme}
-                          variant='danger'
+                          $theme={theme}
+                          $variant='danger'
                           onClick={() =>
                             handleApprovalAction(request.id, 'reject')
                           }
@@ -1109,8 +1146,8 @@ export default function LoanManagement() {
                   {request.status === 'pending' &&
                     currentProfile?.role !== 'Empregador' && (
                       <RequestUnifiedButton
-                        theme={theme}
-                        variant='secondary'
+                        $theme={theme}
+                        $variant='secondary'
                         onClick={() => handleCancelRequest(request.id)}
                       >
                         <AccessibleEmoji emoji='❌' label='Excluir' /> Cancelar
@@ -1124,7 +1161,7 @@ export default function LoanManagement() {
       </RequestsSection>
 
       {/* Termos e Condições */}
-      <TermsSection theme={theme}>
+      <TermsSection $theme={theme}>
         <TermsTitle>Termos e Condições</TermsTitle>
         <TermsContent>
           <h3>Adiantamento de Salário</h3>
@@ -1171,32 +1208,32 @@ export default function LoanManagement() {
         {selectedRequest && (
           <div>
             <UnifiedModalSection>
-              <h3 className='section-title'>{selectedRequest.employeeName}</h3>
-              <p className='section-title'>
+              <SectionTitle>{selectedRequest.employeeName}</SectionTitle>
+              <SectionText>
                 <strong>Tipo:</strong>{' '}
                 {getRequestTypeName(selectedRequest.type)}
-              </p>
-              <p className='section-title'>
+              </SectionText>
+              <SectionText>
                 <strong>Valor:</strong>{' '}
                 {formatCurrency(selectedRequest.totalAmount)}
-              </p>
-              <p className='section-title'>
+              </SectionText>
+              <SectionText>
                 <strong>Parcelas:</strong> {selectedRequest.installments}x de{' '}
                 {formatCurrency(selectedRequest.monthlyPayment)}
-              </p>
-              <p className='section-title'>
+              </SectionText>
+              <SectionText>
                 <strong>Status:</strong> {getStatusName(selectedRequest.status)}
-              </p>
-              <p className='section-title'>
+              </SectionText>
+              <SectionText>
                 <strong>Justificativa:</strong> {selectedRequest.justification}
-              </p>
+              </SectionText>
             </UnifiedModalSection>
 
             <FlexRow>
               <FlexColumn>
                 <UnifiedButton
-                  variant='secondary'
-                  theme={theme}
+                  $variant='secondary'
+                  $theme={theme}
                   onClick={() => setUnifiedModalOpen(false)}
                 >
                   <AccessibleEmoji emoji='❌' label='Erro' /> Fechar
@@ -1224,7 +1261,7 @@ export default function LoanManagement() {
                 {selectedRequest.employeeName} -{' '}
                 {formatCurrency(selectedRequest.totalAmount)}
               </h3>
-              <p className='section-title'>{selectedRequest.justification}</p>
+              <SectionText>{selectedRequest.justification}</SectionText>
             </UnifiedModalSection>
 
             <FormGroup>
@@ -1234,7 +1271,7 @@ export default function LoanManagement() {
                   : 'Motivo da Rejeição'}
               </OptimizedLabel>
               <Input
-                theme={theme}
+                $theme={theme}
                 type='text'
                 value={approvalComment}
                 onChange={e => setApprovalComment(e.target.value)}
@@ -1250,8 +1287,8 @@ export default function LoanManagement() {
             <FlexRowWithMargin>
               <FlexColumn>
                 <UnifiedButton
-                  variant={approvalAction === 'approve' ? 'success' : 'danger'}
-                  theme={theme}
+                  $variant={approvalAction === 'approve' ? 'success' : 'danger'}
+                  $theme={theme}
                   onClick={handleConfirmApproval}
                 >
                   {approvalAction === 'approve' ? (
@@ -1269,8 +1306,8 @@ export default function LoanManagement() {
               </FlexColumn>
               <FlexColumn>
                 <UnifiedButton
-                  variant='secondary'
-                  theme={theme}
+                  $variant='secondary'
+                  $theme={theme}
                   onClick={() => {
                     setShowApprovalUnifiedModal(false);
                     setSelectedRequest(null);

@@ -5,22 +5,22 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
-import ProfileSelectionUnifiedModal from '../components/ProfileSelectionUnifiedModal';
 import {
   UserProfileProvider,
   useUserProfile,
 } from '../contexts/UserProfileContext';
 import { GlobalStyle } from '../styles/GlobalStyle';
 import { theme } from '../styles/theme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
+import {
+  UnifiedButton,
+  UnifiedModal,
+  UnifiedCard,
+} from '../components/unified';
 
 function AppContent({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [key, setKey] = useState(0);
   const {
-    showProfileUnifiedModal,
-    setShowProfileUnifiedModal,
-    availableProfiles,
     handleProfileSelection,
     currentProfile,
   } = useUserProfile();
@@ -52,13 +52,7 @@ function AppContent({ Component, pageProps }: AppProps) {
         <Component key={key} {...pageProps} />
 
         {/* UnifiedModal Global de Seleção de Perfil */}
-        <ProfileSelectionUnifiedModal
-          isOpen={showProfileUnifiedModal}
-          onClose={() => setShowProfileUnifiedModal(false)}
-          profiles={availableProfiles}
-          onProfileSelect={handleProfileSelect}
-          currentProfile={currentProfile}
-        />
+        {/* ProfileSelectionUnifiedModal removido - componente não existe */}
       </ThemeProvider>
     </div>
   );

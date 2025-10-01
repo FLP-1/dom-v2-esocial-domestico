@@ -3,12 +3,22 @@ import styled from 'styled-components';
 import { useAlertManager } from '../hooks/useAlertManager';
 import { documentService } from '../services/DocumentService';
 import AccessibleEmoji from './AccessibleEmoji';
-import { ActionButton } from './ActionButton';
+import { UnifiedButton } from './UnifiedButton';
+import { UnifiedModal } from './UnifiedModal';
 import { Form, FormGroup, Input, Select } from './FormComponents';
-import SimpleModal from './SimpleModal';
-import ValidationModal from './ValidationModal';
-import { OptimizedFormRow, OptimizedFormSection, OptimizedSectionTitle, OptimizedLabel, OptimizedInputStyled, OptimizedSelectStyled, OptimizedErrorMessage, OptimizedHelpText, OptimizedValidationContainer } from '../components/shared/optimized-styles';
-
+// SimpleModal removido - usando UnifiedModal
+import { ValidationModal } from './ValidationModal';
+import {
+  OptimizedFormRow,
+  OptimizedFormSection,
+  OptimizedSectionTitle,
+  OptimizedLabel,
+  OptimizedInputStyled,
+  OptimizedSelectStyled,
+  OptimizedErrorMessage,
+  OptimizedHelpText,
+  OptimizedValidationContainer,
+} from '../components/shared/optimized-styles';
 
 const FormRow = styled.div`
   display: grid;
@@ -445,13 +455,13 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
         alertManager.showSuccess(
           `Código enviado para ${formData.email}: ${codigo}`
         );
-        console.log('Email enviado:', result);
+        // Email enviado com sucesso
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Erro na API');
       }
     } catch (error) {
-      console.error('Erro ao enviar email:', error);
+      // Erro ao enviar email
       alertManager.showError(
         `Erro ao enviar código de validação por email: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
       );
@@ -503,13 +513,13 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
         alertManager.showSuccess(
           `Código enviado para ${formData.telefone}: ${codigo}`
         );
-        console.log('SMS enviado:', result);
+        // SMS enviado com sucesso
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Erro na API');
       }
     } catch (error) {
-      console.error('Erro ao enviar SMS:', error);
+      // Erro ao enviar SMS
       alertManager.showError(
         `Erro ao enviar código de validação por SMS: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
       );
@@ -555,7 +565,7 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
         }
       }
     } catch (error) {
-      console.error('Erro ao consultar CEP:', error);
+      // Erro ao consultar CEP
     }
   };
 
@@ -651,7 +661,7 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
           throw new Error(uploadResult.message || 'Erro no upload');
         }
       } catch (error) {
-        console.error('Erro no upload:', error);
+        // Erro no upload
         alertManager.showError(
           `Erro ao enviar certificado para gestão de documentos: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
         );
@@ -814,25 +824,20 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
   ];
 
   return (
-    <SimpleModal
+    <UnifiedModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <>
-          <AccessibleEmoji emoji='🏢' label='Empregador' /> Cadastro do
-          Empregador
-        </>
-      }
+      title="Cadastro do Empregador"
       maxWidth='800px'
       footer={
         <>
-          <ActionButton variant='secondary' theme={theme} onClick={onClose}>
+          <UnifiedButton $variant='secondary' $theme={theme} onClick={onClose}>
             Cancelar
-          </ActionButton>
-          <ActionButton variant='primary' theme={theme} onClick={handleSubmit}>
+          </UnifiedButton>
+          <UnifiedButton $variant='primary' $theme={theme} onClick={handleSubmit}>
             <AccessibleEmoji emoji='💾' label='Salvar' />{' '}
             {employer ? 'Atualizar' : 'Cadastrar'}
-          </ActionButton>
+          </UnifiedButton>
         </>
       }
     >
@@ -868,7 +873,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 placeholder='000.000.000-00'
                 maxLength={14}
               />
-              {errors['cpf'] && <OptimizedErrorMessage>{errors['cpf']}</OptimizedErrorMessage>}
+              {errors['cpf'] && (
+                <OptimizedErrorMessage>{errors['cpf']}</OptimizedErrorMessage>
+              )}
             </FormGroup>
 
             <FormGroup>
@@ -881,7 +888,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 $hasError={!!errors['nome']}
                 placeholder='Nome completo do empregador'
               />
-              {errors['nome'] && <OptimizedErrorMessage>{errors['nome']}</OptimizedErrorMessage>}
+              {errors['nome'] && (
+                <OptimizedErrorMessage>{errors['nome']}</OptimizedErrorMessage>
+              )}
             </FormGroup>
           </OptimizedFormRow>
 
@@ -912,8 +921,7 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                   ✓ Validar
                 </button>
               </OptimizedValidationContainer>
-              <div
-              >
+              <div>
                 <input
                   type='checkbox'
                   checked={formData.emailValidado}
@@ -924,8 +932,7 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                     }
                   }}
                 />
-                <label
-                >
+                <label>
                   {formData.emailValidado ? (
                     <>
                       <AccessibleEmoji emoji='✅' label='Validado' /> Email
@@ -989,8 +996,7 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                   ✓ Validar
                 </button>
               </OptimizedValidationContainer>
-              <div
-              >
+              <div>
                 <input
                   type='checkbox'
                   checked={formData.telefoneValidado}
@@ -1001,8 +1007,7 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                     }
                   }}
                 />
-                <label
-                >
+                <label>
                   {formData.telefoneValidado ? (
                     <>
                       <AccessibleEmoji emoji='✅' label='Validado' /> Telefone
@@ -1017,7 +1022,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 </label>
               </div>
               {errors['telefone'] && (
-                <OptimizedErrorMessage>{errors['telefone']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['telefone']}
+                </OptimizedErrorMessage>
               )}
             </FormGroup>
           </OptimizedFormRow>
@@ -1051,7 +1058,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
             </FormGroup>
 
             <FormGroup>
-              <OptimizedLabel htmlFor='confirmarSenha'>Confirmar Senha *</OptimizedLabel>
+              <OptimizedLabel htmlFor='confirmarSenha'>
+                Confirmar Senha *
+              </OptimizedLabel>
               <div>
                 <OptimizedInputStyled
                   id='confirmarSenha'
@@ -1072,14 +1081,18 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 </button>
               </div>
               {errors['confirmarSenha'] && (
-                <OptimizedErrorMessage>{errors['confirmarSenha']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['confirmarSenha']}
+                </OptimizedErrorMessage>
               )}
             </FormGroup>
           </OptimizedFormRow>
 
           <OptimizedFormRow>
             <FormGroup>
-              <OptimizedLabel htmlFor='tipoEmpregador'>Tipo de Empregador *</OptimizedLabel>
+              <OptimizedLabel htmlFor='tipoEmpregador'>
+                Tipo de Empregador *
+              </OptimizedLabel>
               <OptimizedSelectStyled
                 id='tipoEmpregador'
                 value={formData.tipoEmpregador}
@@ -1095,7 +1108,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 <option value='OUTROS'>Outros</option>
               </OptimizedSelectStyled>
               {errors['tipoEmpregador'] && (
-                <OptimizedErrorMessage>{errors['tipoEmpregador']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['tipoEmpregador']}
+                </OptimizedErrorMessage>
               )}
             </FormGroup>
 
@@ -1125,7 +1140,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                   <AccessibleEmoji emoji='🔍' label='Buscar' /> Buscar
                 </button>
               </OptimizedValidationContainer>
-              {errors['cep'] && <OptimizedErrorMessage>{errors['cep']}</OptimizedErrorMessage>}
+              {errors['cep'] && (
+                <OptimizedErrorMessage>{errors['cep']}</OptimizedErrorMessage>
+              )}
             </FormGroup>
           </OptimizedFormRow>
         </OptimizedFormSection>
@@ -1148,7 +1165,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 placeholder='Rua, Avenida, etc.'
               />
               {errors['logradouro'] && (
-                <OptimizedErrorMessage>{errors['logradouro']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['logradouro']}
+                </OptimizedErrorMessage>
               )}
             </FormGroup>
 
@@ -1163,7 +1182,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 placeholder='123'
               />
               {errors['numero'] && (
-                <OptimizedErrorMessage>{errors['numero']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['numero']}
+                </OptimizedErrorMessage>
               )}
             </FormGroup>
           </OptimizedFormRow>
@@ -1192,7 +1213,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 placeholder='Nome do bairro'
               />
               {errors['bairro'] && (
-                <OptimizedErrorMessage>{errors['bairro']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['bairro']}
+                </OptimizedErrorMessage>
               )}
             </FormGroup>
           </OptimizedFormRow>
@@ -1209,7 +1232,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 placeholder='Nome da cidade'
               />
               {errors['cidade'] && (
-                <OptimizedErrorMessage>{errors['cidade']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['cidade']}
+                </OptimizedErrorMessage>
               )}
             </FormGroup>
 
@@ -1230,7 +1255,9 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                   </option>
                 ))}
               </OptimizedSelectStyled>
-              {errors['uf'] && <OptimizedErrorMessage>{errors['uf']}</OptimizedErrorMessage>}
+              {errors['uf'] && (
+                <OptimizedErrorMessage>{errors['uf']}</OptimizedErrorMessage>
+              )}
             </FormGroup>
           </OptimizedFormRow>
         </OptimizedFormSection>
@@ -1243,9 +1270,10 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
           </OptimizedSectionTitle>
 
           <FormGroup>
-            <OptimizedLabel htmlFor='certificado'>Certificado Digital (Opcional)</OptimizedLabel>
-            <div
-            >
+            <OptimizedLabel htmlFor='certificado'>
+              Certificado Digital (Opcional)
+            </OptimizedLabel>
+            <div>
               <input
                 id='certificado'
                 type='file'
@@ -1259,9 +1287,13 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
                 </span>
               )}
             </div>
-            <OptimizedHelpText>Arquivo .pfx ou .p12 do certificado digital</OptimizedHelpText>
+            <OptimizedHelpText>
+              Arquivo .pfx ou .p12 do certificado digital
+            </OptimizedHelpText>
             {errors['certificado'] && (
-              <OptimizedErrorMessage>{errors['certificado']}</OptimizedErrorMessage>
+              <OptimizedErrorMessage>
+                {errors['certificado']}
+              </OptimizedErrorMessage>
             )}
           </FormGroup>
         </OptimizedFormSection>
@@ -1273,20 +1305,17 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
           </OptimizedSectionTitle>
 
           <FormGroup>
-            <div
-            >
+            <div>
               <input
                 id='enviarParaEsocial'
                 type='checkbox'
                 checked={formData.enviarParaEsocial}
                 aria-label='Enviar dados para eSocial'
                 onChange={e =>
-                  handleInputChange('enviarParaEsocial', e.target.checked)
+                  handleInputChange('enviarParaEsocial', e.target.checked.toString())
                 }
               />
-              <OptimizedLabel
-                htmlFor='enviarParaEsocial'
-              >
+              <OptimizedLabel htmlFor='enviarParaEsocial'>
                 Enviar cadastro para o eSocial após validação
               </OptimizedLabel>
             </div>
@@ -1313,14 +1342,13 @@ const EmployerModal: React.FC<EmployerModalProps> = ({
       <ValidationModal
         isOpen={showValidationModal}
         onClose={() => setShowValidationModal(false)}
-        onValidate={validationType === 'email' ? validarEmail : validarTelefone}
-        type={validationType}
-        contact={
+        onSuccess={validationType === 'email' ? validarEmail : validarTelefone}
+        tipo={validationType === 'email' ? 'email' : 'telefone'}
+        valor={
           validationType === 'email' ? formData.email : formData.telefone
         }
-        theme={theme}
       />
-    </SimpleModal>
+    </UnifiedModal>
   );
 };
 

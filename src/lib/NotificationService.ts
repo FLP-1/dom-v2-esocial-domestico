@@ -91,7 +91,6 @@ export class NotificationService {
     const results: NotificationResult[] = [];
 
     try {
-
       // Determinar canais a usar
       const channels = this.determineChannels(user, notification);
 
@@ -115,7 +114,7 @@ export class NotificationService {
 
       return results;
     } catch (error) {
-      console.error('Erro no NotificationService:', error);
+      // Erro no NotificationService
       throw error;
     }
   }
@@ -258,9 +257,7 @@ export class NotificationService {
     timestamp: string
   ): Promise<NotificationResult> {
     // TODO: Implementar com Firebase quando necessário
-    console.log(
-      '📱 Push notification seria enviado aqui (Firebase não configurado)'
-    );
+    // 📱 Push notification seria enviado aqui (Firebase não configurado)
 
     return {
       success: true,

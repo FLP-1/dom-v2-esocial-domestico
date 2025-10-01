@@ -25,7 +25,7 @@ export class EmailService {
     if (hasNodemailer) return 'nodemailer';
 
     // Se nenhum provedor está configurado, orientar sobre configuração
-    console.error('❌ Nenhum provedor de email configurado');
+    // ❌ Nenhum provedor de email configurado
 
     throw new Error('Configure um provedor de email para envio real');
   }
@@ -39,9 +39,7 @@ export class EmailService {
     const provider =
       this.provider === 'auto' ? this.detectProvider() : this.provider;
 
-    console.log(
-      `📧 Enviando email via ${provider.toUpperCase()} para: ${email}`
-    );
+    // 📧 Enviando email via ${provider.toUpperCase()} para: ${email}
 
     switch (provider) {
       case 'twilio':
@@ -63,7 +61,7 @@ export class EmailService {
   ) {
     try {
       const result = await sendTwilioEmail(email, codigo, tipo);
-      
+
       return {
         success: true,
         provider: 'twilio',
@@ -71,7 +69,7 @@ export class EmailService {
         message: 'Email enviado com sucesso via Twilio SendGrid',
       };
     } catch (error) {
-      console.error('Erro no Twilio SendGrid:', error);
+      // Erro no Twilio SendGrid
       throw new Error(
         `Erro no Twilio SendGrid: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
       );
@@ -85,7 +83,7 @@ export class EmailService {
     tipo: 'email' | 'telefone'
   ) {
     try {
-      const transporter = createEmailTransporter();
+      const transporter = await createEmailTransporter();
       const emailTemplate = createValidationEmailTemplate(codigo, tipo);
 
       const info = await transporter.sendMail({
@@ -103,7 +101,7 @@ export class EmailService {
         message: 'Email enviado com sucesso via Nodemailer',
       };
     } catch (error) {
-      console.error('Erro no Nodemailer:', error);
+      // Erro no Nodemailer
       throw new Error(
         `Erro no Nodemailer: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
       );

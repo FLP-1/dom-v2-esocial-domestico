@@ -28,7 +28,6 @@ export const EMPREGADOR_COMPLETO = {
     indSitPJ: '0', // 0 = Situação normal
     indApuracao: '1', // 1 = Apuração mensal
     indTrabTemporario: 'N', // N = Não é trabalho temporário
-    indComercializacao: '0', // 0 = Não comercializa
   },
 
   // Endereço do Empregador

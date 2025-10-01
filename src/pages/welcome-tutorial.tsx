@@ -6,9 +6,12 @@ import { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled, { keyframes } from 'styled-components';
-import { UnifiedButton } from '../components/unified';
 import { useTheme } from '../hooks/useTheme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
+import {
+  UnifiedButton,
+  UnifiedModal,
+  UnifiedCard,
+} from '../components/unified';
 
 // Types
 interface TutorialSlide {
@@ -76,6 +79,12 @@ const float = keyframes`
   50% {
     transform: translateY(-10px);
   }
+`;
+
+const IllustrationIcon = styled.div`
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.8;
 `;
 
 // Styled Components
@@ -724,18 +733,18 @@ export default function WelcomeTutorial() {
 
   if (currentStep === 'welcome') {
     return (
-      <WelcomeContainer theme={theme}>
+      <WelcomeContainer $theme={theme}>
         <BackgroundPattern />
         <SkipButton onClick={handleSkipTutorial}>Pular Tour</SkipButton>
 
         <WelcomeContent>
           <LogoContainer>
-            <Logo theme={theme}>
+            <Logo $theme={theme}>
               <Image src='/logo.png' alt='Logo DOM' width={80} height={80} />
             </Logo>
           </LogoContainer>
 
-          <WelcomeTitle theme={theme}>Bem-vindo ao Sistema DOM!</WelcomeTitle>
+          <WelcomeTitle $theme={theme}>Bem-vindo ao Sistema DOM!</WelcomeTitle>
 
           <WelcomeSubtitle>
             A solução completa para a gestão do seu lar
@@ -749,8 +758,8 @@ export default function WelcomeTutorial() {
 
           <ButtonContainer>
             <WelcomeButton
-              variant='primary'
-              theme={theme}
+              $variant='primary'
+              $theme={theme}
               onClick={handleStartTutorial}
             >
               <AccessibleEmoji emoji='🚀' label='Iniciar' /> Começar Tour
@@ -782,8 +791,8 @@ export default function WelcomeTutorial() {
     }
 
     return (
-      <TutorialContainer theme={theme}>
-        <TutorialHeader theme={theme}>
+      <TutorialContainer $theme={theme}>
+        <TutorialHeader $theme={theme}>
           <div>
             <TutorialHeaderTitle>Tutorial do Sistema DOM</TutorialHeaderTitle>
             <TutorialHeaderSubtitle>
@@ -795,8 +804,8 @@ export default function WelcomeTutorial() {
             <ProgressText>
               {currentSlide + 1} de {tutorialSlides.length}
             </ProgressText>
-            <ProgressBar theme={theme}>
-              <ProgressFill $progress={progress} theme={theme} />
+            <ProgressBar $theme={theme}>
+              <ProgressFill $progress={progress} $theme={theme} />
             </ProgressBar>
           </ProgressContainer>
         </TutorialHeader>
@@ -822,17 +831,16 @@ export default function WelcomeTutorial() {
             </SlideContent>
 
             <SlideIllustration $color={slide.color}>
-              <div className='illustration-icon'>{slide.illustration}</div>
+              <IllustrationIcon>{slide.illustration}</IllustrationIcon>
             </SlideIllustration>
           </SlideContainer>
         </TutorialContent>
 
         <NavigationContainer>
           <NavigationButton
-            theme={theme}
-            $disabled={currentSlide === 0}
-            onClick={handlePreviousSlide}
+            $theme={theme}
             disabled={currentSlide === 0}
+            onClick={handlePreviousSlide}
           >
             ← Anterior
           </NavigationButton>
@@ -842,13 +850,13 @@ export default function WelcomeTutorial() {
               <DotIndicator
                 key={index}
                 $active={index === currentSlide}
-                theme={theme}
+                $theme={theme}
                 onClick={() => setCurrentSlide(index)}
               />
             ))}
           </DotsContainer>
 
-          <NavigationButton theme={theme} onClick={handleNextSlide}>
+          <NavigationButton $theme={theme} onClick={handleNextSlide}>
             {currentSlide === tutorialSlides.length - 1
               ? 'Finalizar'
               : 'Próximo'}{' '}
@@ -861,7 +869,7 @@ export default function WelcomeTutorial() {
 
   if (currentStep === 'completion') {
     return (
-      <CompletionContainer theme={theme}>
+      <CompletionContainer $theme={theme}>
         <CompletionContent>
           <CompletionIcon>
             <AccessibleEmoji emoji='🎉' label='Parabéns' />
@@ -876,19 +884,19 @@ export default function WelcomeTutorial() {
           </CompletionDescription>
 
           <StatsContainer>
-            <StatCard theme={theme}>
+            <StatCard $theme={theme}>
               <StatNumber>7</StatNumber>
               <StatLabel>Módulos Principais</StatLabel>
             </StatCard>
-            <StatCard theme={theme}>
+            <StatCard $theme={theme}>
               <StatNumber>100%</StatNumber>
               <StatLabel>Seguro e Conforme</StatLabel>
             </StatCard>
-            <StatCard theme={theme}>
+            <StatCard $theme={theme}>
               <StatNumber>24/7</StatNumber>
               <StatLabel>Disponível</StatLabel>
             </StatCard>
-            <StatCard theme={theme}>
+            <StatCard $theme={theme}>
               <StatNumber>∞</StatNumber>
               <StatLabel>Possibilidades</StatLabel>
             </StatCard>
@@ -896,16 +904,16 @@ export default function WelcomeTutorial() {
 
           <ButtonContainer>
             <WelcomeButton
-              variant='primary'
-              theme={theme}
+              $variant='primary'
+              $theme={theme}
               onClick={handleGoToDashboard}
             >
               <AccessibleEmoji emoji='🏠' label='Home' /> Ir para o Dashboard
             </WelcomeButton>
 
             <SecondaryButton
-              variant='secondary'
-              theme={theme}
+              $variant='secondary'
+              $theme={theme}
               onClick={handleRevisitTutorial}
             >
               <AccessibleEmoji emoji='🔄' label='Sincronizar' /> Revisitar

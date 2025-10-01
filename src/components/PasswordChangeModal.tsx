@@ -3,9 +3,8 @@ import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from './AccessibleEmoji';
 import { Form, FormGroup, Input } from './FormComponents';
-import { UnifiedButton } from './unified';
+import { UnifiedButton, UnifiedModal, ModalHeaderComponent, ModalBodyComponent, ModalFooterComponent } from './unified';
 import { OptimizedErrorMessage } from '../components/shared/optimized-styles';
-
 
 // Animações
 const fadeIn = keyframes`
@@ -26,16 +25,16 @@ const ErrorMessage = styled.div`
 `;
 
 // Styled Components
-const PasswordModal = styled(Modal)`
+const PasswordModal = styled(UnifiedModal)`
   z-index: 9999;
 `;
 
-const PasswordContent = styled(ModalContent)`
+const PasswordContent = styled.div`
   max-width: 500px;
   animation: ${fadeIn} 0.3s ease-out;
 `;
 
-const PasswordHeader = styled(ModalHeader)`
+const PasswordHeader = styled(ModalHeaderComponent)`
   background: linear-gradient(135deg, #29abe2 0%, #1e88e5 100%);
   color: white;
   border-radius: 12px 12px 0 0;
@@ -57,7 +56,7 @@ const PasswordSubtitle = styled.p`
   font-size: 1rem;
 `;
 
-const PasswordBody = styled(ModalBody)`
+const PasswordBody = styled(ModalBodyComponent)`
   padding: 2rem;
 `;
 
@@ -154,7 +153,7 @@ const RequirementItem = styled.div<{ $met: boolean }>`
   }
 `;
 
-const PasswordFooter = styled(ModalFooter)`
+const PasswordFooter = styled(ModalFooterComponent)`
   background: #f8f9fa;
   border-radius: 0 0 12px 12px;
   padding: 1.5rem 2rem;
@@ -360,7 +359,9 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
                 )}
               </PasswordToggle>
               {errors.currentPassword && (
-                <OptimizedErrorMessage>{errors.currentPassword}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors.currentPassword}
+                </OptimizedErrorMessage>
               )}
             </PasswordGroup>
 
@@ -403,7 +404,9 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
               )}
 
               {errors.newPassword && (
-                <OptimizedErrorMessage>{errors.newPassword}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors.newPassword}
+                </OptimizedErrorMessage>
               )}
             </PasswordGroup>
 
@@ -432,7 +435,9 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
                 )}
               </PasswordToggle>
               {errors.confirmPassword && (
-                <OptimizedErrorMessage>{errors.confirmPassword}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors.confirmPassword}
+                </OptimizedErrorMessage>
               )}
             </PasswordGroup>
 
@@ -458,15 +463,15 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({
         </PasswordBody>
 
         <PasswordFooter>
-          <CancelButton variant='secondary' theme={theme} onClick={onClose}>
+          <CancelButton $variant='secondary' $theme={theme} onClick={onClose}>
             <AccessibleEmoji emoji='❌' label='Erro' /> Cancelar
           </CancelButton>
           <SaveButton
-            variant='success'
+            $variant='success'
             $theme={theme}
             $canSave={canSave}
             onClick={() => handleSubmit({} as React.FormEvent)}
-            disabled={!canSave}
+            $disabled={!canSave}
           >
             {canSave ? (
               <>

@@ -12,7 +12,6 @@ import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 import { OptimizedSectionTitle } from '../components/shared/optimized-styles';
 
-
 // Styled Components
 const ContentContainer = styled.div`
   max-width: 800px;
@@ -76,16 +75,16 @@ const TermsPage: React.FC = () => {
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
+      <TopBar $theme={theme}>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -97,13 +96,13 @@ const TermsPage: React.FC = () => {
       <PageHeader
         title='Termos de Uso'
         subtitle='Conheça nossos termos e condições'
-        theme={theme}
+        $theme={theme}
       />
 
       <ContentContainer>
         <BackButton
-          variant='secondary'
-          theme={theme}
+          $variant='secondary'
+          $theme={theme}
           onClick={() => router.back()}
         >
           <AccessibleEmoji emoji='←' label='Voltar' /> Voltar
@@ -164,7 +163,9 @@ const TermsPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>5. Privacidade e Proteção de Dados</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            5. Privacidade e Proteção de Dados
+          </OptimizedSectionTitle>
           <Paragraph>
             Respeitamos sua privacidade e protegemos seus dados pessoais de
             acordo com nossa <Highlight>Política de Privacidade</Highlight>.
@@ -174,7 +175,9 @@ const TermsPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>6. Propriedade Intelectual</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            6. Propriedade Intelectual
+          </OptimizedSectionTitle>
           <Paragraph>
             O DOM e todo seu conteúdo, incluindo textos, gráficos, logotipos,
             ícones e software, são propriedade da empresa e estão protegidos por
@@ -183,7 +186,9 @@ const TermsPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>7. Limitação de Responsabilidade</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            7. Limitação de Responsabilidade
+          </OptimizedSectionTitle>
           <Paragraph>
             O serviço é fornecido &quot;como está&quot; sem garantias de
             qualquer tipo. Não nos responsabilizamos por danos diretos,
@@ -193,7 +198,9 @@ const TermsPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>8. Modificações dos Termos</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            8. Modificações dos Termos
+          </OptimizedSectionTitle>
           <Paragraph>
             Reservamo-nos o direito de modificar estes termos a qualquer
             momento. As alterações entrarão em vigor imediatamente após a

@@ -29,15 +29,12 @@ export interface DadosReaisEmpregado {
 
 export class DadosReaisService {
   // Obter dados REAIS do empregador via múltiplas fontes oficiais
-  async obterDadosEmpregador(
-    cpf: string
-  ): Promise<{
+  async obterDadosEmpregador(cpf: string): Promise<{
     success: boolean;
     data?: DadosReaisEmpregador;
     error?: string;
   }> {
     try {
-
       // MÉTODO 1: Via eSocial (que já funciona)
       const dadosESocial = await this.consultarEmpregadorViaESocial(cpf);
       if (dadosESocial.success) {
@@ -73,7 +70,6 @@ export class DadosReaisService {
     cpf: string
   ): Promise<{ success: boolean; data?: DadosReaisEmpregado; error?: string }> {
     try {
-
       // MÉTODO 1: Via eSocial Qualificação Cadastral (oficial)
       const dadosQualificacao = await this.consultarQualificacaoViaESocial(cpf);
       if (dadosQualificacao.success) {
@@ -109,18 +105,16 @@ export class DadosReaisService {
   }
 
   // Consultar empregador via eSocial (método que já funciona)
-  private async consultarEmpregadorViaESocial(
-    cpf: string
-  ): Promise<{
+  private async consultarEmpregadorViaESocial(cpf: string): Promise<{
     success: boolean;
     data?: DadosReaisEmpregador;
     error?: string;
   }> {
     try {
       // Importar e usar o serviço eSocial que já está funcionando
-      const { ESocialSoapReal } = await import('./esocialSoapReal');
+      const { ESocialSoapClientService } = await import('./esocialSoapClient');
 
-      const soapService = new ESocialSoapReal({
+      const soapService = new ESocialSoapClientService({
         environment: 'producao',
         companyId: cpf,
       });
@@ -137,9 +131,6 @@ export class DadosReaisService {
       if (!fs.existsSync(certPath)) {
         return { success: false, error: 'Certificado não encontrado' };
       }
-
-      const certificateBuffer = fs.readFileSync(certPath);
-      await soapService.loadCertificate(certificateBuffer, '456587');
 
       // Tentar consulta
       const resultado = await soapService.consultarDadosEmpregador();
@@ -168,11 +159,10 @@ export class DadosReaisService {
     cpf: string
   ): Promise<{ success: boolean; data?: DadosReaisEmpregado; error?: string }> {
     try {
-
       // Importar serviço eSocial
-      const { ESocialSoapReal } = await import('./esocialSoapReal');
+      const { ESocialSoapClientService } = await import('./esocialSoapClient');
 
-      const soapService = new ESocialSoapReal({
+      const soapService = new ESocialSoapClientService({
         environment: 'producao',
         companyId: '59876913700', // CPF do empregador
       });
@@ -190,11 +180,8 @@ export class DadosReaisService {
         return { success: false, error: 'Certificado não encontrado' };
       }
 
-      const certificateBuffer = fs.readFileSync(certPath);
-      await soapService.loadCertificate(certificateBuffer, '456587');
-
-      // Tentar consulta de qualificação cadastral
-      const resultado = await soapService.consultarQualificacaoCadastral(cpf);
+      // Tentar consulta de dados do empregador
+      const resultado = await soapService.consultarDadosEmpregador();
 
       if (resultado.success) {
         return {

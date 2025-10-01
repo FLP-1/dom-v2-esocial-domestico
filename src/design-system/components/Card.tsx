@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { componentShadows, createThemedStyles } from '../index';
+import { componentShadows, createThemedStyles, stateShadows } from '../index';
 import { designConstants } from '../tokens/constants';
 
 interface CardProps {

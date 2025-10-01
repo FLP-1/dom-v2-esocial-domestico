@@ -197,7 +197,7 @@ export interface UnifiedModalProps {
   height?: string;
   showCloseButton?: boolean;
   variant?: 'default' | 'fullscreen' | 'compact';
-  theme?: any;
+  $theme?: any;
   'aria-label'?: string;
 }
 
@@ -212,7 +212,7 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
   height,
   showCloseButton = true,
   variant = 'default',
-  theme,
+  $theme,
   'aria-label': ariaLabel,
 }) => {
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -241,14 +241,14 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
         $width={width}
         $height={height}
         $variant={variant}
-        $theme={theme}
+        $theme={$theme}
       >
         {title && (
-          <Header $theme={theme}>
-            <Title $theme={theme}>{title}</Title>
+          <Header $theme={$theme}>
+            <Title $theme={$theme}>{title}</Title>
             {showCloseButton && (
               <CloseButton
-                $theme={theme}
+                $theme={$theme}
                 onClick={onClose}
                 aria-label='Fechar modal'
               >
@@ -258,9 +258,9 @@ export const UnifiedModal: React.FC<UnifiedModalProps> = ({
           </Header>
         )}
 
-        <Body $theme={theme}>{children}</Body>
+        <Body $theme={$theme}>{children}</Body>
 
-        {footer && <Footer $theme={theme}>{footer}</Footer>}
+        {footer && <Footer $theme={$theme}>{footer}</Footer>}
       </Container>
     </Overlay>
   );

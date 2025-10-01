@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useAlertManager } from '../hooks/useAlertManager';
 import AccessibleEmoji from './AccessibleEmoji';
-import { ActionButton } from './ActionButton';
+import { UnifiedButton } from './UnifiedButton';
 import { Form, FormGroup, Input, Select } from './FormComponents';
-import SimpleModal from './SimpleModal';
-import ValidationModal from './ValidationModal';
+import { UnifiedModal } from './UnifiedModal';
+import { ValidationModal } from './ValidationModal';
 
 const FormRow = styled.div`
   display: grid;
@@ -32,7 +32,15 @@ const FormRow = styled.div`
 `;
 
 // Importar styled-components compartilhados
-import { OptimizedErrorMessage, OptimizedFlexContainer, OptimizedHelpText, OptimizedInputStyled } from './shared/optimized-styles';
+import {
+  OptimizedErrorMessage,
+  OptimizedFlexContainer,
+  OptimizedHelpText,
+  OptimizedInputStyled,
+  OptimizedFormRow,
+  OptimizedLabel,
+  OptimizedSelectStyled,
+} from './shared/optimized-styles';
 
 const Label = styled.label`
   font-weight: 600;
@@ -40,6 +48,19 @@ const Label = styled.label`
   font-size: 0.9rem;
   margin-bottom: 0.5rem;
   display: block;
+`;
+
+// Componentes adicionais necessários
+const UnifiedButtonStyled = styled(UnifiedButton)`
+  margin-left: 0.5rem;
+  min-width: auto;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+`;
+
+const RelativeContainer = styled.div`
+  position: relative;
+  margin-top: 0.5rem;
 `;
 
 const InputStyled = styled(Input)<{ $hasError?: boolean }>`
@@ -123,7 +144,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
     cargo: '',
     salario: '',
     dataAdmissao: '',
-    status: 'ATIVO' as const,
+    status: 'ATIVO',
     endereco: {
       logradouro: '',
       numero: '',
@@ -141,7 +162,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showValidationModal, setShowValidationModal] = useState(false);
-  const [validationType, setValidationType] = useState<'email' | 'phone'>(
+  const [validationType, setValidationType] = useState<'email' | 'telefone'>(
     'email'
   );
   const [emailValidado, setEmailValidado] = useState(false);
@@ -159,7 +180,10 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
         salario: employee.salario.toString(),
         dataAdmissao: employee.dataAdmissao,
         status: employee.status,
-        endereco: { ...employee.endereco },
+        endereco: { 
+          ...employee.endereco,
+          complemento: employee.endereco.complemento || ''
+        },
         contato: { ...employee.contato },
       });
     } else {
@@ -213,11 +237,6 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
     return numbers.replace(/(\d{3})(\d{5})(\d{2})(\d{1})/, '$1.$2.$3-$4');
   };
 
-  const formatCPF = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-  };
-
   const validateCPF = (cpf: string) => {
     // Remove caracteres não numéricos
     const cleanCPF = cpf.replace(/\D/g, '');
@@ -249,11 +268,6 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
     return true;
   };
 
-  const formatCEP = (value: string) => {
-    const numbers = value.replace(/\D/g, '');
-    return numbers.replace(/(\d{5})(\d{3})/, '$1-$2');
-  };
-
   const enviarCodigoEmail = async () => {
     try {
       if (
@@ -283,13 +297,13 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
         alertManager.showSuccess(
           `Código enviado para ${formData.contato.email}: ${codigo}`
         );
-        console.log('Email enviado:', result);
+        // Email enviado com sucesso
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Erro na API');
       }
     } catch (error) {
-      console.error('Erro ao enviar email:', error);
+      // Erro ao enviar email
       alertManager.showError(
         `Erro ao enviar código de validação por email: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
       );
@@ -341,13 +355,13 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
         alertManager.showSuccess(
           `Código enviado para ${formData.contato.telefone}: ${codigo}`
         );
-        console.log('SMS enviado:', result);
+        // SMS enviado com sucesso
       } else {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Erro na API');
       }
     } catch (error) {
-      console.error('Erro ao enviar SMS:', error);
+      // Erro ao enviar SMS
       alertManager.showError(
         `Erro ao enviar código de validação por SMS: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
       );
@@ -359,7 +373,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
       alertManager.showWarning('Por favor, envie o código primeiro');
       return;
     }
-    setValidationType('phone');
+    setValidationType('telefone');
     setShowValidationModal(true);
   };
 
@@ -396,7 +410,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
         }
       }
     } catch (error) {
-      console.error('Erro ao consultar CEP:', error);
+      // Erro ao consultar CEP
     }
   };
 
@@ -516,6 +530,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
     const employeeData = {
       ...formData,
       salario: Number(formData.salario),
+      status: formData.status as 'ATIVO' | 'INATIVO' | 'AFASTADO',
     };
 
     onSave(employeeData);
@@ -523,25 +538,20 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
   };
 
   return (
-    <SimpleModal
+    <UnifiedModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <>
-          <AccessibleEmoji emoji='👤' label='Funcionário' />{' '}
-          {employee ? 'Editar Funcionário' : 'Adicionar Funcionário'}
-        </>
-      }
+      title={`${employee ? 'Editar' : 'Adicionar'} Funcionário`}
       maxWidth='700px'
       footer={
         <>
-          <ActionButton variant='secondary' theme={theme} onClick={onClose}>
+          <UnifiedButton $variant='secondary' $theme={theme} onClick={onClose}>
             Cancelar
-          </ActionButton>
-          <ActionButton variant='primary' theme={theme} onClick={handleSubmit}>
+          </UnifiedButton>
+          <UnifiedButton $variant='primary' $theme={theme} onClick={() => handleSubmit({} as React.FormEvent)}>
             <AccessibleEmoji emoji='💾' label='Salvar' />{' '}
             {employee ? 'Atualizar' : 'Adicionar'}
-          </ActionButton>
+          </UnifiedButton>
         </>
       }
     >
@@ -569,7 +579,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
               maxLength={14}
               $hasError={!!errors['cpf']}
             />
-            {errors['cpf'] && <OptimizedErrorMessage>{errors['cpf']}</OptimizedErrorMessage>}
+            {errors['cpf'] && (
+              <OptimizedErrorMessage>{errors['cpf']}</OptimizedErrorMessage>
+            )}
           </FormGroup>
 
           <FormGroup>
@@ -582,7 +594,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
               placeholder='Nome completo do funcionário'
               $hasError={!!errors['nome']}
             />
-            {errors['nome'] && <OptimizedErrorMessage>{errors['nome']}</OptimizedErrorMessage>}
+            {errors['nome'] && (
+              <OptimizedErrorMessage>{errors['nome']}</OptimizedErrorMessage>
+            )}
           </FormGroup>
         </OptimizedFormRow>
 
@@ -597,7 +611,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
               placeholder='000.00000.00-0'
               $hasError={!!errors['pis']}
             />
-            {errors['pis'] && <OptimizedErrorMessage>{errors['pis']}</OptimizedErrorMessage>}
+            {errors['pis'] && (
+              <OptimizedErrorMessage>{errors['pis']}</OptimizedErrorMessage>
+            )}
           </FormGroup>
 
           <FormGroup>
@@ -610,7 +626,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
               placeholder='Ex: Empregado Doméstico'
               $hasError={!!errors['cargo']}
             />
-            {errors['cargo'] && <OptimizedErrorMessage>{errors['cargo']}</OptimizedErrorMessage>}
+            {errors['cargo'] && (
+              <OptimizedErrorMessage>{errors['cargo']}</OptimizedErrorMessage>
+            )}
           </FormGroup>
         </OptimizedFormRow>
 
@@ -634,7 +652,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
           </FormGroup>
 
           <FormGroup>
-            <OptimizedLabel htmlFor='dataAdmissao'>Data de Admissão *</OptimizedLabel>
+            <OptimizedLabel htmlFor='dataAdmissao'>
+              Data de Admissão *
+            </OptimizedLabel>
             <OptimizedInputStyled
               id='dataAdmissao'
               type='date'
@@ -643,7 +663,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
               $hasError={!!errors['dataAdmissao']}
             />
             {errors['dataAdmissao'] && (
-              <OptimizedErrorMessage>{errors['dataAdmissao']}</OptimizedErrorMessage>
+              <OptimizedErrorMessage>
+                {errors['dataAdmissao']}
+              </OptimizedErrorMessage>
             )}
           </FormGroup>
         </OptimizedFormRow>
@@ -666,27 +688,28 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
                 maxLength={15}
                 $hasError={!!errors['telefone']}
               />
-              <button
+              <UnifiedButtonStyled
+                $variant='secondary'
                 type='button'
                 onClick={enviarCodigoTelefone}
-                disabled={!formData.contato.telefone}
+                $disabled={!formData.contato.telefone}
               >
                 <AccessibleEmoji emoji='📱' label='Telefone' /> Enviar
-              </ActionButtonStyled>
+              </UnifiedButtonStyled>
             </OptimizedFlexContainer>
-            <div>
+            <RelativeContainer>
               <input
                 type='checkbox'
                 checked={telefoneValidado}
                 aria-label='Telefone validado'
+                title='Telefone validado'
                 onChange={() => {
                   if (!telefoneValidado) {
                     enviarCodigoTelefone();
                   }
                 }}
               />
-              <label
-              >
+              <label>
                 {telefoneValidado ? (
                   <>
                     <AccessibleEmoji emoji='✅' label='Validado' /> Telefone
@@ -701,7 +724,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
               </label>
             </RelativeContainer>
             {errors['telefone'] && (
-              <OptimizedErrorMessage>{errors['telefone']}</OptimizedErrorMessage>
+              <OptimizedErrorMessage>
+                {errors['telefone']}
+              </OptimizedErrorMessage>
             )}
           </FormGroup>
 
@@ -718,30 +743,31 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
                 placeholder='funcionario@email.com'
                 $hasError={!!errors['email']}
               />
-              <button
+              <UnifiedButtonStyled
+                $variant='secondary'
                 type='button'
                 onClick={enviarCodigoEmail}
-                disabled={
+                $disabled={
                   !formData.contato.email ||
                   !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contato.email)
                 }
               >
                 <AccessibleEmoji emoji='📧' label='Email' /> Enviar
-              </ActionButtonStyled>
+              </UnifiedButtonStyled>
             </OptimizedFlexContainer>
-            <div>
+            <RelativeContainer>
               <input
                 type='checkbox'
                 checked={emailValidado}
                 aria-label='Email validado'
+                title='Email validado'
                 onChange={() => {
                   if (!emailValidado) {
                     enviarCodigoEmail();
                   }
                 }}
               />
-              <label
-              >
+              <label>
                 {emailValidado ? (
                   <>
                     <AccessibleEmoji emoji='✅' label='Validado' /> Email
@@ -755,7 +781,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
                 )}
               </label>
             </RelativeContainer>
-            {errors['email'] && <OptimizedErrorMessage>{errors['email']}</OptimizedErrorMessage>}
+            {errors['email'] && (
+              <OptimizedErrorMessage>{errors['email']}</OptimizedErrorMessage>
+            )}
           </FormGroup>
         </OptimizedFormRow>
 
@@ -778,15 +806,18 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
                 maxLength={9}
                 $hasError={!!errors['cep']}
               />
-              <button
+              <UnifiedButtonStyled
+                $variant='secondary'
                 type='button'
                 onClick={() => consultarCEP(formData.endereco.cep)}
-                disabled={formData.endereco.cep.replace(/\D/g, '').length !== 8}
+                $disabled={formData.endereco.cep.replace(/\D/g, '').length !== 8}
               >
                 <AccessibleEmoji emoji='🔍' label='Buscar' /> Buscar
-              </ActionButtonStyled>
+              </UnifiedButtonStyled>
             </OptimizedFlexContainer>
-            {errors['cep'] && <OptimizedErrorMessage>{errors['cep']}</OptimizedErrorMessage>}
+            {errors['cep'] && (
+              <OptimizedErrorMessage>{errors['cep']}</OptimizedErrorMessage>
+            )}
           </FormGroup>
 
           <FormGroup>
@@ -794,10 +825,10 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
             <OptimizedSelectStyled
               id='uf'
               value={formData.endereco.uf}
+              aria-label="Estado (UF)"
+              title="Estado (UF)"
               onChange={e => handleInputChange('endereco.uf', e.target.value)}
               $hasError={!!errors['uf']}
-              aria-label='Selecionar estado'
-              title='Selecionar estado'
             >
               <option value=''>Selecione</option>
               <option value='AC'>AC</option>
@@ -828,7 +859,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
               <option value='SE'>SE</option>
               <option value='TO'>TO</option>
             </OptimizedSelectStyled>
-            {errors['uf'] && <OptimizedErrorMessage>{errors['uf']}</OptimizedErrorMessage>}
+            {errors['uf'] && (
+              <OptimizedErrorMessage>{errors['uf']}</OptimizedErrorMessage>
+            )}
           </FormGroup>
         </OptimizedFormRow>
 
@@ -846,7 +879,9 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
               $hasError={!!errors['logradouro']}
             />
             {errors['logradouro'] && (
-              <OptimizedErrorMessage>{errors['logradouro']}</OptimizedErrorMessage>
+              <OptimizedErrorMessage>
+                {errors['logradouro']}
+              </OptimizedErrorMessage>
             )}
           </FormGroup>
 
@@ -921,16 +956,15 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({
       <ValidationModal
         isOpen={showValidationModal}
         onClose={() => setShowValidationModal(false)}
-        onValidate={validationType === 'email' ? validarEmail : validarTelefone}
-        type={validationType}
-        contact={
+        onSuccess={validationType === 'email' ? validarEmail : validarTelefone}
+        tipo={validationType}
+        valor={
           validationType === 'email'
             ? formData.contato.email
             : formData.contato.telefone
         }
-        theme={theme}
       />
-    </SimpleModal>
+    </UnifiedModal>
   );
 };
 

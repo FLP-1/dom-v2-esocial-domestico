@@ -1,11 +1,13 @@
 # 🎨 Design System - Melhores Práticas
 
 ## 📋 Visão Geral
+
 Este documento contém as melhores práticas para usar o design system unificado do DOM v2.1.0.
 
 ## 🚀 Componentes Unificados
 
 ### UnifiedButton
+
 ```tsx
 import { UnifiedButton } from '../components/unified';
 
@@ -26,6 +28,7 @@ import { UnifiedButton } from '../components/unified';
 ```
 
 ### UnifiedCard
+
 ```tsx
 import { UnifiedCard } from '../components/unified';
 
@@ -42,6 +45,7 @@ import { UnifiedCard } from '../components/unified';
 ```
 
 ### UnifiedModal
+
 ```tsx
 import { UnifiedModal } from '../components/unified';
 
@@ -69,9 +73,14 @@ import { UnifiedModal } from '../components/unified';
 ## 🎯 Regras de Uso
 
 ### 1. Sempre Use Componentes Unificados
+
 ```tsx
 // ✅ Correto
-import { UnifiedButton, UnifiedCard, UnifiedModal } from '../components/unified';
+import {
+  UnifiedButton,
+  UnifiedCard,
+  UnifiedModal,
+} from '../components/unified';
 
 // ❌ Evite - Componentes legados
 import { Button } from '../components/Button';
@@ -79,6 +88,7 @@ import { Card } from '../components/Card';
 ```
 
 ### 2. Use Tokens do Design System
+
 ```tsx
 // ✅ Correto - Use tokens
 const StyledComponent = styled.div`
@@ -96,13 +106,14 @@ const StyledComponent = styled.div`
 ```
 
 ### 3. Respeite o Sistema de Temas
+
 ```tsx
 // ✅ Correto - Use o contexto de tema
 const MyComponent = () => {
   const { theme } = useTheme();
-  
+
   return (
-    <UnifiedButton theme={theme} variant="primary">
+    <UnifiedButton theme={theme} variant='primary'>
       Botão
     </UnifiedButton>
   );
@@ -112,6 +123,7 @@ const MyComponent = () => {
 ## 🔧 Performance
 
 ### 1. Lazy Loading
+
 ```tsx
 // ✅ Correto - Lazy loading para modais complexos
 const EmployeeModal = lazy(() => import('./EmployeeModal'));
@@ -124,6 +136,7 @@ const App = () => (
 ```
 
 ### 2. Memoização
+
 ```tsx
 // ✅ Correto - Memoize componentes pesados
 const ExpensiveComponent = memo(({ data }) => {
@@ -132,13 +145,14 @@ const ExpensiveComponent = memo(({ data }) => {
 ```
 
 ### 3. Otimização de Re-renders
+
 ```tsx
 // ✅ Correto - Use useCallback para funções
 const MyComponent = () => {
   const handleClick = useCallback(() => {
     // Lógica do clique
   }, []);
-  
+
   return <UnifiedButton onClick={handleClick}>Clique</UnifiedButton>;
 };
 ```
@@ -146,10 +160,11 @@ const MyComponent = () => {
 ## 📱 Responsividade
 
 ### 1. Use Breakpoints do Design System
+
 ```tsx
 const ResponsiveComponent = styled.div`
   padding: ${props => props.theme.spacing.sm};
-  
+
   @media (min-width: ${props => props.theme.breakpoints.md}) {
     padding: ${props => props.theme.spacing.lg};
   }
@@ -157,11 +172,12 @@ const ResponsiveComponent = styled.div`
 ```
 
 ### 2. Mobile-First
+
 ```tsx
 // ✅ Correto - Mobile-first
 const MobileFirstComponent = styled.div`
   font-size: ${props => props.theme.fontSizes.sm};
-  
+
   @media (min-width: ${props => props.theme.breakpoints.md}) {
     font-size: ${props => props.theme.fontSizes.lg};
   }
@@ -171,6 +187,7 @@ const MobileFirstComponent = styled.div`
 ## ♿ Acessibilidade
 
 ### 1. Sempre Use Labels
+
 ```tsx
 // ✅ Correto
 <UnifiedButton aria-label="Fechar modal">
@@ -184,11 +201,12 @@ const MobileFirstComponent = styled.div`
 ```
 
 ### 2. Navegação por Teclado
+
 ```tsx
 // ✅ Correto - Suporte a teclado
 <UnifiedButton
   onClick={handleClick}
-  onKeyDown={(e) => e.key === 'Enter' && handleClick()}
+  onKeyDown={e => e.key === 'Enter' && handleClick()}
 >
   Botão
 </UnifiedButton>
@@ -197,17 +215,19 @@ const MobileFirstComponent = styled.div`
 ## 🧪 Testes
 
 ### 1. Teste Componentes Unificados
+
 ```tsx
 // ✅ Correto - Teste as variantes
 describe('UnifiedButton', () => {
   it('should render primary variant', () => {
-    render(<UnifiedButton variant="primary">Test</UnifiedButton>);
+    render(<UnifiedButton variant='primary'>Test</UnifiedButton>);
     expect(screen.getByRole('button')).toHaveClass('primary');
   });
 });
 ```
 
 ### 2. Teste Acessibilidade
+
 ```tsx
 // ✅ Correto - Teste acessibilidade
 import { axe, toHaveNoViolations } from 'jest-axe';
@@ -222,11 +242,13 @@ test('should not have accessibility violations', async () => {
 ## 📊 Métricas de Qualidade
 
 ### 1. Bundle Size
+
 - UnifiedButton: ~2KB
-- UnifiedCard: ~3KB  
+- UnifiedCard: ~3KB
 - UnifiedModal: ~5KB
 
 ### 2. Performance
+
 - First Paint: < 1.5s
 - First Contentful Paint: < 2s
 - Lighthouse Score: > 90
@@ -234,6 +256,7 @@ test('should not have accessibility violations', async () => {
 ## 🚨 Anti-Padrões
 
 ### ❌ Não Faça
+
 ```tsx
 // ❌ Estilos inline
 <UnifiedButton style={{ color: 'red' }}>
@@ -249,6 +272,7 @@ const color = '#007bff';
 ```
 
 ### ✅ Faça Assim
+
 ```tsx
 // ✅ Use tokens
 <UnifiedButton variant="danger">
@@ -268,23 +292,29 @@ const color = theme.colors.primary;
 ## 🔄 Migração
 
 ### 1. Substitua Componentes Legados
+
 ```tsx
 // Antes
 import { Button } from '../components/Button';
-<Button>Clique</Button>
+<Button>Clique</Button>;
 
 // Depois
 import { UnifiedButton } from '../components/unified';
-<UnifiedButton variant="primary">Clique</UnifiedButton>
+<UnifiedButton variant='primary'>Clique</UnifiedButton>;
 ```
 
 ### 2. Atualize Imports
+
 ```tsx
 // Antes
 import { Button, Card, Modal } from '../components';
 
 // Depois
-import { UnifiedButton, UnifiedCard, UnifiedModal } from '../components/unified';
+import {
+  UnifiedButton,
+  UnifiedCard,
+  UnifiedModal,
+} from '../components/unified';
 ```
 
 ## 📚 Recursos Adicionais

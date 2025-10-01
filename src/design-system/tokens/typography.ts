@@ -233,7 +233,7 @@ export const responsiveTextStyles = {
   },
 };
 
-export default {
+const typographyTokens = {
   fontFamily,
   fontSize,
   fontWeight,
@@ -242,3 +242,5 @@ export default {
   textStyles,
   responsiveTextStyles,
 };
+
+export default typographyTokens;

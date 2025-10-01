@@ -5,7 +5,7 @@ import AccessibleEmoji from './AccessibleEmoji';
 // ActionButton substituído por UnifiedButton
 import { Form, FormGroup, Input } from './FormComponents';
 import { UnifiedModal, UnifiedButton } from './unified';
-import ValidationModal from './ValidationModal';
+import { ValidationModal } from './ValidationModal';
 import {
   OptimizedFormRow,
   OptimizedFormSection,
@@ -16,7 +16,7 @@ import {
   OptimizedErrorMessage,
   OptimizedHelpText,
   OptimizedSuccessMessage,
-  OptimizedValidationContainer
+  OptimizedValidationContainer,
 } from './shared/optimized-styles';
 
 const FormRow = styled.div`
@@ -41,7 +41,9 @@ const FormRow = styled.div`
 `;
 
 // Importar styled-components compartilhados
-import { OptimizedErrorMessage, OptimizedFlexContainer, OptimizedHelpText, OptimizedInputStyled, OptimizedSelectStyled, OptimizedFormSection, OptimizedSectionTitle } from './shared/optimized-styles';
+import {
+  OptimizedFlexContainer,
+} from './shared/optimized-styles';
 
 const Label = styled.label`
   font-weight: 600;
@@ -165,7 +167,9 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
   });
 
   const [showValidationModal, setShowValidationModal] = useState(false);
-  const [validationType, setValidationType] = useState<'email' | 'telefone'>('email');
+  const [validationType, setValidationType] = useState<'email' | 'telefone'>(
+    'email'
+  );
   const [validationValue, setValidationValue] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -201,10 +205,10 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
   const validateCPF = (cpf: string): boolean => {
     const cleanCPF = cpf.replace(/\D/g, '');
     if (cleanCPF.length !== 11) return false;
-    
+
     // Verificar se todos os dígitos são iguais
     if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
-    
+
     // Algoritmo de validação do CPF
     let sum = 0;
     for (let i = 0; i < 9; i++) {
@@ -213,7 +217,7 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
     let remainder = 11 - (sum % 11);
     if (remainder === 10 || remainder === 11) remainder = 0;
     if (remainder !== parseInt(cleanCPF.charAt(9))) return false;
-    
+
     sum = 0;
     for (let i = 0; i < 10; i++) {
       sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
@@ -221,7 +225,7 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
     remainder = 11 - (sum % 11);
     if (remainder === 10 || remainder === 11) remainder = 0;
     if (remainder !== parseInt(cleanCPF.charAt(10))) return false;
-    
+
     return true;
   };
 
@@ -278,7 +282,7 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
 
     setFormData(prev => {
       const newData = { ...prev };
-      
+
       if (field.includes('.')) {
         const [parent, child] = field.split('.');
         newData[parent as keyof EmployeeFormData] = {
@@ -288,7 +292,7 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
       } else {
         (newData as any)[field] = formattedValue;
       }
-      
+
       return newData;
     });
 
@@ -304,9 +308,12 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
 
   const handleValidation = async (type: 'email' | 'telefone') => {
     const value = type === 'email' ? formData.email : formData.telefone;
-    
+
     if (!value.trim()) {
-      showAlert('error', `Por favor, preencha o ${type === 'email' ? 'email' : 'telefone'} primeiro.`);
+      showAlert({
+        type: 'error',
+        message: `Por favor, preencha o ${type === 'email' ? 'email' : 'telefone'} primeiro.`
+      });
       return;
     }
 
@@ -324,8 +331,11 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
         isValid: true,
       },
     }));
-    
-    showAlert('success', `${validationType === 'email' ? 'Email' : 'Telefone'} validado com sucesso!`);
+
+    showAlert({
+      type: 'success',
+      message: `${validationType === 'email' ? 'Email' : 'Telefone'} validado com sucesso!`
+    });
   };
 
   const validateForm = (): boolean => {
@@ -397,24 +407,36 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
 
   const handleSave = () => {
     if (!validateForm()) {
-      showAlert('error', 'Por favor, corrija os erros no formulário.');
+      showAlert({
+        type: 'error',
+        message: 'Por favor, corrija os erros no formulário.'
+      });
       return;
     }
 
     // Verificar se email e telefone foram validados
     if (!validation.email.isVerified) {
-      showAlert('warning', 'Por favor, valide o email antes de salvar.');
+      showAlert({
+        type: 'warning',
+        message: 'Por favor, valide o email antes de salvar.'
+      });
       return;
     }
 
     if (!validation.telefone.isVerified) {
-      showAlert('warning', 'Por favor, valide o telefone antes de salvar.');
+      showAlert({
+        type: 'warning',
+        message: 'Por favor, valide o telefone antes de salvar.'
+      });
       return;
     }
 
     onSave(formData);
     onClose();
-    showAlert('success', 'Funcionário salvo com sucesso!');
+    showAlert({
+      type: 'success',
+      message: 'Funcionário salvo com sucesso!'
+    });
   };
 
   const handleClose = () => {
@@ -453,298 +475,370 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
       <UnifiedModal
         isOpen={isOpen}
         onClose={handleClose}
-        title={
-          <TitleContainer>
-            <AccessibleEmoji emoji="👤" label="Pessoa" />
-            {employee ? 'Editar Funcionário' : 'Novo Funcionário'}
-          </TitleContainer>
-        }
-        variant="default"
-        maxWidth="800px"
-        theme={theme}
+        title={`${employee ? 'Editar' : 'Novo'} Funcionário`}
+        variant='default'
+        maxWidth='800px'
+        $theme={theme}
       >
-        <Form>
+        <Form onSubmit={e => e.preventDefault()}>
           <OptimizedFormSection>
-            <OptimizedSectionTitle $theme={theme} $size="md">
-              <AccessibleEmoji emoji="📋" label="Checklist" /> Informações Pessoais
+            <OptimizedSectionTitle $theme={theme} $size='md'>
+              <AccessibleEmoji emoji='📋' label='Checklist' /> Informações
+              Pessoais
             </OptimizedSectionTitle>
-            
+
             <OptimizedFormRow>
               <FormGroup>
-                <OptimizedLabel htmlFor="nome">Nome Completo *</OptimizedLabel>
+                <OptimizedLabel htmlFor='nome'>Nome Completo *</OptimizedLabel>
                 <OptimizedInputStyled
-                  id="nome"
-                  type="text"
+                  id='nome'
+                  type='text'
                   value={formData.nome}
-                  onChange={(e) => handleInputChange('nome', e.target.value)}
+                  onChange={e => handleInputChange('nome', e.target.value)}
                   $hasError={!!errors.nome}
-                  placeholder="Digite o nome completo"
+                  placeholder='Digite o nome completo'
                 />
-                {errors.nome && <OptimizedErrorMessage>{errors.nome}</OptimizedErrorMessage>}
+                {errors.nome && (
+                  <OptimizedErrorMessage>{errors.nome}</OptimizedErrorMessage>
+                )}
               </FormGroup>
 
               <FormGroup>
-                <OptimizedLabel htmlFor="cpf">CPF *</OptimizedLabel>
+                <OptimizedLabel htmlFor='cpf'>CPF *</OptimizedLabel>
                 <OptimizedInputStyled
-                  id="cpf"
-                  type="text"
+                  id='cpf'
+                  type='text'
                   value={formData.cpf}
-                  onChange={(e) => handleInputChange('cpf', e.target.value)}
+                  onChange={e => handleInputChange('cpf', e.target.value)}
                   $hasError={!!errors.cpf}
-                  placeholder="000.000.000-00"
+                  placeholder='000.000.000-00'
                   maxLength={14}
                 />
-                {errors.cpf && <OptimizedErrorMessage>{errors.cpf}</OptimizedErrorMessage>}
+                {errors.cpf && (
+                  <OptimizedErrorMessage>{errors.cpf}</OptimizedErrorMessage>
+                )}
               </FormGroup>
             </OptimizedFormRow>
 
             <OptimizedFormRow>
               <FormGroup>
-                <OptimizedLabel htmlFor="email">Email *</OptimizedLabel>
+                <OptimizedLabel htmlFor='email'>Email *</OptimizedLabel>
                 <OptimizedValidationContainer>
                   <OptimizedInputStyled
-                    id="email"
-                    type="email"
+                    id='email'
+                    type='email'
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onChange={e => handleInputChange('email', e.target.value)}
                     $hasError={!!errors.email}
-                    placeholder="email@exemplo.com"
+                    placeholder='email@exemplo.com'
                     style={{ flex: 1 }}
                   />
                   <UnifiedButton
-                    variant="secondary"
-                    size="sm"
+                    $variant='secondary'
+                    $size='sm'
                     onClick={() => handleValidation('email')}
-                    disabled={!formData.email.trim() || validation.email.isVerified}
+                    $disabled={
+                      !formData.email.trim() || validation.email.isVerified
+                    }
                   >
                     {validation.email.isVerified ? (
-                      <AccessibleEmoji emoji="✅" label="Verificado" />
+                      <AccessibleEmoji emoji='✅' label='Verificado' />
                     ) : (
-                      <AccessibleEmoji emoji="🔍" label="Verificar" />
+                      <AccessibleEmoji emoji='🔍' label='Verificar' />
                     )}
                   </UnifiedButton>
                 </OptimizedValidationContainer>
                 {validation.email.isVerified && (
                   <OptimizedSuccessMessage>
-                    <AccessibleEmoji emoji="✅" label="Verificado" /> Email verificado
+                    <AccessibleEmoji emoji='✅' label='Verificado' /> Email
+                    verificado
                   </OptimizedSuccessMessage>
                 )}
-                {errors.email && <OptimizedErrorMessage>{errors.email}</OptimizedErrorMessage>}
+                {errors.email && (
+                  <OptimizedErrorMessage>{errors.email}</OptimizedErrorMessage>
+                )}
               </FormGroup>
 
               <FormGroup>
-                <OptimizedLabel htmlFor="telefone">Telefone *</OptimizedLabel>
+                <OptimizedLabel htmlFor='telefone'>Telefone *</OptimizedLabel>
                 <OptimizedValidationContainer>
                   <OptimizedInputStyled
-                    id="telefone"
-                    type="text"
+                    id='telefone'
+                    type='text'
                     value={formData.telefone}
-                    onChange={(e) => handleInputChange('telefone', e.target.value)}
+                    onChange={e =>
+                      handleInputChange('telefone', e.target.value)
+                    }
                     $hasError={!!errors.telefone}
-                    placeholder="(00) 00000-0000"
+                    placeholder='(00) 00000-0000'
                     style={{ flex: 1 }}
                   />
                   <UnifiedButton
-                    variant="secondary"
-                    size="sm"
+                    $variant='secondary'
+                    $size='sm'
                     onClick={() => handleValidation('telefone')}
-                    disabled={!formData.telefone.trim() || validation.telefone.isVerified}
+                    $disabled={
+                      !formData.telefone.trim() ||
+                      validation.telefone.isVerified
+                    }
                   >
                     {validation.telefone.isVerified ? (
-                      <AccessibleEmoji emoji="✅" label="Verificado" />
+                      <AccessibleEmoji emoji='✅' label='Verificado' />
                     ) : (
-                      <AccessibleEmoji emoji="🔍" label="Verificar" />
+                      <AccessibleEmoji emoji='🔍' label='Verificar' />
                     )}
                   </UnifiedButton>
                 </OptimizedValidationContainer>
                 {validation.telefone.isVerified && (
                   <OptimizedSuccessMessage>
-                    <AccessibleEmoji emoji="✅" label="Verificado" /> Telefone verificado
+                    <AccessibleEmoji emoji='✅' label='Verificado' /> Telefone
+                    verificado
                   </OptimizedSuccessMessage>
                 )}
-                {errors.telefone && <OptimizedErrorMessage>{errors.telefone}</OptimizedErrorMessage>}
+                {errors.telefone && (
+                  <OptimizedErrorMessage>
+                    {errors.telefone}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
             </OptimizedFormRow>
           </OptimizedFormSection>
 
           <OptimizedFormSection>
-            <OptimizedSectionTitle $theme={theme} $size="md">
-              <AccessibleEmoji emoji="💼" label="Trabalho" /> Informações Profissionais
+            <OptimizedSectionTitle $theme={theme} $size='md'>
+              <AccessibleEmoji emoji='💼' label='Trabalho' /> Informações
+              Profissionais
             </OptimizedSectionTitle>
-            
+
             <OptimizedFormRow>
               <FormGroup>
-                <OptimizedLabel htmlFor="cargo">Cargo *</OptimizedLabel>
+                <OptimizedLabel htmlFor='cargo'>Cargo *</OptimizedLabel>
                 <OptimizedInputStyled
-                  id="cargo"
-                  type="text"
+                  id='cargo'
+                  type='text'
                   value={formData.cargo}
-                  onChange={(e) => handleInputChange('cargo', e.target.value)}
+                  onChange={e => handleInputChange('cargo', e.target.value)}
                   $hasError={!!errors.cargo}
-                  placeholder="Digite o cargo"
+                  placeholder='Digite o cargo'
                 />
-                {errors.cargo && <OptimizedErrorMessage>{errors.cargo}</OptimizedErrorMessage>}
+                {errors.cargo && (
+                  <OptimizedErrorMessage>{errors.cargo}</OptimizedErrorMessage>
+                )}
               </FormGroup>
 
               <FormGroup>
-                <OptimizedLabel htmlFor="salario">Salário *</OptimizedLabel>
+                <OptimizedLabel htmlFor='salario'>Salário *</OptimizedLabel>
                 <OptimizedInputStyled
-                  id="salario"
-                  type="text"
+                  id='salario'
+                  type='text'
                   value={formData.salario}
-                  onChange={(e) => handleInputChange('salario', e.target.value)}
+                  onChange={e => handleInputChange('salario', e.target.value)}
                   $hasError={!!errors.salario}
-                  placeholder="R$ 0,00"
+                  placeholder='R$ 0,00'
                 />
-                {errors.salario && <OptimizedErrorMessage>{errors.salario}</OptimizedErrorMessage>}
+                {errors.salario && (
+                  <OptimizedErrorMessage>
+                    {errors.salario}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
             </OptimizedFormRow>
 
             <OptimizedFormRow>
               <FormGroup>
-                <OptimizedLabel htmlFor="dataAdmissao">Data de Admissão *</OptimizedLabel>
+                <OptimizedLabel htmlFor='dataAdmissao'>
+                  Data de Admissão *
+                </OptimizedLabel>
                 <OptimizedInputStyled
-                  id="dataAdmissao"
-                  type="date"
+                  id='dataAdmissao'
+                  type='date'
                   value={formData.dataAdmissao}
-                  onChange={(e) => handleInputChange('dataAdmissao', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('dataAdmissao', e.target.value)
+                  }
                   $hasError={!!errors.dataAdmissao}
                 />
-                {errors.dataAdmissao && <OptimizedErrorMessage>{errors.dataAdmissao}</OptimizedErrorMessage>}
+                {errors.dataAdmissao && (
+                  <OptimizedErrorMessage>
+                    {errors.dataAdmissao}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
             </OptimizedFormRow>
           </OptimizedFormSection>
 
           <OptimizedFormSection>
-            <OptimizedSectionTitle $theme={theme} $size="md">
-              <AccessibleEmoji emoji="🏠" label="Casa" /> Endereço
+            <OptimizedSectionTitle $theme={theme} $size='md'>
+              <AccessibleEmoji emoji='🏠' label='Casa' /> Endereço
             </OptimizedSectionTitle>
-            
+
             <OptimizedFormRow>
               <FormGroup>
-                <OptimizedLabel htmlFor="logradouro">Logradouro *</OptimizedLabel>
+                <OptimizedLabel htmlFor='logradouro'>
+                  Logradouro *
+                </OptimizedLabel>
                 <OptimizedInputStyled
-                  id="logradouro"
-                  type="text"
+                  id='logradouro'
+                  type='text'
                   value={formData.endereco.logradouro}
-                  onChange={(e) => handleInputChange('endereco.logradouro', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('endereco.logradouro', e.target.value)
+                  }
                   $hasError={!!errors['endereco.logradouro']}
-                  placeholder="Rua, Avenida, etc."
+                  placeholder='Rua, Avenida, etc.'
                 />
-                {errors['endereco.logradouro'] && <OptimizedErrorMessage>{errors['endereco.logradouro']}</OptimizedErrorMessage>}
+                {errors['endereco.logradouro'] && (
+                  <OptimizedErrorMessage>
+                    {errors['endereco.logradouro']}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
 
               <FormGroup>
-                <OptimizedLabel htmlFor="numero">Número *</OptimizedLabel>
+                <OptimizedLabel htmlFor='numero'>Número *</OptimizedLabel>
                 <OptimizedInputStyled
-                  id="numero"
-                  type="text"
+                  id='numero'
+                  type='text'
                   value={formData.endereco.numero}
-                  onChange={(e) => handleInputChange('endereco.numero', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('endereco.numero', e.target.value)
+                  }
                   $hasError={!!errors['endereco.numero']}
-                  placeholder="123"
+                  placeholder='123'
                 />
-                {errors['endereco.numero'] && <OptimizedErrorMessage>{errors['endereco.numero']}</OptimizedErrorMessage>}
+                {errors['endereco.numero'] && (
+                  <OptimizedErrorMessage>
+                    {errors['endereco.numero']}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
             </OptimizedFormRow>
 
             <OptimizedFormRow>
               <FormGroup>
-                <OptimizedLabel htmlFor="complemento">Complemento</OptimizedLabel>
+                <OptimizedLabel htmlFor='complemento'>
+                  Complemento
+                </OptimizedLabel>
                 <OptimizedInputStyled
-                  id="complemento"
-                  type="text"
+                  id='complemento'
+                  type='text'
                   value={formData.endereco.complemento}
-                  onChange={(e) => handleInputChange('endereco.complemento', e.target.value)}
-                  placeholder="Apartamento, bloco, etc."
+                  onChange={e =>
+                    handleInputChange('endereco.complemento', e.target.value)
+                  }
+                  placeholder='Apartamento, bloco, etc.'
                 />
               </FormGroup>
 
               <FormGroup>
-                <OptimizedLabel htmlFor="bairro">Bairro *</OptimizedLabel>
+                <OptimizedLabel htmlFor='bairro'>Bairro *</OptimizedLabel>
                 <OptimizedInputStyled
-                  id="bairro"
-                  type="text"
+                  id='bairro'
+                  type='text'
                   value={formData.endereco.bairro}
-                  onChange={(e) => handleInputChange('endereco.bairro', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('endereco.bairro', e.target.value)
+                  }
                   $hasError={!!errors['endereco.bairro']}
-                  placeholder="Digite o bairro"
+                  placeholder='Digite o bairro'
                 />
-                {errors['endereco.bairro'] && <OptimizedErrorMessage>{errors['endereco.bairro']}</OptimizedErrorMessage>}
+                {errors['endereco.bairro'] && (
+                  <OptimizedErrorMessage>
+                    {errors['endereco.bairro']}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
             </OptimizedFormRow>
 
             <OptimizedFormRow>
               <FormGroup>
-                <OptimizedLabel htmlFor="cidade">Cidade *</OptimizedLabel>
+                <OptimizedLabel htmlFor='cidade'>Cidade *</OptimizedLabel>
                 <OptimizedInputStyled
-                  id="cidade"
-                  type="text"
+                  id='cidade'
+                  type='text'
                   value={formData.endereco.cidade}
-                  onChange={(e) => handleInputChange('endereco.cidade', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('endereco.cidade', e.target.value)
+                  }
                   $hasError={!!errors['endereco.cidade']}
-                  placeholder="Digite a cidade"
+                  placeholder='Digite a cidade'
                 />
-                {errors['endereco.cidade'] && <OptimizedErrorMessage>{errors['endereco.cidade']}</OptimizedErrorMessage>}
+                {errors['endereco.cidade'] && (
+                  <OptimizedErrorMessage>
+                    {errors['endereco.cidade']}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
 
               <FormGroup>
-                <OptimizedLabel htmlFor="uf">UF *</OptimizedLabel>
+                <OptimizedLabel htmlFor='uf'>UF *</OptimizedLabel>
                 <OptimizedSelectStyled
-                  id="uf"
+                  id='uf'
                   value={formData.endereco.uf}
-                  onChange={(e) => handleInputChange('endereco.uf', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('endereco.uf', e.target.value)
+                  }
                   $hasError={!!errors['endereco.uf']}
                   $theme={theme}
-                  title="Selecione o estado"
-                  aria-label="Selecionar estado"
+                  title='Selecione o estado'
+                  aria-label='Selecionar estado'
                 >
-                  <option value="">Selecione</option>
-                  <option value="AC">AC</option>
-                  <option value="AL">AL</option>
-                  <option value="AP">AP</option>
-                  <option value="AM">AM</option>
-                  <option value="BA">BA</option>
-                  <option value="CE">CE</option>
-                  <option value="DF">DF</option>
-                  <option value="ES">ES</option>
-                  <option value="GO">GO</option>
-                  <option value="MA">MA</option>
-                  <option value="MT">MT</option>
-                  <option value="MS">MS</option>
-                  <option value="MG">MG</option>
-                  <option value="PA">PA</option>
-                  <option value="PB">PB</option>
-                  <option value="PR">PR</option>
-                  <option value="PE">PE</option>
-                  <option value="PI">PI</option>
-                  <option value="RJ">RJ</option>
-                  <option value="RN">RN</option>
-                  <option value="RS">RS</option>
-                  <option value="RO">RO</option>
-                  <option value="RR">RR</option>
-                  <option value="SC">SC</option>
-                  <option value="SP">SP</option>
-                  <option value="SE">SE</option>
-                  <option value="TO">TO</option>
+                  <option value=''>Selecione</option>
+                  <option value='AC'>AC</option>
+                  <option value='AL'>AL</option>
+                  <option value='AP'>AP</option>
+                  <option value='AM'>AM</option>
+                  <option value='BA'>BA</option>
+                  <option value='CE'>CE</option>
+                  <option value='DF'>DF</option>
+                  <option value='ES'>ES</option>
+                  <option value='GO'>GO</option>
+                  <option value='MA'>MA</option>
+                  <option value='MT'>MT</option>
+                  <option value='MS'>MS</option>
+                  <option value='MG'>MG</option>
+                  <option value='PA'>PA</option>
+                  <option value='PB'>PB</option>
+                  <option value='PR'>PR</option>
+                  <option value='PE'>PE</option>
+                  <option value='PI'>PI</option>
+                  <option value='RJ'>RJ</option>
+                  <option value='RN'>RN</option>
+                  <option value='RS'>RS</option>
+                  <option value='RO'>RO</option>
+                  <option value='RR'>RR</option>
+                  <option value='SC'>SC</option>
+                  <option value='SP'>SP</option>
+                  <option value='SE'>SE</option>
+                  <option value='TO'>TO</option>
                 </OptimizedSelectStyled>
-                {errors['endereco.uf'] && <OptimizedErrorMessage>{errors['endereco.uf']}</OptimizedErrorMessage>}
+                {errors['endereco.uf'] && (
+                  <OptimizedErrorMessage>
+                    {errors['endereco.uf']}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
             </OptimizedFormRow>
 
             <OptimizedFormRow>
               <FormGroup>
-                <OptimizedLabel htmlFor="cep">CEP *</OptimizedLabel>
+                <OptimizedLabel htmlFor='cep'>CEP *</OptimizedLabel>
                 <OptimizedInputStyled
-                  id="cep"
-                  type="text"
+                  id='cep'
+                  type='text'
                   value={formData.endereco.cep}
-                  onChange={(e) => handleInputChange('endereco.cep', e.target.value)}
+                  onChange={e =>
+                    handleInputChange('endereco.cep', e.target.value)
+                  }
                   $hasError={!!errors['endereco.cep']}
-                  placeholder="00000-000"
+                  placeholder='00000-000'
                   maxLength={9}
                 />
-                {errors['endereco.cep'] && <OptimizedErrorMessage>{errors['endereco.cep']}</OptimizedErrorMessage>}
+                {errors['endereco.cep'] && (
+                  <OptimizedErrorMessage>
+                    {errors['endereco.cep']}
+                  </OptimizedErrorMessage>
+                )}
               </FormGroup>
             </OptimizedFormRow>
           </OptimizedFormSection>
@@ -752,18 +846,14 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
 
         <ButtonContainer>
           <UnifiedButton
-            variant="secondary"
+            $variant='secondary'
             onClick={handleClose}
-            theme={theme}
+            $theme={theme}
           >
             Cancelar
           </UnifiedButton>
-          <UnifiedButton
-            variant="primary"
-            onClick={handleSave}
-            theme={theme}
-          >
-            <AccessibleEmoji emoji="💾" label="Salvar" /> Salvar Funcionário
+          <UnifiedButton $variant='primary' onClick={handleSave} $theme={theme}>
+            <AccessibleEmoji emoji='💾' label='Salvar' /> Salvar Funcionário
           </UnifiedButton>
         </ButtonContainer>
       </UnifiedModal>

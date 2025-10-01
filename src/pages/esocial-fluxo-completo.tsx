@@ -1,5 +1,8 @@
 import { GetServerSideProps } from 'next';
 import { useState } from 'react';
+import { Label, Select, Input } from '../components/FormComponents';
+import { UnifiedButton } from '../components/UnifiedButton';
+import { useTheme } from '../hooks/useTheme';
 
 interface FluxoStep {
   id: string;
@@ -17,6 +20,7 @@ interface ESocialFluxoProps {
 export default function ESocialFluxoCompleto({
   initialData,
 }: ESocialFluxoProps) {
+  const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [cpf, setCpf] = useState('59876913700');
   const [ambiente, setAmbiente] = useState<'homologacao' | 'producao'>(
@@ -233,50 +237,42 @@ export default function ESocialFluxoCompleto({
           <h2 className='text-2xl font-semibold mb-4'>Configuração</h2>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             <div>
-              <label
-                htmlFor='cpf-empregador-fluxo'
-                className='block text-sm font-medium text-gray-700 mb-2'
-              >
-                CPF do Empregador
-              </label>
-              <input
+              <Label htmlFor='cpf-empregador-fluxo'>CPF do Empregador</Label>
+              <Input
                 id='cpf-empregador-fluxo'
                 type='text'
                 value={cpf}
                 onChange={e => setCpf(e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                $theme={theme}
                 placeholder='59876913700'
               />
             </div>
             <div>
-              <label
-                htmlFor='ambiente-fluxo'
-                className='block text-sm font-medium text-gray-700 mb-2'
-              >
-                Ambiente
-              </label>
-              <select
+              <Label htmlFor='ambiente-fluxo'>Ambiente</Label>
+              <Select
                 id='ambiente-fluxo'
                 value={ambiente}
                 onChange={e =>
                   setAmbiente(e.target.value as 'homologacao' | 'producao')
                 }
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                $theme={theme}
                 aria-label='Selecionar ambiente do eSocial'
                 title='Selecionar ambiente do eSocial'
               >
                 <option value='homologacao'>Homologação</option>
                 <option value='producao'>Produção</option>
-              </select>
+              </Select>
             </div>
             <div className='flex items-end'>
-              <button
+              <UnifiedButton
                 onClick={executarFluxoCompleto}
-                disabled={loading}
-                className='w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                $disabled={loading}
+                $variant='primary'
+                $size='lg'
+                $fullWidth
               >
                 {loading ? '⏳ Executando...' : '🚀 Executar Fluxo Completo'}
-              </button>
+              </UnifiedButton>
             </div>
           </div>
         </div>
@@ -300,15 +296,16 @@ export default function ESocialFluxoCompleto({
                   </div>
                 </div>
                 <div className='flex space-x-2'>
-                  <button
+                  <UnifiedButton
                     onClick={() => executarPasso(passo.id)}
-                    disabled={loading || passo.status === 'em-andamento'}
-                    className='px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                    $disabled={loading || passo.status === 'em-andamento'}
+                    $variant='secondary'
+                    $size='medium'
                   >
                     {passo.status === 'em-andamento'
                       ? '⏳ Executando...'
                       : '▶️ Executar'}
-                  </button>
+                  </UnifiedButton>
                 </div>
               </div>
 

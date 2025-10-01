@@ -5,7 +5,6 @@ const StyledComponent1 = styled.div`
   cursor: onClick ? pointer : default
 `;
 
-
 const fadeIn = keyframes`
   from {
     opacity: 0;

@@ -1,8 +1,11 @@
 /**
  * 📋 Constantes Centralizadas - DOM v2.2.0
- * 
+ *
  * Este arquivo centraliza todas as constantes do sistema.
  */
+
+// Importar dados centralizados
+import { MOCK_EMPREGADOS, MOCK_EVENTOS_ESOCIAL } from '../data/centralized';
 
 // 🔐 Certificados
 export const CERTIFICATE_CONSTANTS = {
@@ -19,14 +22,16 @@ export const ESOCIAL_CONSTANTS = {
   BASE_URL: 'https://webservices.producaorestrita.esocial.gov.br',
   ENDPOINTS: {
     CONSULTA_CADASTRO: '/consultacadastro/ConsultaCadastro.svc',
-    ENVIAR_LOTE: '/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc',
+    ENVIAR_LOTE:
+      '/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc',
     CONSULTAR_LOTE: '/consultaloteeventos/ConsultaLoteEventos.svc',
     STATUS_EVENTOS: '/consstatuseventos/ConsStatusEventos.svc',
     RECEBIMENTO: '/consrecibo/ConsRecebimentoEventos.svc',
   },
   WSDL: {
     CONSULTA_CADASTRO: '/consultacadastro/ConsultaCadastro.svc?wsdl',
-    ENVIAR_LOTE: '/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.wsdl',
+    ENVIAR_LOTE:
+      '/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.wsdl',
     CONSULTAR_LOTE: '/consultaloteeventos/ConsultaLoteEventos.svc?wsdl',
     STATUS_EVENTOS: '/consstatuseventos/ConsStatusEventos.svc?wsdl',
     RECEBIMENTO: '/consrecibo/ConsRecebimentoEventos.svc?wsdl',
@@ -38,25 +43,35 @@ export const ESOCIAL_DOMESTICO_CONSTANTS = {
   PRODUCAO: {
     ENVIO: {
       WSDL: 'https://webservices.envio.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc?wsdl',
-      ENDPOINT: 'https://webservices.envio.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc',
+      ENDPOINT:
+        'https://webservices.envio.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc',
     },
     CONSULTA: {
-      LOTE_EVENTOS: 'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultarloteeventos/WsConsultarLoteEventos.svc',
-      QUALIFICACAO_CADASTRAL: 'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultarqualificacaocadastral/WsConsultarQualificacaoCadastral.svc',
-      EVENTOS: 'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultareventos/WsConsultarEventos.svc',
-      IDENTIFICADOR: 'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultaridentificadoreventos/WsConsultarIdentificadorEventos.svc',
+      LOTE_EVENTOS:
+        'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultarloteeventos/WsConsultarLoteEventos.svc',
+      QUALIFICACAO_CADASTRAL:
+        'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultarqualificacaocadastral/WsConsultarQualificacaoCadastral.svc',
+      EVENTOS:
+        'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultareventos/WsConsultarEventos.svc',
+      IDENTIFICADOR:
+        'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultaridentificadoreventos/WsConsultarIdentificadorEventos.svc',
     },
   },
   HOMOLOGACAO: {
     ENVIO: {
       WSDL: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc?wsdl',
-      ENDPOINT: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc',
+      ENDPOINT:
+        'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc',
     },
     CONSULTA: {
-      LOTE_EVENTOS: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultarloteeventos/WsConsultarLoteEventos.svc',
-      QUALIFICACAO_CADASTRAL: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultarqualificacaocadastral/WsConsultarQualificacaoCadastral.svc',
-      EVENTOS: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultareventos/WsConsultarEventos.svc',
-      IDENTIFICADOR: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultaridentificadoreventos/WsConsultarIdentificadorEventos.svc',
+      LOTE_EVENTOS:
+        'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultarloteeventos/WsConsultarLoteEventos.svc',
+      QUALIFICACAO_CADASTRAL:
+        'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultarqualificacaocadastral/WsConsultarQualificacaoCadastral.svc',
+      EVENTOS:
+        'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultareventos/WsConsultarEventos.svc',
+      IDENTIFICADOR:
+        'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultaridentificadoreventos/WsConsultarIdentificadorEventos.svc',
     },
   },
 } as const;
@@ -157,7 +172,8 @@ export const TEXT_CONSTANTS = {
   },
   MESSAGES: {
     NO_LISTS_FOUND: 'Nenhuma lista encontrada',
-    CREATE_FIRST_LIST: 'Crie sua primeira lista de compras para começar a organizar suas',
+    CREATE_FIRST_LIST:
+      'Crie sua primeira lista de compras para começar a organizar suas',
     TOTAL_ITEMS: 'Total',
     BOUGHT_ITEMS: 'Comprados',
     PROGRESS: 'Progresso',
@@ -185,47 +201,10 @@ export const LOG_CONSTANTS = {
   },
 } as const;
 
-// 📊 Dados Simulados para eSocial
+// 📊 Dados Simulados para eSocial - Centralizados
 export const ESOCIAL_SIMULATED_DATA = {
-  EMPREGADOS: [
-    {
-      cpf: '12345678901',
-      nome: 'JOÃO SILVA',
-      matricula: '001',
-      cargo: 'DESENVOLVEDOR',
-      dataAdmissao: '2024-01-01',
-      salario: 5000.0,
-      situacao: 'ATIVO',
-      vinculo: 'CLT',
-    },
-    {
-      cpf: '12345678902',
-      nome: 'MARIA SILVA',
-      matricula: '002',
-      cargo: 'ANALISTA',
-      dataAdmissao: '2024-02-01',
-      salario: 4500.0,
-      situacao: 'ATIVO',
-      vinculo: 'CLT',
-    },
-  ],
-  EVENTOS: [
-    {
-      id: '1',
-      tipo: 'S-1000',
-      descricao: 'Informações do Empregador',
-      status: 'processed',
-      dataEnvio: '2024-01-15T10:30:00Z',
-      dataProcessamento: '2024-01-15T11:00:00Z',
-    },
-    {
-      id: '2',
-      tipo: 'S-2200',
-      descricao: 'Cadastramento Inicial do Vínculo',
-      status: 'sent',
-      dataEnvio: '2024-01-16T14:20:00Z',
-    },
-  ],
+  EMPREGADOS: MOCK_EMPREGADOS,
+  EVENTOS: MOCK_EVENTOS_ESOCIAL,
 } as const;
 
 // 🎯 Configurações de Diagnóstico
@@ -233,13 +212,17 @@ export const DIAGNOSTIC_CONSTANTS = {
   ESOCIAL_URLS: {
     HOMOLOGACAO: {
       WSDL: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.wsdl',
-      ENDPOINT: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos',
-      CONSULTA: 'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultarloteeventos/WsConsultarLoteEventos',
+      ENDPOINT:
+        'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos',
+      CONSULTA:
+        'https://webservices.producaorestrita.esocial.gov.br/servicos/empregador/consultarloteeventos/WsConsultarLoteEventos',
     },
     PRODUCAO: {
       WSDL: 'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultarcadastros/WsConsultarCadastros.wsdl',
-      ENDPOINT: 'https://webservices.envio.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc',
-      CONSULTA: 'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultarcadastros/WsConsultarCadastros.svc',
+      ENDPOINT:
+        'https://webservices.envio.esocial.gov.br/servicos/empregador/enviarloteeventos/WsEnviarLoteEventos.svc',
+      CONSULTA:
+        'https://webservices.consulta.esocial.gov.br/servicos/empregador/consultarcadastros/WsConsultarCadastros.svc',
     },
   },
 } as const;

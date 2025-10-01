@@ -46,15 +46,15 @@ const CardContainer = styled.div<{
     const themedStyles = createThemedStyles(props.$theme);
     switch (props.$variant) {
       case 'elevated':
-        return themedStyles.colors?.background || '#ffffff';
+        return themedStyles.background || '#ffffff';
       case 'outlined':
         return 'transparent';
       case 'filled':
-        return themedStyles.colors?.surface || '#f8f9fa';
+        return themedStyles.surface || '#f8f9fa';
       case 'glass':
         return 'rgba(255, 255, 255, 0.1)';
       default:
-        return themedStyles.colors?.background || '#ffffff';
+        return themedStyles.background || '#ffffff';
     }
   }};
   border: ${props => {
@@ -90,11 +90,11 @@ const CardContainer = styled.div<{
   box-shadow: ${props => {
     switch (props.$variant) {
       case 'elevated':
-        return componentShadows.lg;
+        return componentShadows.card;
       case 'glass':
         return '0 8px 32px rgba(0, 0, 0, 0.1)';
       default:
-        return componentShadows.sm;
+        return componentShadows.card;
     }
   }};
   transition: all 0.3s ease;
@@ -125,12 +125,12 @@ const CardContainer = styled.div<{
   }}
 
   /* Interactive styles */
-  ${props.$interactive
+  ${props => props.$interactive
     ? `
     cursor: pointer;
     &:hover {
       transform: translateY(-2px);
-      box-shadow: ${componentShadows.lg};
+      box-shadow: ${componentShadows.cardHover};
     }
     &:active {
       transform: translateY(0);
@@ -139,7 +139,7 @@ const CardContainer = styled.div<{
     : ''}
 
   /* Status animations */
-  ${props.$status === 'success'
+  ${props => props.$status === 'success'
     ? `
     animation: ${fadeIn} 0.6s ease-out, ${pulse} 2s infinite;
   `
@@ -181,7 +181,7 @@ const CardIcon = styled.div<{ $theme?: any; $status?: string }>`
     };
     return (
       statusColors[props.$status as keyof typeof statusColors] ||
-      themedStyles.colors?.primaryLight ||
+      themedStyles.primary ||
       '#e3f2fd'
     );
   }};

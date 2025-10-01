@@ -25,21 +25,26 @@ export const responsiveMixin = css`
  */
 export const sizeMixin = (size: 'sm' | 'md' | 'lg') => css`
   font-size: ${size === 'sm' ? '0.75rem' : size === 'lg' ? '1rem' : '0.85rem'};
-  padding: ${size === 'sm' ? '0.5rem 0.75rem' : size === 'lg' ? '0.875rem 1.25rem' : '0.75rem 1rem'};
+  padding: ${size === 'sm'
+    ? '0.5rem 0.75rem'
+    : size === 'lg'
+      ? '0.875rem 1.25rem'
+      : '0.75rem 1rem'};
 `;
 
 /**
  * Mixin para estados de validação
  */
 export const validationMixin = (hasError: boolean, theme: any) => css`
-  border: 1px solid ${hasError 
-    ? theme?.colors?.error || '#dc3545' 
-    : theme?.colors?.border || '#d1d5db'
-  };
-  
+  border: 1px solid
+    ${hasError
+      ? theme?.colors?.error || '#dc3545'
+      : theme?.colors?.border || '#d1d5db'};
+
   &:focus {
     border-color: ${theme?.colors?.primary || '#29abe2'};
-    box-shadow: 0 0 0 3px ${theme?.colors?.primaryLight || 'rgba(41, 171, 226, 0.1)'};
+    box-shadow: 0 0 0 3px
+      ${theme?.colors?.primaryLight || 'rgba(41, 171, 226, 0.1)'};
   }
 `;
 
@@ -67,7 +72,8 @@ export const focusMixin = (theme: any) => css`
   &:focus {
     outline: none;
     border-color: ${theme?.colors?.primary || '#29abe2'};
-    box-shadow: 0 0 0 3px ${theme?.colors?.primaryLight || 'rgba(41, 171, 226, 0.1)'};
+    box-shadow: 0 0 0 3px
+      ${theme?.colors?.primaryLight || 'rgba(41, 171, 226, 0.1)'};
   }
 `;
 
@@ -89,16 +95,16 @@ export const disabledMixin = (theme: any) => css`
 export const gridMixin = css`
   display: grid;
   gap: 1rem;
-  
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   @media (min-width: 768px) and (max-width: 992px) {
     gap: 1.25rem;
   }
-  
+
   @media (min-width: 992px) {
     gap: 1.5rem;
   }
@@ -107,12 +113,15 @@ export const gridMixin = css`
 /**
  * Mixin para flex container
  */
-export const flexMixin = (direction: 'row' | 'column' = 'row', gap: string = '0.5rem') => css`
+export const flexMixin = (
+  direction: 'row' | 'column' = 'row',
+  gap: string = '0.5rem'
+) => css`
   display: flex;
   flex-direction: ${direction};
   gap: ${gap};
   align-items: center;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 0.5rem;
@@ -122,21 +131,34 @@ export const flexMixin = (direction: 'row' | 'column' = 'row', gap: string = '0.
 /**
  * Mixin para status colors
  */
-export const statusColorMixin = (status: 'success' | 'warning' | 'error' | 'info', theme: any) => css`
-  background: ${status === 'success' ? theme?.colors?.successLight || '#d4edda' :
-               status === 'warning' ? theme?.colors?.warningLight || '#fff3cd' :
-               status === 'error' ? theme?.colors?.errorLight || '#f8d7da' :
-               theme?.colors?.infoLight || '#d1ecf1'};
-               
-  color: ${status === 'success' ? theme?.colors?.success || '#155724' :
-          status === 'warning' ? theme?.colors?.warning || '#856404' :
-          status === 'error' ? theme?.colors?.error || '#721c24' :
-          theme?.colors?.info || '#0c5460'};
-          
-  border: 1px solid ${status === 'success' ? theme?.colors?.success || '#c3e6cb' :
-                    status === 'warning' ? theme?.colors?.warning || '#ffeaa7' :
-                    status === 'error' ? theme?.colors?.error || '#f5c6cb' :
-                    theme?.colors?.info || '#bee5eb'};
+export const statusColorMixin = (
+  status: 'success' | 'warning' | 'error' | 'info',
+  theme: any
+) => css`
+  background: ${status === 'success'
+    ? theme?.colors?.successLight || '#d4edda'
+    : status === 'warning'
+      ? theme?.colors?.warningLight || '#fff3cd'
+      : status === 'error'
+        ? theme?.colors?.errorLight || '#f8d7da'
+        : theme?.colors?.infoLight || '#d1ecf1'};
+
+  color: ${status === 'success'
+    ? theme?.colors?.success || '#155724'
+    : status === 'warning'
+      ? theme?.colors?.warning || '#856404'
+      : status === 'error'
+        ? theme?.colors?.error || '#721c24'
+        : theme?.colors?.info || '#0c5460'};
+
+  border: 1px solid
+    ${status === 'success'
+      ? theme?.colors?.success || '#c3e6cb'
+      : status === 'warning'
+        ? theme?.colors?.warning || '#ffeaa7'
+        : status === 'error'
+          ? theme?.colors?.error || '#f5c6cb'
+          : theme?.colors?.info || '#bee5eb'};
 `;
 
 /**
@@ -145,7 +167,7 @@ export const statusColorMixin = (status: 'success' | 'warning' | 'error' | 'info
 export const touchTargetMixin = css`
   min-height: 44px;
   min-width: 44px;
-  
+
   @media (max-width: 768px) {
     font-size: 16px; /* Prevent zoom on iOS */
   }
@@ -159,8 +181,8 @@ export const accessibilityMixin = css`
     outline: 2px solid #29abe2;
     outline-offset: 2px;
   }
-  
-  &[aria-disabled="true"] {
+
+  &[aria-disabled='true'] {
     opacity: 0.6;
     cursor: not-allowed;
   }
@@ -171,11 +193,11 @@ export const accessibilityMixin = css`
  */
 export const animationMixin = css`
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   &:hover {
     transform: translateY(-1px);
   }
-  
+
   &:active {
     transform: translateY(0);
   }
@@ -185,9 +207,11 @@ export const animationMixin = css`
  * Mixin para sombras
  */
 export const shadowMixin = (level: 'sm' | 'md' | 'lg' = 'md') => css`
-  box-shadow: ${level === 'sm' ? '0 1px 3px rgba(0, 0, 0, 0.1)' :
-               level === 'lg' ? '0 10px 25px rgba(0, 0, 0, 0.15)' :
-               '0 4px 6px rgba(0, 0, 0, 0.1)'};
+  box-shadow: ${level === 'sm'
+    ? '0 1px 3px rgba(0, 0, 0, 0.1)'
+    : level === 'lg'
+      ? '0 10px 25px rgba(0, 0, 0, 0.15)'
+      : '0 4px 6px rgba(0, 0, 0, 0.1)'};
 `;
 
 /**
@@ -200,7 +224,10 @@ export const borderRadiusMixin = (size: 'sm' | 'md' | 'lg' = 'md') => css`
 /**
  * Mixin para espaçamento
  */
-export const spacingMixin = (padding: string = '1rem', margin: string = '0') => css`
+export const spacingMixin = (
+  padding: string = '1rem',
+  margin: string = '0'
+) => css`
   padding: ${padding};
   margin: ${margin};
 `;
@@ -221,17 +248,17 @@ export const customScrollbarMixin = (theme: any) => css`
   &::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   &::-webkit-scrollbar-track {
     background: ${theme?.colors?.surface || '#f1f1f1'};
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: ${theme?.colors?.primary || '#29abe2'};
     border-radius: 4px;
   }
-  
+
   &::-webkit-scrollbar-thumb:hover {
     background: ${theme?.colors?.primaryDark || '#1e8bc3'};
   }

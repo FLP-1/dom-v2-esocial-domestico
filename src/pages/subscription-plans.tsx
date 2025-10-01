@@ -47,6 +47,26 @@ interface Testimonial {
   rating: number;
 }
 
+const SectionTitle = styled.h3`
+  color: #2c3e50;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+`;
+
+const SectionText = styled.p`
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+`;
+
+const SectionSubtitle = styled.h4`
+  color: #2c3e50;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+`;
+
 // Styled Components para substituir estilos inline
 const UnifiedModalSection = styled.div`
   margin-bottom: 1.5rem;
@@ -686,16 +706,16 @@ export default function SubscriptionPlans() {
   };
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+      <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
+      <TopBar $theme={theme}>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -707,7 +727,7 @@ export default function SubscriptionPlans() {
       </TopBar>
 
       <PageHeader
-        theme={theme}
+        $theme={theme}
         title='Planos de Assinatura'
         subtitle='Escolha o plano ideal para transformar sua gestão doméstica'
       />
@@ -718,17 +738,17 @@ export default function SubscriptionPlans() {
           {plans.map(plan => (
             <PlanCard
               key={plan.id}
-              theme={theme}
+              $theme={theme}
               $isPopular={plan.isPopular}
               $isRecommended={plan.isRecommended}
             >
               {plan.isPopular && (
-                <PopularBadge theme={theme}>
+                <PopularBadge $theme={theme}>
                   <AccessibleEmoji emoji='🔥' label='Fogo' /> MAIS POPULAR
                 </PopularBadge>
               )}
               {plan.isRecommended && (
-                <RecommendedBadge theme={theme}>
+                <RecommendedBadge $theme={theme}>
                   <AccessibleEmoji emoji='★' label='Estrela' /> RECOMENDADO
                 </RecommendedBadge>
               )}
@@ -764,8 +784,8 @@ export default function SubscriptionPlans() {
 
               <PlanButton>
                 <UnifiedButton
-                  variant={plan.buttonVariant}
-                  theme={theme}
+                  $variant={plan.buttonVariant}
+                  $theme={theme}
                   onClick={() => handlePlanSelect(plan)}
                 >
                   {plan.buttonText}
@@ -777,7 +797,7 @@ export default function SubscriptionPlans() {
       </PlansSection>
 
       {/* Tabela Comparativa */}
-      <ComparisonSection theme={theme}>
+      <ComparisonSection $theme={theme}>
         <ComparisonTitle>Comparativo de Recursos</ComparisonTitle>
         <ComparisonTable>
           <TableHeader>
@@ -1044,11 +1064,11 @@ export default function SubscriptionPlans() {
       </ComparisonSection>
 
       {/* FAQ */}
-      <FAQSection theme={theme}>
+      <FAQSection $theme={theme}>
         <FAQTitle>Perguntas Frequentes</FAQTitle>
         <FAQGrid>
           {faqs.map(faq => (
-            <FAQItem key={faq.id} theme={theme}>
+            <FAQItem key={faq.id} $theme={theme}>
               <FAQQuestion>{faq.question}</FAQQuestion>
               <FAQAnswer>{faq.answer}</FAQAnswer>
             </FAQItem>
@@ -1057,11 +1077,11 @@ export default function SubscriptionPlans() {
       </FAQSection>
 
       {/* Depoimentos */}
-      <TestimonialsSection theme={theme}>
+      <TestimonialsSection $theme={theme}>
         <TestimonialsTitle>O que nossos clientes dizem</TestimonialsTitle>
         <TestimonialsGrid>
           {testimonials.map(testimonial => (
-            <TestimonialCard key={testimonial.id} theme={theme}>
+            <TestimonialCard key={testimonial.id} $theme={theme}>
               <TestimonialText>
                 &ldquo;{testimonial.text}&rdquo;
               </TestimonialText>
@@ -1084,7 +1104,7 @@ export default function SubscriptionPlans() {
       </TestimonialsSection>
 
       {/* Garantia */}
-      <GuaranteeSection theme={theme}>
+      <GuaranteeSection $theme={theme}>
         <GuaranteeTitle>
           <AccessibleEmoji emoji='🛡' label='Escudo' /> Garantia de Satisfação
         </GuaranteeTitle>
@@ -1095,13 +1115,13 @@ export default function SubscriptionPlans() {
       </GuaranteeSection>
 
       {/* Contato */}
-      <ContactSection theme={theme}>
+      <ContactSection $theme={theme}>
         <ContactTitle>Precisa de ajuda para escolher?</ContactTitle>
         <ContactText>
           Nossa equipe está pronta para ajudar você a encontrar o plano ideal
           para suas necessidades.
         </ContactText>
-        <UnifiedButton variant='secondary' theme={theme}>
+        <UnifiedButton $variant='secondary' $theme={theme}>
           <AccessibleEmoji emoji='📞' label='Contato' /> Falar com Especialista
         </UnifiedButton>
       </ContactSection>
@@ -1119,12 +1139,12 @@ export default function SubscriptionPlans() {
             : 'Confirmar Assinatura'
         }
         maxWidth='500px'
-        theme={theme}
+        $theme={theme}
         footer={
           <>
             <UnifiedButton
-              variant='secondary'
-              theme={theme}
+              $variant='secondary'
+              $theme={theme}
               onClick={() => {
                 setUnifiedModalOpen(false);
                 setSelectedPlan(null);
@@ -1133,8 +1153,8 @@ export default function SubscriptionPlans() {
               Cancelar
             </UnifiedButton>
             <UnifiedButton
-              variant='primary'
-              theme={theme}
+              $variant='primary'
+              $theme={theme}
               onClick={handleSubscribe}
             >
               {selectedPlan?.buttonText || 'Confirmar'}
@@ -1145,8 +1165,8 @@ export default function SubscriptionPlans() {
         {selectedPlan && (
           <div>
             <UnifiedModalSection>
-              <h3 className='section-title'>{selectedPlan.name}</h3>
-              <p className='section-title'>{selectedPlan.description}</p>
+              <SectionTitle>{selectedPlan.name}</SectionTitle>
+              <SectionText>{selectedPlan.description}</SectionText>
               <PriceText>
                 {formatPrice(selectedPlan.monthlyPrice)}
                 {selectedPlan.monthlyPrice > 0 && <PriceUnit>/mês</PriceUnit>}
@@ -1154,7 +1174,7 @@ export default function SubscriptionPlans() {
             </UnifiedModalSection>
 
             <UnifiedModalSection>
-              <h4 className='section-title'>Recursos inclusos:</h4>
+              <SectionSubtitle>Recursos inclusos:</SectionSubtitle>
               <FeaturesList>
                 {selectedPlan.features.map((feature, index) => (
                   <FeatureItem key={index}>{feature}</FeatureItem>

@@ -151,7 +151,7 @@ export class ESocialRealApiService {
    */
   async enviarLote(eventos: ESocialEvent[]): Promise<ESocialResponse> {
     try {
-      // 
+      //
       // Gerar XML do lote
       const loteXml = this.generateLoteXml(eventos);
       // Enviar para o eSocial
@@ -161,7 +161,7 @@ export class ESocialRealApiService {
       );
       // Processar resposta
       const result = this.processLoteResponse(response.data);
-      // 
+      //
       return result;
     } catch (error) {
       // console.error('❌ Erro ao enviar lote:', error);
@@ -177,7 +177,7 @@ export class ESocialRealApiService {
    */
   async consultarLote(protocolo: string): Promise<ESocialResponse> {
     try {
-      // 
+      //
       const response = await this.httpClient.get(
         `${getEndpoint('consultarLote')}?protocolo=${protocolo}`
       );
@@ -196,8 +196,8 @@ export class ESocialRealApiService {
    */
   async consultarDadosEmpregador(): Promise<any> {
     try {
-      // 
-      // 
+      //
+      //
       // Verificar se o certificado está carregado
       if (!this.certificateService.getCertificateInfo()) {
         // console.warn(
@@ -210,7 +210,7 @@ export class ESocialRealApiService {
         const response = await this.httpClient.get(
           `${getEndpoint('consultarEvento')}?tipo=S1000&cpfEmpregador=${this.config.empregadorCpf}`
         );
-        // 
+        //
         return this.processEmpregadorResponse(response.data);
       } catch (networkError: any) {
         if (networkError.code === 'ERR_CERT_AUTHORITY_INVALID') {
@@ -240,7 +240,7 @@ export class ESocialRealApiService {
    */
   async consultarDadosEmpregados(): Promise<any[]> {
     try {
-      // 
+      //
       // Verificar se o certificado está carregado
       if (!this.certificateService.getCertificateInfo()) {
         // console.warn(
@@ -253,7 +253,7 @@ export class ESocialRealApiService {
         const response = await this.httpClient.get(
           `${getEndpoint('consultarEvento')}?tipo=S2200&cpfEmpregador=${this.config.empregadorCpf}`
         );
-        // 
+        //
         return this.processEmpregadosResponse(response.data);
       } catch (networkError: any) {
         if (networkError.code === 'ERR_CERT_AUTHORITY_INVALID') {
@@ -283,7 +283,7 @@ export class ESocialRealApiService {
    */
   async consultarEventosEnviados(): Promise<any[]> {
     try {
-      // 
+      //
       // Verificar se o certificado está carregado
       if (!this.certificateService.getCertificateInfo()) {
         // console.warn(
@@ -296,7 +296,7 @@ export class ESocialRealApiService {
         const response = await this.httpClient.get(
           `${getEndpoint('consultarEvento')}?cpfEmpregador=${this.config.empregadorCpf}`
         );
-        // 
+        //
         return this.processEventosResponse(response.data);
       } catch (networkError: any) {
         if (networkError.code === 'ERR_CERT_AUTHORITY_INVALID') {
@@ -329,7 +329,7 @@ export class ESocialRealApiService {
     idEvento: string
   ): Promise<ESocialResponse> {
     try {
-      // 
+      //
       const response = await this.httpClient.get(
         `${getEndpoint('consultarEvento')}?protocolo=${protocolo}&idEvento=${idEvento}`
       );

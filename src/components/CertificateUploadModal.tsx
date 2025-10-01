@@ -7,7 +7,6 @@ import AccessibleEmoji from './AccessibleEmoji';
 import { UnifiedButton, UnifiedModal } from './unified';
 import { OptimizedErrorMessage } from '../components/shared/optimized-styles';
 
-
 // Animações
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -171,7 +170,7 @@ interface CertificateUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (certificateInfo: CertificateInfo) => void;
-  theme: any;
+  $theme: any;
   esocialConfig?: any;
 }
 
@@ -179,7 +178,7 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  theme,
+  $theme,
   esocialConfig,
 }) => {
   const alertManager = useAlertManager();
@@ -306,35 +305,30 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
     <UnifiedModal
       isOpen={isOpen}
       onClose={handleClose}
-      title={
-        <>
-          <AccessibleEmoji emoji='🔐' label='Criptografia' /> Configurar
-          Certificado Digital
-        </>
-      }
+      title="Configurar Certificado Digital"
       maxWidth='600px'
-      theme={theme}
+      $theme={$theme}
       footer={
         <>
           <UnifiedButton
-            variant='secondary'
-            theme={theme}
+            $variant='secondary'
+            $theme={$theme}
             onClick={handleClose}
-            disabled={isLoading}
+            $disabled={isLoading}
           >
             {certificateInfo ? 'Fechar' : 'Cancelar'}
           </UnifiedButton>
 
           {selectedFile && !certificateInfo && (
             <UnifiedButton
-              variant='primary'
-              theme={theme}
+              $variant='primary'
+              $theme={$theme}
               onClick={handleUpload}
-              disabled={isLoading}
+              $disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <LoadingSpinner $theme={theme} />
+                  <LoadingSpinner $theme={$theme} />
                   Processando...
                 </>
               ) : (
@@ -352,13 +346,13 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
         <>
           <UploadArea
             $isDragOver={isDragOver}
-            $theme={theme}
+            $theme={$theme}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
           >
-            <UploadIcon $theme={theme}>
+            <UploadIcon $theme={$theme}>
               <AccessibleEmoji emoji='📁' label='Pasta' />
             </UploadIcon>
             <UploadText>
@@ -379,7 +373,7 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
           </UploadArea>
 
           {selectedFile && (
-            <FileInfo $theme={theme}>
+            <FileInfo $theme={$theme}>
               <FileName>
                 <AccessibleEmoji emoji='📄' label='Documento' />{' '}
                 {selectedFile.name}
@@ -391,11 +385,11 @@ const CertificateUploadModal: React.FC<CertificateUploadModalProps> = ({
           {error && <OptimizedErrorMessage>{error}</OptimizedErrorMessage>}
         </>
       ) : (
-        <CertificateInfo $theme={theme}>
-          <InfoTitle $theme={theme}>
+        <CertificateInfo $theme={$theme}>
+          <InfoTitle $theme={$theme}>
             <AccessibleEmoji emoji='✅' label='Sucesso' /> Certificado Digital
             Configurado
-            <StatusBadge $isValid={certificateInfo.isValid} $theme={theme}>
+            <StatusBadge $isValid={certificateInfo.isValid} $theme={$theme}>
               {certificateInfo.isValid ? 'Válido' : 'Inválido'}
             </StatusBadge>
           </InfoTitle>

@@ -2,7 +2,7 @@
 import styled from 'styled-components';
 
 interface FilterSectionProps {
-  theme: any;
+  $theme: any;
   title: string;
   children: React.ReactNode;
 }
@@ -32,12 +32,12 @@ const FilterRow = styled.div`
 `;
 
 export default function FilterSection({
-  theme,
+  $theme,
   title,
   children,
 }: FilterSectionProps) {
   return (
-    <FilterContainer $theme={theme}>
+    <FilterContainer $theme={$theme}>
       <FilterTitle>{title}</FilterTitle>
       <FilterRow>{children}</FilterRow>
     </FilterContainer>

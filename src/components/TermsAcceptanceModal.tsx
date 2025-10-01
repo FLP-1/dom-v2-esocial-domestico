@@ -3,8 +3,10 @@ import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from './AccessibleEmoji';
 import { UnifiedButton, UnifiedModal } from './unified';
-import { OptimizedCheckboxContainer, OptimizedCheckboxLabel } from '../components/shared/optimized-styles';
-
+import {
+  OptimizedCheckboxContainer,
+  OptimizedCheckboxLabel,
+} from '../components/shared/optimized-styles';
 
 // Animações
 const fadeIn = keyframes`
@@ -483,11 +485,11 @@ const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
   const canAccept = termsAccepted && privacyAccepted && hasScrolledToBottom;
 
   return (
-    <UnifiedModal 
-      isOpen={isOpen} 
-      onClose={() => {}} 
-      variant="fullscreen"
-      maxWidth="1000px"
+    <UnifiedModal
+      isOpen={isOpen}
+      onClose={() => {}}
+      variant='fullscreen'
+      maxWidth='1000px'
       showCloseButton={false}
     >
       <TermsContent>
@@ -562,7 +564,7 @@ const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                   }
                 }}
               />
-              <OptimizedCheckboxLabel htmlFor='terms-checkbox'>
+              <label htmlFor='terms-checkbox'>
                 Eu li atentamente e aceito os{' '}
                 <strong>
                   {activeTab === 'terms'
@@ -571,8 +573,8 @@ const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
                 </strong>{' '}
                 do Sistema DOM, incluindo todas as condições e obrigações
                 descritas no documento.
-              </OptimizedCheckboxLabel>
-            </CheckboxContainer>
+              </label>
+            </OptimizedCheckboxContainer>
 
             {!hasScrolledToBottom && (
               <RequiredText>
@@ -584,15 +586,15 @@ const TermsAcceptanceModal: React.FC<TermsAcceptanceModalProps> = ({
         </TermsBody>
 
         <TermsFooter>
-          <DeclineButton variant='danger' theme={theme} onClick={handleDecline}>
+          <DeclineButton $variant='danger' $theme={theme} onClick={handleDecline}>
             <AccessibleEmoji emoji='❌' label='Erro' /> Recusar
           </DeclineButton>
           <AcceptButton
-            variant='success'
+            $variant='success'
             $theme={theme}
             $accepted={canAccept}
             onClick={handleAccept}
-            disabled={!canAccept}
+            $disabled={!canAccept}
           >
             {canAccept ? (
               <>

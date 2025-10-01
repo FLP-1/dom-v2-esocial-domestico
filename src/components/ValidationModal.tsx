@@ -62,7 +62,7 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({
     }
 
     return () => clearTimeout(timer);
-  }, [state.timeLeft]);
+  }, [state.timeLeft, state.canResend]);
 
   // Enviar código de validação
   const enviarCodigo = async () => {
@@ -388,22 +388,18 @@ export const ValidationModal: React.FC<ValidationModalProps> = ({
   };
 
   return (
-    <UnifiedModal 
-      isOpen={isOpen} 
-      onClose={onClose} 
-      variant="compact"
-      maxWidth="500px"
+    <UnifiedModal
+      isOpen={isOpen}
+      onClose={onClose}
+      variant='compact'
+      maxWidth='500px'
       title={titulo || `Validar ${tipo === 'email' ? 'Email' : 'Telefone'}`}
     >
       {renderContent()}
 
       {state.step !== 'success' && (
         <FooterContainer>
-          <UnifiedButton
-            variant="secondary"
-            onClick={onClose}
-            fullWidth
-          >
+          <UnifiedButton $variant='secondary' onClick={onClose} $fullWidth>
             Cancelar
           </UnifiedButton>
         </FooterContainer>

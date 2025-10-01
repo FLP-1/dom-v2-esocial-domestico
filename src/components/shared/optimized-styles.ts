@@ -1,24 +1,24 @@
 import styled from 'styled-components';
-import { 
-  BaseContainer, 
-  BaseInput, 
-  BaseSelect, 
-  BaseButton, 
-  BaseLabel, 
-  BaseErrorMessage, 
-  BaseSuccessMessage, 
-  BaseFlexContainer, 
-  BaseGridContainer, 
-  BaseCard 
+import {
+  BaseContainer,
+  BaseInput,
+  BaseSelect,
+  BaseButton,
+  BaseLabel,
+  BaseErrorMessage,
+  BaseSuccessMessage,
+  BaseFlexContainer,
+  BaseGridContainer,
+  BaseCard,
 } from './base-components';
-import { 
-  themedMixin, 
-  responsiveMixin, 
-  sizeMixin, 
-  validationMixin, 
-  transitionMixin, 
-  hoverMixin, 
-  focusMixin, 
+import {
+  themedMixin,
+  responsiveMixin,
+  sizeMixin,
+  validationMixin,
+  transitionMixin,
+  hoverMixin,
+  focusMixin,
   disabledMixin,
   gridMixin,
   flexMixin,
@@ -28,9 +28,17 @@ import {
   animationMixin,
   shadowMixin,
   borderRadiusMixin,
-  spacingMixin
+  spacingMixin,
 } from './mixins';
-import { tokens, getColor, getSpacing, getFontSize, getShadow, getTransition, getBorderRadius } from './tokens';
+import {
+  tokens,
+  getColor,
+  getSpacing,
+  getFontSize,
+  getShadow,
+  getTransition,
+  getBorderRadius,
+} from './tokens';
 
 // 🚀 Componentes otimizados que substituem os atuais
 
@@ -39,17 +47,17 @@ export const OptimizedFormRow = styled(BaseGridContainer)`
   grid-template-columns: 1fr 1fr;
   gap: ${getSpacing('md')};
   margin-bottom: ${getSpacing('md')};
-  
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: ${getSpacing('lg')};
     margin-bottom: ${getSpacing('lg')};
   }
-  
+
   @media (min-width: 768px) and (max-width: 992px) {
     gap: ${getSpacing('lg')};
   }
-  
+
   @media (min-width: 992px) {
     gap: ${getSpacing('xl')};
   }
@@ -59,8 +67,10 @@ export const OptimizedFormRow = styled(BaseGridContainer)`
 export const OptimizedFormSection = styled(BaseCard)`
   margin-bottom: ${getSpacing('lg')};
   padding: ${getSpacing('md')};
-  background: ${props => getColor('surface.secondary', props.$theme?.colors?.surface)};
-  border: 1px solid ${props => getColor('border.primary', props.$theme?.colors?.border)};
+  background: ${props =>
+    getColor('surface.secondary', props.$theme?.colors?.surface)};
+  border: 1px solid
+    ${props => getColor('border.primary', props.$theme?.colors?.border)};
   ${themedMixin}
 `;
 
@@ -69,7 +79,7 @@ export const OptimizedSectionTitle = styled.h3<{
   $theme?: any;
   $size?: 'sm' | 'md' | 'lg';
 }>`
-  ${sizeMixin(props => props.$size || 'md')}
+  ${props => sizeMixin(props.$size || 'md')}
   font-weight: ${tokens.fontWeight.semibold};
   color: ${props => getColor('text.primary', props.$theme?.colors?.text)};
   margin: 0 0 ${getSpacing('md')} 0;
@@ -77,7 +87,8 @@ export const OptimizedSectionTitle = styled.h3<{
   align-items: center;
   gap: ${getSpacing('sm')};
   padding-bottom: ${getSpacing('sm')};
-  border-bottom: 1px solid ${props => getColor('border.primary', props.$theme?.colors?.border)};
+  border-bottom: 1px solid
+    ${props => getColor('border.primary', props.$theme?.colors?.border)};
   ${themedMixin}
 `;
 
@@ -93,10 +104,12 @@ export const OptimizedLabel = styled(BaseLabel)`
 // InputStyled otimizado
 export const OptimizedInputStyled = styled(BaseInput)`
   width: 100%;
-  ${sizeMixin(props => props.$size || 'md')}
-  border: 1px solid ${props => getColor('border.primary', props.$theme?.colors?.border)};
+  ${props => sizeMixin(props.$size || 'md')}
+  border: 1px solid ${props =>
+    getColor('border.primary', props.$theme?.colors?.border)};
   ${props => borderRadiusMixin('md')}
-  background: ${props => getColor('surface.primary', props.$theme?.colors?.background)};
+  background: ${props =>
+    getColor('surface.primary', props.$theme?.colors?.background)};
   color: ${props => getColor('text.primary', props.$theme?.colors?.text)};
   ${props => validationMixin(props.$hasError || false, props.$theme)}
   ${transitionMixin}
@@ -106,17 +119,22 @@ export const OptimizedInputStyled = styled(BaseInput)`
   ${accessibilityMixin}
   
   &::placeholder {
-    color: ${props => getColor('text.secondary', props.$theme?.colors?.placeholder)};
+    color: ${props =>
+      getColor('text.secondary', props.$theme?.colors?.placeholder)};
   }
 `;
 
 // SelectStyled otimizado
-export const OptimizedSelectStyled = styled(BaseSelect)`
+export const OptimizedSelectStyled = styled(BaseSelect).attrs<{ title?: string }>((props) => ({
+  title: props.title || 'Selecionar opção',
+}))`
   width: 100%;
-  ${sizeMixin(props => props.$size || 'md')}
-  border: 1px solid ${props => getColor('border.primary', props.$theme?.colors?.border)};
+  ${props => sizeMixin(props.$size || 'md')}
+  border: 1px solid ${props =>
+    getColor('border.primary', props.$theme?.colors?.border)};
   ${props => borderRadiusMixin('md')}
-  background: ${props => getColor('surface.primary', props.$theme?.colors?.background)};
+  background: ${props =>
+    getColor('surface.primary', props.$theme?.colors?.background)};
   color: ${props => getColor('text.primary', props.$theme?.colors?.text)};
   cursor: pointer;
   ${props => validationMixin(props.$hasError || false, props.$theme)}
@@ -143,8 +161,9 @@ export const OptimizedHelpText = styled.div<{
   $theme?: any;
   $size?: 'sm' | 'md' | 'lg';
 }>`
-  ${sizeMixin(props => props.$size || 'sm')}
-  color: ${props => getColor('text.secondary', props.$theme?.colors?.textSecondary)};
+  ${props => sizeMixin(props.$size || 'sm')}
+  color: ${props =>
+    getColor('text.secondary', props.$theme?.colors?.textSecondary)};
   margin-top: ${getSpacing('sm')};
   line-height: 1.4;
   ${themedMixin}
@@ -157,18 +176,21 @@ export const OptimizedFlexContainer = styled(BaseFlexContainer)`
   align-items: ${props => props.$align || 'center'};
   justify-content: ${props => props.$justify || 'flex-start'};
   flex-direction: ${props => props.$direction || 'row'};
-  flex-wrap: ${props => props.$wrap ? 'wrap' : 'nowrap'};
+  flex-wrap: ${props => (props.$wrap ? 'wrap' : 'nowrap')};
   ${responsiveMixin}
 `;
 
 // CheckboxContainer otimizado
-export const OptimizedCheckboxContainer = styled(BaseGridContainer)`
-  grid-template-columns: ${props => props.$columns || 'repeat(auto-fit, minmax(160px, 1fr))'};
+export const OptimizedCheckboxContainer = styled(BaseGridContainer)<{
+  $maxHeight?: string;
+}>`
+  grid-template-columns: ${props =>
+    props.$columns || 'repeat(auto-fit, minmax(160px, 1fr))'};
   gap: ${getSpacing('sm')};
   margin: ${getSpacing('md')} 0;
   max-height: ${props => props.$maxHeight || 'none'};
-  overflow-y: ${props => props.$maxHeight ? 'auto' : 'visible'};
-  
+  overflow-y: ${props => (props.$maxHeight ? 'auto' : 'visible')};
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: ${getSpacing('md')};
@@ -176,20 +198,24 @@ export const OptimizedCheckboxContainer = styled(BaseGridContainer)`
 `;
 
 // CheckboxItem otimizado
-export const OptimizedCheckboxItem = styled.label<{ 
+export const OptimizedCheckboxItem = styled.label<{
   $variant?: 'default' | 'card';
   $theme?: any;
 }>`
   display: flex;
-  align-items: ${props => props.$variant === 'card' ? 'flex-start' : 'center'};
+  align-items: ${props =>
+    props.$variant === 'card' ? 'flex-start' : 'center'};
   gap: ${getSpacing('sm')};
-  padding: ${props => props.$variant === 'card' ? getSpacing('md') : getSpacing('sm')};
+  padding: ${props =>
+    props.$variant === 'card' ? getSpacing('md') : getSpacing('sm')};
   ${props => borderRadiusMixin('md')}
   cursor: pointer;
   ${transitionMixin}
   font-size: ${getFontSize('sm')};
-  
-  ${props => props.$variant === 'card' && `
+
+  ${props =>
+    props.$variant === 'card' &&
+    `
     border: 1px solid ${getColor('border.primary', props.$theme?.colors?.border)};
     background: ${getColor('surface.primary', props.$theme?.colors?.background)};
     
@@ -197,11 +223,11 @@ export const OptimizedCheckboxItem = styled.label<{
       border-color: ${getColor('primary', props.$theme?.colors?.primary)};
     }
   `}
-  
+
   &:hover {
     background: ${props => getColor('hover', props.$theme?.colors?.hover)};
   }
-  
+
   input[type='checkbox'] {
     margin: 0;
     ${props => props.$variant === 'card' && 'margin-top: 0.1rem;'}
@@ -226,10 +252,11 @@ export const OptimizedCheckboxContent = styled.div<{ $theme?: any }>`
 
 // RadioGroup otimizado
 export const OptimizedRadioGroup = styled(BaseGridContainer)`
-  grid-template-columns: ${props => props.$columns || 'repeat(auto-fit, minmax(120px, 1fr))'};
+  grid-template-columns: ${props =>
+    props.$columns || 'repeat(auto-fit, minmax(120px, 1fr))'};
   gap: ${getSpacing('sm')};
   margin: ${getSpacing('md')} 0;
-  
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: ${getSpacing('md')};
@@ -242,15 +269,17 @@ export const OptimizedPeriodGroup = styled(BaseFlexContainer)`
   align-items: center;
   margin: ${getSpacing('md')} 0;
   padding: ${getSpacing('md')};
-  background: ${props => getColor('surface.secondary', props.$theme?.colors?.surface)};
+  background: ${props =>
+    getColor('surface.secondary', props.$theme?.colors?.surface)};
   ${props => borderRadiusMixin('md')}
-  border: 1px solid ${props => getColor('border.primary', props.$theme?.colors?.border)};
-  
+  border: 1px solid ${props =>
+    getColor('border.primary', props.$theme?.colors?.border)};
+
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   ${themedMixin}
 `;
 
@@ -258,19 +287,23 @@ export const OptimizedPeriodGroup = styled(BaseFlexContainer)`
 export const OptimizedValidationContainer = styled(BaseContainer)`
   margin-top: ${getSpacing('md')};
   padding: ${getSpacing('md')};
-  background: ${props => getColor('surface.secondary', props.$theme?.colors?.surface)};
+  background: ${props =>
+    getColor('surface.secondary', props.$theme?.colors?.surface)};
   ${props => borderRadiusMixin('md')}
-  border: 1px solid ${props => getColor('border.primary', props.$theme?.colors?.border)};
+  border: 1px solid ${props =>
+    getColor('border.primary', props.$theme?.colors?.border)};
   ${themedMixin}
 `;
 
 // SuccessMessage otimizado
 export const OptimizedSuccessMessage = styled(BaseSuccessMessage)`
   color: ${props => getColor('success', props.$theme?.colors?.success)};
-  background: ${props => getColor('successLight', props.$theme?.colors?.successLight)};
+  background: ${props =>
+    getColor('successLight', props.$theme?.colors?.successLight)};
   padding: ${getSpacing('md')};
   ${props => borderRadiusMixin('md')}
-  border: 1px solid ${props => getColor('success', props.$theme?.colors?.success)};
+  border: 1px solid ${props =>
+    getColor('success', props.$theme?.colors?.success)};
   font-weight: ${tokens.fontWeight.medium};
   margin-top: ${getSpacing('sm')};
   ${themedMixin}
@@ -285,7 +318,7 @@ export const OptimizedStatusIndicator = styled.span<{
   align-items: center;
   gap: ${getSpacing('sm')};
   padding: ${getSpacing('xs')} ${getSpacing('md')};
-  ${props => borderRadiusMixin('full')}
+  border-radius: 9999px;
   font-size: ${getFontSize('sm')};
   font-weight: ${tokens.fontWeight.medium};
   ${props => statusColorMixin(props.$status || 'info', props.$theme)}
@@ -301,10 +334,14 @@ export const OptimizedCertificateStatus = styled.div<{
   align-items: center;
   gap: ${getSpacing('sm')};
   padding: ${getSpacing('sm')} ${getSpacing('md')};
-  ${props => borderRadiusMixin('md')}
+  border-radius: 0.5rem;
   font-size: ${getFontSize('sm')};
   font-weight: ${tokens.fontWeight.medium};
-  ${props => statusColorMixin(props.$status || 'pending', props.$theme)}
+  ${props => {
+    const statusMap = { valid: 'success', invalid: 'error', expired: 'warning', pending: 'info' };
+    const mappedStatus = statusMap[props.$status || 'pending'] || 'info';
+    return statusColorMixin(mappedStatus as any, props.$theme);
+  }}
   ${themedMixin}
 `;
 
@@ -315,11 +352,11 @@ export const OptimizedButtonGroup = styled(BaseFlexContainer)`
   align-items: ${props => props.$align || 'center'};
   justify-content: flex-end;
   margin-top: ${getSpacing('md')};
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: ${getSpacing('sm')};
-    
+
     button {
       width: 100%;
     }
@@ -329,7 +366,7 @@ export const OptimizedButtonGroup = styled(BaseFlexContainer)`
 // LoadingOverlay otimizado
 export const OptimizedLoadingOverlay = styled.div<{ $isLoading: boolean }>`
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
@@ -338,7 +375,7 @@ export const OptimizedLoadingOverlay = styled.div<{ $isLoading: boolean }>`
     right: 0;
     bottom: 0;
     background: rgba(255, 255, 255, 0.8);
-    display: ${props => props.$isLoading ? 'flex' : 'none'};
+    display: ${props => (props.$isLoading ? 'flex' : 'none')};
     align-items: center;
     justify-content: center;
     z-index: ${tokens.zIndex.modal};
@@ -346,19 +383,27 @@ export const OptimizedLoadingOverlay = styled.div<{ $isLoading: boolean }>`
 `;
 
 // ValidationButton otimizado
-export const OptimizedValidationButton = styled(BaseButton)`
+export const OptimizedValidationButton = styled(BaseButton)<{
+  $disabled?: boolean;
+}>`
   padding: ${getSpacing('sm')};
-  background: ${props => props.$disabled ? getColor('text.disabled', props.$theme?.colors?.disabled) : getColor('primary', props.$theme?.colors?.primary)};
-  color: ${getColor('surface.primary', props.$theme?.colors?.white)};
+  background: ${props =>
+    props.$disabled
+      ? getColor('text.disabled', props.$theme?.colors?.disabled)
+      : getColor('primary', props.$theme?.colors?.primary)};
+  color: ${props => getColor('surface.primary', props.$theme?.colors?.white)};
   border: none;
-  ${props => borderRadiusMixin('sm')}
-  cursor: ${props => props.$disabled ? 'not-allowed' : 'pointer'};
+  border-radius: 0.25rem;
+  cursor: ${props => (props.$disabled ? 'not-allowed' : 'pointer')};
   font-size: ${getFontSize('sm')};
   white-space: nowrap;
   ${transitionMixin}
-  
+
   &:hover {
-    background: ${props => props.$disabled ? getColor('text.disabled', props.$theme?.colors?.disabled) : getColor('primaryDark', props.$theme?.colors?.primaryDark)};
+    background: ${props =>
+      props.$disabled
+        ? getColor('text.disabled', props.$theme?.colors?.disabled)
+        : getColor('primaryDark', props.$theme?.colors?.primaryDark)};
   }
 `;
 
@@ -382,11 +427,11 @@ export const OptimizedResponsiveContainer = styled(BaseFlexContainer)`
   flex-direction: ${props => props.$direction || 'row'};
   align-items: ${props => props.$align || 'center'};
   justify-content: ${props => props.$justify || 'flex-start'};
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: ${getSpacing('sm')};
-    
+
     button {
       width: 100%;
     }

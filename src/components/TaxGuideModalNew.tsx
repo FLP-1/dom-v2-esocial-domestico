@@ -1,10 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import AccessibleEmoji from './AccessibleEmoji';
-import { Form, FormGroup, Input, Select } from './FormComponents';
+import { Form, FormGroup, Input } from './FormComponents';
 import { UnifiedButton, UnifiedModal } from './unified';
-import { OptimizedFormRow, OptimizedFormSection, OptimizedSectionTitle, OptimizedLabel, OptimizedInputStyled, OptimizedSelectStyled, OptimizedErrorMessage, OptimizedHelpText, OptimizedCheckboxContainer, OptimizedCheckboxItem, OptimizedCheckboxLabel, OptimizedCheckboxContent } from '../components/shared/optimized-styles';
-
+import {
+  OptimizedFormRow,
+  OptimizedFormSection,
+  OptimizedSectionTitle,
+  OptimizedLabel,
+  OptimizedInputStyled,
+  OptimizedSelectStyled,
+  OptimizedErrorMessage,
+  OptimizedHelpText,
+  OptimizedCheckboxContainer,
+  OptimizedCheckboxItem,
+  OptimizedCheckboxLabel,
+  OptimizedCheckboxContent,
+} from '../components/shared/optimized-styles';
 
 const FormRow = styled.div`
   display: grid;
@@ -58,25 +70,6 @@ const InputStyled = styled(Input)<{ $hasError?: boolean }>`
   }
 `;
 
-const SelectStyled = styled(Select).attrs<{ $hasError?: boolean }>(() => ({
-  'aria-label': 'Selecionar opção',
-  title: 'Selecionar opção',
-}))<{ $hasError?: boolean }>`
-  width: 100%;
-  padding: 0.6rem;
-  border: 2px solid ${props => (props.$hasError ? '#e74c3c' : '#e9ecef')};
-  border-radius: 8px;
-  font-size: 0.9rem;
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.9);
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: #29abe2;
-    box-shadow: 0 0 0 3px rgba(41, 171, 226, 0.1);
-  }
-`;
 
 const ErrorMessage = styled.div`
   color: #e74c3c;
@@ -172,14 +165,14 @@ interface TaxGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (guides: Omit<TaxGuide, 'id' | 'status'>[]) => void;
-  theme: any;
+  $theme: any;
 }
 
 const TaxGuideModalNew: React.FC<TaxGuideModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  theme,
+  $theme,
 }) => {
   const [formData, setFormData] = useState({
     mes: '',
@@ -291,18 +284,14 @@ const TaxGuideModalNew: React.FC<TaxGuideModalProps> = ({
     <UnifiedModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <>
-          <AccessibleEmoji emoji='📋' label='Guias' /> Gerar Guias de Impostos
-        </>
-      }
+      title="Gerar Guias de Impostos"
       maxWidth='600px'
       footer={
         <>
-          <UnifiedButton variant='secondary' theme={theme} onClick={onClose}>
+          <UnifiedButton $variant='secondary' $theme={$theme} onClick={onClose}>
             Cancelar
           </UnifiedButton>
-          <UnifiedButton variant='primary' theme={theme} onClick={handleSubmit}>
+          <UnifiedButton $variant='primary' $theme={$theme} onClick={handleSubmit}>
             <AccessibleEmoji emoji='💾' label='Salvar' /> Gerar Guias
           </UnifiedButton>
         </>
@@ -333,7 +322,9 @@ const TaxGuideModalNew: React.FC<TaxGuideModalProps> = ({
                   </option>
                 ))}
               </OptimizedSelectStyled>
-              {errors['mes'] && <OptimizedErrorMessage>{errors['mes']}</OptimizedErrorMessage>}
+              {errors['mes'] && (
+                <OptimizedErrorMessage>{errors['mes']}</OptimizedErrorMessage>
+              )}
             </FormGroup>
 
             <FormGroup>
@@ -347,7 +338,9 @@ const TaxGuideModalNew: React.FC<TaxGuideModalProps> = ({
                 max='2030'
                 $hasError={!!errors['ano']}
               />
-              {errors['ano'] && <OptimizedErrorMessage>{errors['ano']}</OptimizedErrorMessage>}
+              {errors['ano'] && (
+                <OptimizedErrorMessage>{errors['ano']}</OptimizedErrorMessage>
+              )}
             </FormGroup>
           </OptimizedFormRow>
         </OptimizedFormSection>
@@ -365,7 +358,7 @@ const TaxGuideModalNew: React.FC<TaxGuideModalProps> = ({
                   type='checkbox'
                   checked={selectedGuides.includes(guide.id)}
                   onChange={() => handleGuideToggle(guide.id)}
-                  aria-label={`Selecionar guia ${guide.nome}`}
+                  aria-label={`Selecionar guia ${guide.label}`}
                 />
                 <OptimizedCheckboxContent>
                   <OptimizedCheckboxLabel>
@@ -373,13 +366,17 @@ const TaxGuideModalNew: React.FC<TaxGuideModalProps> = ({
                     {guide.label}
                   </OptimizedCheckboxLabel>
                   <CheckboxDescription>{guide.description}</CheckboxDescription>
-                </CheckboxContent>
-              </CheckboxItem>
+                </OptimizedCheckboxContent>
+              </OptimizedCheckboxItem>
             ))}
-          </CheckboxContainer>
+          </OptimizedCheckboxContainer>
 
-          {errors['guides'] && <OptimizedErrorMessage>{errors['guides']}</OptimizedErrorMessage>}
-          <OptimizedHelpText>Selecione uma ou mais guias para gerar</OptimizedHelpText>
+          {errors['guides'] && (
+            <OptimizedErrorMessage>{errors['guides']}</OptimizedErrorMessage>
+          )}
+          <OptimizedHelpText>
+            Selecione uma ou mais guias para gerar
+          </OptimizedHelpText>
         </OptimizedFormSection>
       </Form>
     </UnifiedModal>

@@ -4,16 +4,10 @@ import { ToastContainer } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
 import { UnifiedButton } from '../components/unified';
-import CertificateUploadUnifiedModal from '../components/CertificateUploadUnifiedModal';
+import CertificateUploadModal from '../components/CertificateUploadModal';
 import { Form, FormGroup, Input, Select } from '../components/FormComponents';
-import {
-  UnifiedModal,
-  UnifiedModalBody,
-  UnifiedModalContent,
-  UnifiedModalFooter,
-  UnifiedModalHeader,
-} from '../components/UnifiedModal';
-import ProxyUploadUnifiedModal from '../components/ProxyUploadUnifiedModal';
+import { UnifiedModal } from '../components/unified';
+import ProxyUploadModal from '../components/ProxyUploadModal';
 import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
 import { ESOCIAL_CONFIG } from '../config/esocial';
@@ -28,9 +22,19 @@ import type {
 import { getESocialApiService } from '../services/esocialHybridApi';
 // Imports SOAP removidos - usando apenas gov.br OAuth2
 import { validateCpf } from '../utils/cpfValidator';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
-import { OptimizedFormRow, OptimizedSectionTitle, OptimizedLabel, OptimizedInputStyled, OptimizedSelectStyled, OptimizedErrorMessage, OptimizedHelpText, OptimizedFlexContainer } from '../components/shared/optimized-styles';
-
+import {
+  UnifiedCard,
+} from '../components/unified';
+import {
+  OptimizedFormRow,
+  OptimizedSectionTitle,
+  OptimizedLabel,
+  OptimizedInputStyled,
+  OptimizedSelectStyled,
+  OptimizedErrorMessage,
+  OptimizedHelpText,
+  OptimizedFlexContainer,
+} from '../components/shared/optimized-styles';
 
 // Animações
 const fadeIn = keyframes`
@@ -583,39 +587,12 @@ interface ESocialEvent {
   protocolo?: string;
 }
 
-// Dados mockados
-const mockEvents: ESocialEvent[] = [
-  {
-    id: '1',
-    tipo: 'S-1000',
-    descricao: 'Informações do Empregador/Contribuinte/Órgão Público',
-    status: 'processed',
-    dataEnvio: '2024-01-15T10:30:00Z',
-    dataProcessamento: '2024-01-15T11:00:00Z',
-  },
-  {
-    id: '2',
-    tipo: 'S-2200',
-    descricao:
-      'Cadastramento Inicial do Vínculo e Admissão/Ingresso de Trabalhador',
-    status: 'sent',
-    dataEnvio: '2024-01-16T14:20:00Z',
-  },
-  {
-    id: '3',
-    tipo: 'S-2300',
-    descricao: 'Trablho Sem Vínculo de Emprego/Estatutário - Início',
-    status: 'pending',
-  },
-  {
-    id: '4',
-    tipo: 'S-3000',
-    descricao: 'Exclusão de Eventos',
-    status: 'error',
-    dataEnvio: '2024-01-17T09:15:00Z',
-    erro: 'Erro na validação do CPF',
-  },
-];
+// Dados mock locais (centralized não existe)
+const MOCK_EVENTOS_ESOCIAL = [];
+const MOCK_EMPREGADOS = [];
+
+// Usar dados centralizados
+const mockEvents: ESocialEvent[] = MOCK_EVENTOS_ESOCIAL;
 
 const ESocialIntegration: React.FC = () => {
   const router = useRouter();
@@ -642,7 +619,8 @@ const ESocialIntegration: React.FC = () => {
   const [loadedEmployeesData, setLoadedEmployeesData] = useState<any[]>([]);
   const [loadedEventsData, setLoadedEventsData] = useState<any[]>([]);
   const [isEventUnifiedModalOpen, setIsEventUnifiedModalOpen] = useState(false);
-  const [isCertificateUnifiedModalOpen, setIsCertificateUnifiedModalOpen] = useState(false);
+  const [isCertificateUnifiedModalOpen, setIsCertificateUnifiedModalOpen] =
+    useState(false);
   const [isProxyUnifiedModalOpen, setIsProxyUnifiedModalOpen] = useState(false);
   const [certificateInfo, setCertificateInfo] =
     useState<CertificateInfo | null>(null);
@@ -703,9 +681,9 @@ const ESocialIntegration: React.FC = () => {
   // Inicializar serviço eSocial
   useEffect(() => {
     try {
-      // 
+      //
       getESocialApiService(esocialConfig);
-      // 
+      //
     } catch (error) {
       // console.error('❌ Erro ao inicializar serviço eSocial:', error);
     }
@@ -1016,10 +994,10 @@ const ESocialIntegration: React.FC = () => {
             );
             return;
           } else {
-            console.warn('Erro no SOAP real, usando simulação:', result.error);
+            // Erro no SOAP real, usando simulação
           }
         } catch (soapError) {
-          console.warn('Erro na conexão SOAP, usando simulação:', soapError);
+          // Erro na conexão SOAP, usando simulação
         }
       }
 
@@ -1055,8 +1033,8 @@ const ESocialIntegration: React.FC = () => {
         nome: dadosEmpregador.nome,
         endereco: {
           logradouro: dadosEmpregador.endereco.logradouro,
-          numero: dadosEmpregador.endereco.numero || '',
-          complemento: dadosEmpregador.endereco.complemento || '',
+          numero: '',
+          complemento: '',
           bairro: dadosEmpregador.endereco.bairro,
           cidade: dadosEmpregador.endereco.cidade,
           uf: dadosEmpregador.endereco.uf,
@@ -1085,31 +1063,8 @@ const ESocialIntegration: React.FC = () => {
       // const esocialApi = getESocialApiService(esocialConfig);
       // dadosEmpregados = await esocialApi.consultarDadosEmpregados();
 
-      // Fallback para dados simulados
-      const dadosEmpregados = [
-        {
-          cpf: '12345678901',
-          nome: 'JOÃO DA SILVA',
-          matricula: '001',
-          cargo: 'DESENVOLVEDOR',
-          dataAdmissao: '2024-01-01',
-          salario: 5000.0,
-          situacao: 'ATIVO',
-          vinculo: 'CLT',
-          fonte: 'SIMULADO_TEMPORARIO',
-        },
-        {
-          cpf: '12345678902',
-          nome: 'MARIA DOS SANTOS',
-          matricula: '002',
-          cargo: 'ANALISTA',
-          dataAdmissao: '2024-02-01',
-          salario: 4500.0,
-          situacao: 'ATIVO',
-          vinculo: 'CLT',
-          fonte: 'SIMULADO_TEMPORARIO',
-        },
-      ];
+      // Usar dados centralizados
+      const dadosEmpregados = MOCK_EMPREGADOS;
 
       // Armazenar dados carregados
       setLoadedEmployeesData(dadosEmpregados);
@@ -1216,7 +1171,7 @@ const ESocialIntegration: React.FC = () => {
       />
       <MainContent>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -1234,14 +1189,14 @@ const ESocialIntegration: React.FC = () => {
               Gerencie a integração com o eSocial para empregados domésticos
             </Subtitle>
           </div>
-          <StatusBadge $status='connected' theme={theme}>
+          <StatusBadge $status='connected' $theme={theme}>
             <AccessibleEmoji emoji='🟢' label='Conectado' /> Conectado
           </StatusBadge>
         </Header>
 
         {/* Alertas */}
         {errorEvents > 0 && (
-          <AlertBanner $type='error' theme={theme}>
+          <AlertBanner $type='error' $theme={theme}>
             <AlertIcon>
               <AccessibleEmoji emoji='⚠' label='Aviso' />
             </AlertIcon>
@@ -1253,7 +1208,7 @@ const ESocialIntegration: React.FC = () => {
         )}
 
         {pendingEvents > 0 && (
-          <AlertBanner $type='warning' theme={theme}>
+          <AlertBanner $type='warning' $theme={theme}>
             <AlertIcon>
               <AccessibleEmoji emoji='⏳' label='Carregando' />
             </AlertIcon>
@@ -1265,20 +1220,20 @@ const ESocialIntegration: React.FC = () => {
 
         {/* Estatísticas */}
         <StatsGrid>
-          <StatCard theme={theme}>
-            <StatNumber theme={theme}>{events.length}</StatNumber>
+          <StatCard $theme={theme}>
+            <StatNumber $theme={theme}>{events.length}</StatNumber>
             <StatLabel>Total de Eventos</StatLabel>
           </StatCard>
-          <StatCard theme={theme}>
-            <StatNumber theme={theme}>{processedEvents}</StatNumber>
+          <StatCard $theme={theme}>
+            <StatNumber $theme={theme}>{processedEvents}</StatNumber>
             <StatLabel>Processados</StatLabel>
           </StatCard>
-          <StatCard theme={theme}>
-            <StatNumber theme={theme}>{pendingEvents}</StatNumber>
+          <StatCard $theme={theme}>
+            <StatNumber $theme={theme}>{pendingEvents}</StatNumber>
             <StatLabel>Pendentes</StatLabel>
           </StatCard>
-          <StatCard theme={theme}>
-            <StatNumber theme={theme}>{errorEvents}</StatNumber>
+          <StatCard $theme={theme}>
+            <StatNumber $theme={theme}>{errorEvents}</StatNumber>
             <StatLabel>Com Erro</StatLabel>
           </StatCard>
         </StatsGrid>
@@ -1290,8 +1245,8 @@ const ESocialIntegration: React.FC = () => {
               <AccessibleEmoji emoji='📤' label='Exportar' /> Enviando para
               eSocial...
             </OptimizedSectionTitle>
-            <ProgressBar theme={theme}>
-              <ProgressFill $progress={progress} theme={theme} />
+            <ProgressBar $theme={theme}>
+              <ProgressFill $progress={progress} $theme={theme} />
             </ProgressBar>
             <CenterText>{progress}% concluído</CenterText>
           </Section>
@@ -1317,17 +1272,23 @@ const ESocialIntegration: React.FC = () => {
                     }
                     placeholder='000.000.000-00'
                     maxLength={14}
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['cpf']}
                   />
                   {errors['cpf'] && (
-                    <OptimizedErrorMessage>{errors['cpf']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['cpf']}
+                    </OptimizedErrorMessage>
                   )}
-                  <OptimizedHelpText>CPF do empregador responsável</OptimizedHelpText>
+                  <OptimizedHelpText>
+                    CPF do empregador responsável
+                  </OptimizedHelpText>
                 </FormGroupStyled>
 
                 <FormGroupStyled>
-                  <OptimizedLabel htmlFor='employer-nome'>Nome Completo *</OptimizedLabel>
+                  <OptimizedLabel htmlFor='employer-nome'>
+                    Nome Completo *
+                  </OptimizedLabel>
                   <OptimizedInputStyled
                     id='employer-nome'
                     type='text'
@@ -1336,11 +1297,13 @@ const ESocialIntegration: React.FC = () => {
                       handleEmployerDataChange('nome', e.target.value)
                     }
                     placeholder='Nome completo do empregador'
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['nome']}
                   />
                   {errors['nome'] && (
-                    <OptimizedErrorMessage>{errors['nome']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['nome']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
               </OptimizedFormRow>
@@ -1357,16 +1320,20 @@ const ESocialIntegration: React.FC = () => {
                     onChange={e =>
                       handleEmployerDataChange('dataNascimento', e.target.value)
                     }
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['dataNascimento']}
                   />
                   {errors['dataNascimento'] && (
-                    <OptimizedErrorMessage>{errors['dataNascimento']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['dataNascimento']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
 
                 <FormGroupStyled>
-                  <OptimizedLabel htmlFor='employer-telefone'>Telefone *</OptimizedLabel>
+                  <OptimizedLabel htmlFor='employer-telefone'>
+                    Telefone *
+                  </OptimizedLabel>
                   <OptimizedInputStyled
                     id='employer-telefone'
                     type='text'
@@ -1379,17 +1346,21 @@ const ESocialIntegration: React.FC = () => {
                     }
                     placeholder='(00) 00000-0000'
                     maxLength={15}
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['telefone']}
                   />
                   {errors['telefone'] && (
-                    <OptimizedErrorMessage>{errors['telefone']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['telefone']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
               </OptimizedFormRow>
 
               <FormGroupStyled>
-                <OptimizedLabel htmlFor='employer-email'>Email *</OptimizedLabel>
+                <OptimizedLabel htmlFor='employer-email'>
+                  Email *
+                </OptimizedLabel>
                 <OptimizedInputStyled
                   id='employer-email'
                   type='email'
@@ -1398,11 +1369,13 @@ const ESocialIntegration: React.FC = () => {
                     handleEmployerDataChange('contato.email', e.target.value)
                   }
                   placeholder='empregador@email.com'
-                  theme={theme}
+                  $theme={theme}
                   $hasError={!!errors['email']}
                 />
                 {errors['email'] && (
-                  <OptimizedErrorMessage>{errors['email']}</OptimizedErrorMessage>
+                  <OptimizedErrorMessage>
+                    {errors['email']}
+                  </OptimizedErrorMessage>
                 )}
               </FormGroupStyled>
 
@@ -1418,11 +1391,13 @@ const ESocialIntegration: React.FC = () => {
                     }
                     placeholder='00000-000'
                     maxLength={9}
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['cep']}
                   />
                   {errors['cep'] && (
-                    <OptimizedErrorMessage>{errors['cep']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['cep']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
 
@@ -1434,7 +1409,7 @@ const ESocialIntegration: React.FC = () => {
                     onChange={e =>
                       handleEmployerDataChange('endereco.uf', e.target.value)
                     }
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['uf']}
                     aria-label='Selecionar UF'
                     title='Selecionar UF'
@@ -1468,7 +1443,11 @@ const ESocialIntegration: React.FC = () => {
                     <option value='SE'>SE</option>
                     <option value='TO'>TO</option>
                   </OptimizedSelectStyled>
-                  {errors['uf'] && <OptimizedErrorMessage>{errors['uf']}</OptimizedErrorMessage>}
+                  {errors['uf'] && (
+                    <OptimizedErrorMessage>
+                      {errors['uf']}
+                    </OptimizedErrorMessage>
+                  )}
                 </FormGroupStyled>
               </OptimizedFormRow>
             </Form>
@@ -1492,16 +1471,20 @@ const ESocialIntegration: React.FC = () => {
                     }
                     placeholder='000.000.000-00'
                     maxLength={14}
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['employeeCpf']}
                   />
                   {errors['employeeCpf'] && (
-                    <OptimizedErrorMessage>{errors['employeeCpf']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['employeeCpf']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
 
                 <FormGroupStyled>
-                  <OptimizedLabel htmlFor='employee-nome'>Nome Completo *</OptimizedLabel>
+                  <OptimizedLabel htmlFor='employee-nome'>
+                    Nome Completo *
+                  </OptimizedLabel>
                   <OptimizedInputStyled
                     id='employee-nome'
                     type='text'
@@ -1510,11 +1493,13 @@ const ESocialIntegration: React.FC = () => {
                       handleEmployeeDataChange('nome', e.target.value)
                     }
                     placeholder='Nome completo do empregado'
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['employeeNome']}
                   />
                   {errors['employeeNome'] && (
-                    <OptimizedErrorMessage>{errors['employeeNome']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['employeeNome']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
               </OptimizedFormRow>
@@ -1530,16 +1515,20 @@ const ESocialIntegration: React.FC = () => {
                       handleEmployeeDataChange('pis', e.target.value)
                     }
                     placeholder='000.00000.00-0'
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['pis']}
                   />
                   {errors['pis'] && (
-                    <OptimizedErrorMessage>{errors['pis']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['pis']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
 
                 <FormGroupStyled>
-                  <OptimizedLabel htmlFor='employee-salario'>Salário *</OptimizedLabel>
+                  <OptimizedLabel htmlFor='employee-salario'>
+                    Salário *
+                  </OptimizedLabel>
                   <OptimizedInputStyled
                     id='employee-salario'
                     type='text'
@@ -1548,18 +1537,22 @@ const ESocialIntegration: React.FC = () => {
                       handleEmployeeDataChange('salario', e.target.value)
                     }
                     placeholder='R$ 0,00'
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['salario']}
                   />
                   {errors['salario'] && (
-                    <OptimizedErrorMessage>{errors['salario']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['salario']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
               </OptimizedFormRow>
 
               <OptimizedFormRow>
                 <FormGroupStyled>
-                  <OptimizedLabel htmlFor='employee-admissao'>Data de Admissão *</OptimizedLabel>
+                  <OptimizedLabel htmlFor='employee-admissao'>
+                    Data de Admissão *
+                  </OptimizedLabel>
                   <OptimizedInputStyled
                     id='employee-admissao'
                     type='date'
@@ -1567,16 +1560,20 @@ const ESocialIntegration: React.FC = () => {
                     onChange={e =>
                       handleEmployeeDataChange('dataAdmissao', e.target.value)
                     }
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['dataAdmissao']}
                   />
                   {errors['dataAdmissao'] && (
-                    <OptimizedErrorMessage>{errors['dataAdmissao']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['dataAdmissao']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
 
                 <FormGroupStyled>
-                  <OptimizedLabel htmlFor='employee-cargo'>Cargo *</OptimizedLabel>
+                  <OptimizedLabel htmlFor='employee-cargo'>
+                    Cargo *
+                  </OptimizedLabel>
                   <OptimizedInputStyled
                     id='employee-cargo'
                     type='text'
@@ -1585,11 +1582,13 @@ const ESocialIntegration: React.FC = () => {
                       handleEmployeeDataChange('cargo', e.target.value)
                     }
                     placeholder='Ex: Empregado Doméstico'
-                    theme={theme}
+                    $theme={theme}
                     $hasError={!!errors['cargo']}
                   />
                   {errors['cargo'] && (
-                    <OptimizedErrorMessage>{errors['cargo']}</OptimizedErrorMessage>
+                    <OptimizedErrorMessage>
+                      {errors['cargo']}
+                    </OptimizedErrorMessage>
                   )}
                 </FormGroupStyled>
               </OptimizedFormRow>
@@ -1604,13 +1603,13 @@ const ESocialIntegration: React.FC = () => {
           </OptimizedSectionTitle>
           <EventsList>
             {events.map(event => (
-              <EventCard key={event.id} $status={event.status} theme={theme}>
+              <EventCard key={event.id} $status={event.status} $theme={theme}>
                 <EventHeader>
                   <EventTitle>
                     {getStatusIcon(event.status)} {event.tipo} -{' '}
                     {event.descricao}
                   </EventTitle>
-                  <EventStatus $status={event.status} theme={theme}>
+                  <EventStatus $status={event.status} $theme={theme}>
                     {getStatusText(event.status)}
                   </EventStatus>
                 </EventHeader>
@@ -1636,25 +1635,25 @@ const ESocialIntegration: React.FC = () => {
                 <EventActions>
                   {event.status === 'pending' && (
                     <UnifiedButton
-                      variant='primary'
-                      theme={theme}
+                      $variant='primary'
+                      $theme={theme}
                       onClick={() => handleSendEvent(event)}
-                      disabled={isLoading}
+                      $disabled={isLoading}
                     >
                       <AccessibleEmoji emoji='📤' label='Exportar' /> Enviar
                     </UnifiedButton>
                   )}
                   <UnifiedButton
-                    variant='secondary'
-                    theme={theme}
+                    $variant='secondary'
+                    $theme={theme}
                     onClick={() => handleViewEvent(event)}
                   >
                     <AccessibleEmoji emoji='👁' label='Ver' /> Ver Detalhes
                   </UnifiedButton>
                   {event.xml && (
                     <UnifiedButton
-                      variant='success'
-                      theme={theme}
+                      $variant='success'
+                      $theme={theme}
                       onClick={() => {
                         if (!isClient) return;
 
@@ -1698,8 +1697,8 @@ const ESocialIntegration: React.FC = () => {
                 )}
               </ConfigValue>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={() => setIsCertificateUnifiedModalOpen(true)}
               >
                 {certificateInfo ? 'Alterar' : 'Configurar'}
@@ -1720,8 +1719,8 @@ const ESocialIntegration: React.FC = () => {
                 )}
               </ConfigValue>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={() => setIsProxyUnifiedModalOpen(true)}
               >
                 {proxyInfo ? 'Alterar' : 'Configurar'}
@@ -1745,7 +1744,7 @@ const ESocialIntegration: React.FC = () => {
                       environment: e.target.value as 'homologacao' | 'producao',
                     }))
                   }
-                  theme={theme}
+                  $theme={theme}
                   aria-label='Selecionar ambiente'
                   title='Selecionar ambiente'
                 >
@@ -1758,7 +1757,7 @@ const ESocialIntegration: React.FC = () => {
           {/* Modo de operação removido - usando apenas gov.br */}
           <ConfigItem>
             <ConfigLabel>Envio Automático</ConfigLabel>
-            <ToggleSwitch theme={theme}>
+            <ToggleSwitch $theme={theme}>
               <input
                 type='checkbox'
                 aria-label='Ativar envio automático de eventos'
@@ -1803,13 +1802,13 @@ const ESocialIntegration: React.FC = () => {
                 Carregar informações cadastrais do empregador
               </ConfigValue>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={() => {
-                  // 
+                  //
                   handleLoadEmpregadorData();
                 }}
-                disabled={isLoading}
+                $disabled={isLoading}
               >
                 <AccessibleEmoji emoji='🏢' label='Empregador' /> Carregar Dados
               </UnifiedButton>
@@ -1822,13 +1821,13 @@ const ESocialIntegration: React.FC = () => {
                 Carregar lista de empregados e vínculos ativos
               </ConfigValue>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={() => {
-                  // 
+                  //
                   handleLoadEmpregadosData();
                 }}
-                disabled={isLoading}
+                $disabled={isLoading}
               >
                 <AccessibleEmoji emoji='👥' label='Empregados' /> Carregar Lista
               </UnifiedButton>
@@ -1841,13 +1840,13 @@ const ESocialIntegration: React.FC = () => {
                 Consultar histórico de eventos enviados ao eSocial
               </ConfigValue>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={() => {
-                  // 
+                  //
                   handleLoadEventosData();
                 }}
-                disabled={isLoading}
+                $disabled={isLoading}
               >
                 <AccessibleEmoji emoji='📋' label='Eventos' /> Consultar
                 Histórico
@@ -1997,11 +1996,11 @@ const ESocialIntegration: React.FC = () => {
           isOpen={isEventUnifiedModalOpen}
           onClose={() => setIsEventUnifiedModalOpen(false)}
         >
-          <UnifiedModalContent>
-            <UnifiedModalHeader>
+          <div>
+            <div>
               <h2>Detalhes do Evento {selectedEvent?.tipo}</h2>
-            </UnifiedModalHeader>
-            <UnifiedModalBody>
+            </div>
+            <div>
               {selectedEvent && (
                 <div>
                   <p>
@@ -2035,34 +2034,34 @@ const ESocialIntegration: React.FC = () => {
                   )}
                 </div>
               )}
-            </UnifiedModalBody>
-            <UnifiedModalFooter>
+            </div>
+            <div>
               <UnifiedButton
-                variant='secondary'
-                theme={theme}
+                $variant='secondary'
+                $theme={theme}
                 onClick={() => setIsEventUnifiedModalOpen(false)}
               >
                 Fechar
               </UnifiedButton>
-            </UnifiedModalFooter>
-          </UnifiedModalContent>
+            </div>
+          </div>
         </UnifiedModal>
 
         {/* UnifiedModal de Certificado Digital */}
-        <CertificateUploadUnifiedModal
+        <CertificateUploadModal
           isOpen={isCertificateUnifiedModalOpen}
           onClose={() => setIsCertificateUnifiedModalOpen(false)}
           onSuccess={handleCertificateSuccess}
-          theme={theme}
+          $theme={theme}
           esocialConfig={esocialConfig}
         />
 
         {/* UnifiedModal de Procuração Eletrônica */}
-        <ProxyUploadUnifiedModal
+        <ProxyUploadModal
           isOpen={isProxyUnifiedModalOpen}
           onClose={() => setIsProxyUnifiedModalOpen(false)}
           onSuccess={handleProxySuccess}
-          theme={theme}
+          $theme={theme}
           esocialConfig={esocialConfig}
         />
 

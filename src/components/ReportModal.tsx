@@ -3,8 +3,18 @@ import styled from 'styled-components';
 import AccessibleEmoji from './AccessibleEmoji';
 import { Form, FormGroup, Input, Select } from './FormComponents';
 import { UnifiedButton, UnifiedModal } from './unified';
-import { OptimizedFormRow, OptimizedLabel, OptimizedInputStyled, OptimizedSelectStyled, OptimizedErrorMessage, OptimizedHelpText, OptimizedCheckboxContainer, OptimizedCheckboxItem, OptimizedCheckboxLabel, OptimizedCheckboxContent } from '../components/shared/optimized-styles';
-
+import {
+  OptimizedFormRow,
+  OptimizedLabel,
+  OptimizedInputStyled,
+  OptimizedSelectStyled,
+  OptimizedErrorMessage,
+  OptimizedHelpText,
+  OptimizedCheckboxContainer,
+  OptimizedCheckboxItem,
+  OptimizedCheckboxLabel,
+  OptimizedCheckboxContent,
+} from '../components/shared/optimized-styles';
 
 const FormRow = styled.div`
   display: grid;
@@ -133,14 +143,14 @@ interface ReportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (reports: Omit<Report, 'id' | 'status'>[]) => void;
-  theme: any;
+  $theme: any;
 }
 
 const ReportModal: React.FC<ReportModalProps> = ({
   isOpen,
   onClose,
   onSave,
-  theme,
+  $theme,
 }) => {
   const [formData, setFormData] = useState({
     mesInicio: '',
@@ -285,18 +295,14 @@ const ReportModal: React.FC<ReportModalProps> = ({
     <UnifiedModal
       isOpen={isOpen}
       onClose={onClose}
-      title={
-        <>
-          <AccessibleEmoji emoji='📈' label='Relatórios' /> Gerar Relatórios
-        </>
-      }
+      title="Gerar Relatórios"
       maxWidth='600px'
       footer={
         <>
-          <UnifiedButton variant='secondary' theme={theme} onClick={onClose}>
+          <UnifiedButton $variant='secondary' $theme={$theme} onClick={onClose}>
             Cancelar
           </UnifiedButton>
-          <UnifiedButton variant='primary' theme={theme} onClick={handleSubmit}>
+          <UnifiedButton $variant='primary' $theme={$theme} onClick={handleSubmit}>
             <AccessibleEmoji emoji='💾' label='Salvar' /> Gerar Relatórios
           </UnifiedButton>
         </>
@@ -322,7 +328,9 @@ const ReportModal: React.FC<ReportModalProps> = ({
               ))}
             </OptimizedSelectStyled>
             {errors['mesInicio'] && (
-              <OptimizedErrorMessage>{errors['mesInicio']}</OptimizedErrorMessage>
+              <OptimizedErrorMessage>
+                {errors['mesInicio']}
+              </OptimizedErrorMessage>
             )}
           </FormGroup>
 
@@ -361,7 +369,9 @@ const ReportModal: React.FC<ReportModalProps> = ({
               max='2030'
               $hasError={!!errors['ano']}
             />
-            {errors['ano'] && <OptimizedErrorMessage>{errors['ano']}</OptimizedErrorMessage>}
+            {errors['ano'] && (
+              <OptimizedErrorMessage>{errors['ano']}</OptimizedErrorMessage>
+            )}
           </FormGroup>
 
           <FormGroup>
@@ -388,20 +398,22 @@ const ReportModal: React.FC<ReportModalProps> = ({
                 <input
                   type='checkbox'
                   checked={selectedReports.includes(report.id)}
-                  aria-label={`Selecionar relatório ${report.name}`}
+                  aria-label={`Selecionar relatório ${report.nome}`}
                   onChange={() => handleReportToggle(report.id)}
                 />
                 <OptimizedCheckboxContent>
                   <OptimizedCheckboxLabel>{report.nome}</OptimizedCheckboxLabel>
                   <CheckboxDescription>{report.descricao}</CheckboxDescription>
-                </CheckboxContent>
-              </CheckboxItem>
+                </OptimizedCheckboxContent>
+              </OptimizedCheckboxItem>
             ))}
-          </CheckboxContainer>
+          </OptimizedCheckboxContainer>
           {errors['reports'] && (
             <OptimizedErrorMessage>{errors['reports']}</OptimizedErrorMessage>
           )}
-          <OptimizedHelpText>Selecione um ou mais relatórios para gerar</OptimizedHelpText>
+          <OptimizedHelpText>
+            Selecione um ou mais relatórios para gerar
+          </OptimizedHelpText>
         </FormGroup>
       </Form>
     </UnifiedModal>

@@ -12,7 +12,6 @@ import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 import { OptimizedSectionTitle } from '../components/shared/optimized-styles';
 
-
 // Styled Components
 const ContentContainer = styled.div`
   max-width: 800px;
@@ -76,16 +75,16 @@ const PrivacyPage: React.FC = () => {
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
+      <TopBar $theme={theme}>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -97,13 +96,13 @@ const PrivacyPage: React.FC = () => {
       <PageHeader
         title='Política de Privacidade'
         subtitle='Como protegemos e utilizamos seus dados'
-        theme={theme}
+        $theme={theme}
       />
 
       <ContentContainer>
         <BackButton
-          variant='secondary'
-          theme={theme}
+          $variant='secondary'
+          $theme={theme}
           onClick={() => router.back()}
         >
           <AccessibleEmoji emoji='←' label='Voltar' /> Voltar
@@ -120,13 +119,17 @@ const PrivacyPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>2. Informações que Coletamos</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            2. Informações que Coletamos
+          </OptimizedSectionTitle>
           <Paragraph>
             Coletamos diferentes tipos de informações para fornecer e melhorar
             nossos serviços:
           </Paragraph>
 
-          <OptimizedSectionTitle>2.1 Informações Pessoais</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            2.1 Informações Pessoais
+          </OptimizedSectionTitle>
 
           <List>
             <ListItem>Nome completo e dados de identificação</ListItem>
@@ -146,7 +149,9 @@ const PrivacyPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>3. Como Utilizamos suas Informações</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            3. Como Utilizamos suas Informações
+          </OptimizedSectionTitle>
           <Paragraph>Utilizamos suas informações para:</Paragraph>
           <List>
             <ListItem>Fornecer e manter nossos serviços</ListItem>
@@ -161,7 +166,9 @@ const PrivacyPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>4. Compartilhamento de Informações</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            4. Compartilhamento de Informações
+          </OptimizedSectionTitle>
           <Paragraph>
             Não vendemos, alugamos ou compartilhamos suas informações pessoais
             com terceiros, exceto nas seguintes situações:
@@ -239,7 +246,9 @@ const PrivacyPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>8. Cookies e Tecnologias Similares</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            8. Cookies e Tecnologias Similares
+          </OptimizedSectionTitle>
           <Paragraph>
             Utilizamos cookies e tecnologias similares para melhorar sua
             experiência, analisar o uso do serviço e personalizar conteúdo. Você
@@ -249,7 +258,9 @@ const PrivacyPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>9. Transferência Internacional</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            9. Transferência Internacional
+          </OptimizedSectionTitle>
           <Paragraph>
             Seus dados podem ser transferidos e processados em países diferentes
             do seu país de residência. Garantimos que tais transferências sejam
@@ -269,7 +280,9 @@ const PrivacyPage: React.FC = () => {
         </Section>
 
         <Section>
-          <OptimizedSectionTitle>11. Alterações nesta Política</OptimizedSectionTitle>
+          <OptimizedSectionTitle>
+            11. Alterações nesta Política
+          </OptimizedSectionTitle>
           <Paragraph>
             Podemos atualizar esta Política de Privacidade periodicamente.
             Notificaremos sobre mudanças significativas através do serviço ou

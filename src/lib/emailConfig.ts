@@ -7,12 +7,7 @@ export const createEmailTransporter = () => {
     process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS;
 
   if (hasGmailConfig) {
-    console.log('📧 Configurando Nodemailer com Gmail:', {
-      user:
-        process.env.EMAIL_USER?.substring(0, 3) +
-        '***@' +
-        process.env.EMAIL_USER?.split('@')[1],
-    });
+    // Configurando Nodemailer com Gmail
 
     return nodemailer.createTransport({
       service: 'gmail',
@@ -36,9 +31,7 @@ export const createEmailTransporter = () => {
   }
 
   // Usar transporter de teste do Nodemailer para desenvolvimento
-  console.warn(
-    '⚠️ Nenhuma configuração de email encontrada, usando conta de teste'
-  );
+  // ⚠️ Nenhuma configuração de email encontrada, usando conta de teste
 
   return nodemailer.createTestAccount().then(testAccount => {
     return nodemailer.createTransport({

@@ -5,7 +5,6 @@ import { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
-import { UnifiedButton } from '../components/unified';
 import FilterSection from '../components/FilterSection';
 import {
   Form,
@@ -14,7 +13,6 @@ import {
   Label,
   Select,
 } from '../components/FormComponents';
-import { UnifiedUnifiedModal } from '../components/unified';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
@@ -22,9 +20,57 @@ import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
-import { OptimizedFormRow, OptimizedLabel } from '../components/shared/optimized-styles';
+import {
+  UnifiedButton,
+  UnifiedModal,
+  UnifiedCard,
+} from '../components/unified';
+import {
+  OptimizedFormRow,
+  OptimizedLabel,
+} from '../components/shared/optimized-styles';
 
+const EmptyIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+`;
+
+const EmptyTitle = styled.h3`
+  color: #2c3e50;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+`;
+
+const EmptyDescription = styled.p`
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin: 0;
+`;
+
+const SectionTitle = styled.h3`
+  color: #2c3e50;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+`;
+
+const SectionText = styled.p`
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+`;
+
+const StatItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  margin: 0.5rem 0;
+`;
 
 // Styled Components para substituir estilos inline
 const UnifiedModalSection = styled.div`
@@ -748,16 +794,16 @@ export default function PayrollManagement() {
   };
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+        <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
+      <TopBar $theme={theme}>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -769,16 +815,16 @@ export default function PayrollManagement() {
       </TopBar>
 
       <PageHeader
-        theme={theme}
+        $theme={theme}
         title='Cálculos Salariais e Holerites'
         subtitle='Gerencie pagamentos, consulte documentos e acompanhe cálculos salariais'
       />
 
       {/* Resumo Salarial */}
-      <SummarySection theme={theme}>
+      <SummarySection $theme={theme}>
         <SummaryTitle>Resumo Salarial - {payrollSummary.period}</SummaryTitle>
         <SummaryGrid>
-          <SummaryCard theme={theme}>
+          <SummaryCard $theme={theme}>
             <SummaryCardTitle>
               <AccessibleEmoji emoji='💵' label='Pagamento' /> Salário Base
             </SummaryCardTitle>
@@ -788,7 +834,7 @@ export default function PayrollManagement() {
             <SummaryDetails>Valor fixo mensal</SummaryDetails>
           </SummaryCard>
 
-          <SummaryCard theme={theme} variant='success'>
+          <SummaryCard $theme={theme} $variant='success'>
             <SummaryCardTitle>
               <AccessibleEmoji emoji='➕' label='Novo' /> Adicionais
             </SummaryCardTitle>
@@ -807,7 +853,7 @@ export default function PayrollManagement() {
             </SummaryDetails>
           </SummaryCard>
 
-          <SummaryCard theme={theme} variant='warning'>
+          <SummaryCard $theme={theme} $variant='warning'>
             <SummaryCardTitle>
               <AccessibleEmoji emoji='➖' label='Remover' /> Descontos
             </SummaryCardTitle>
@@ -825,7 +871,7 @@ export default function PayrollManagement() {
             </SummaryDetails>
           </SummaryCard>
 
-          <SummaryCard theme={theme} variant='info'>
+          <SummaryCard $theme={theme} $variant='info'>
             <SummaryCardTitle>
               <AccessibleEmoji emoji='💵' label='Dinheiro' /> Salário Líquido
             </SummaryCardTitle>
@@ -851,7 +897,7 @@ export default function PayrollManagement() {
       </SummarySection>
 
       {/* Gráfico de Distribuição */}
-      <ChartSection theme={theme}>
+      <ChartSection $theme={theme}>
         <ChartTitle>Distribuição dos Valores</ChartTitle>
         <ChartContainer>
           <PieChart />
@@ -884,7 +930,7 @@ export default function PayrollManagement() {
 
       {/* Seção de Pagamentos (apenas para empregadores) */}
       {currentProfile?.role === 'Empregador' && (
-        <PaymentSection theme={theme}>
+        <PaymentSection $theme={theme}>
           <PaymentTitle>Processar Pagamentos</PaymentTitle>
 
           <EmployeeSelector>
@@ -892,7 +938,7 @@ export default function PayrollManagement() {
             {employees.map(employee => (
               <EmployeeCard
                 key={employee.id}
-                theme={theme}
+                $theme={theme}
                 $selected={selectedEmployee === employee.id}
                 onClick={() => setSelectedEmployee(employee.id)}
               >
@@ -915,8 +961,8 @@ export default function PayrollManagement() {
           {selectedEmployee && (
             <div>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={() => setShowPaymentForm(true)}
               >
                 <AccessibleEmoji emoji='💵' label='Pagamento' /> Processar
@@ -928,12 +974,12 @@ export default function PayrollManagement() {
       )}
 
       {/* Filtros */}
-      <FilterSection theme={theme} title='Filtros e Busca'>
+      <FilterSection $theme={theme} title='Filtros e Busca'>
         <OptimizedFormRow>
           <FormGroup>
             <OptimizedLabel>Período</OptimizedLabel>
             <Input
-              theme={theme}
+              $theme={theme}
               type='text'
               value={filters.period}
               onChange={e =>
@@ -945,7 +991,7 @@ export default function PayrollManagement() {
           <FormGroup>
             <OptimizedLabel>Tipo de Documento</OptimizedLabel>
             <Select
-              theme={theme}
+              $theme={theme}
               value={filters.type}
               onChange={e =>
                 setFilters(prev => ({ ...prev, type: e.target.value }))
@@ -965,7 +1011,7 @@ export default function PayrollManagement() {
           <FormGroup>
             <OptimizedLabel>Status</OptimizedLabel>
             <Select
-              theme={theme}
+              $theme={theme}
               value={filters.status}
               onChange={e =>
                 setFilters(prev => ({ ...prev, status: e.target.value }))
@@ -983,25 +1029,25 @@ export default function PayrollManagement() {
       </FilterSection>
 
       {/* Listagem de Documentos */}
-      <DocumentsSection theme={theme}>
+      <DocumentsSection $theme={theme}>
         <DocumentsTitle>Documentos e Holerites</DocumentsTitle>
 
         {getFilteredDocuments().length === 0 ? (
           <EmptyState>
-            <div className='empty-icon'>
+            <EmptyIcon>
               <AccessibleEmoji emoji='📄' label='Documento' />
-            </div>
-            <h3 className='empty-title'>Nenhum documento encontrado</h3>
-            <p className='empty-description'>
+            </EmptyIcon>
+            <EmptyTitle>Nenhum documento encontrado</EmptyTitle>
+            <EmptyDescription>
               Não há documentos que correspondam aos filtros selecionados.
-            </p>
+            </EmptyDescription>
           </EmptyState>
         ) : (
           <DocumentsGrid>
             {getFilteredDocuments().map(document => (
               <DocumentCard
                 key={document.id}
-                theme={theme}
+                $theme={theme}
                 $status={document.status}
               >
                 <DocumentHeader>
@@ -1032,23 +1078,23 @@ export default function PayrollManagement() {
 
                 <DocumentActions>
                   <DocumentUnifiedButton
-                    theme={theme}
+                    $theme={theme}
                     onClick={() => handleViewDocument(document)}
                     disabled={document.status !== 'available'}
                   >
                     <AccessibleEmoji emoji='👁' label='Visualizar' /> Visualizar
                   </DocumentUnifiedButton>
                   <DocumentUnifiedButton
-                    theme={theme}
-                    variant='success'
+                    $theme={theme}
+                    $variant='success'
                     onClick={() => handleDownloadDocument(document)}
                     disabled={document.status !== 'available'}
                   >
                     <AccessibleEmoji emoji='⬇️' label='Baixar' /> Baixar
                   </DocumentUnifiedButton>
                   <DocumentUnifiedButton
-                    theme={theme}
-                    variant='secondary'
+                    $theme={theme}
+                    $variant='secondary'
                     onClick={() => handlePrintDocument(document)}
                     disabled={document.status !== 'available'}
                   >
@@ -1077,30 +1123,30 @@ export default function PayrollManagement() {
         {selectedDocument && (
           <div>
             <UnifiedModalSection>
-              <h3 className='section-title'>{selectedDocument.employeeName}</h3>
-              <p className='section-title'>
+              <SectionTitle>{selectedDocument.employeeName}</SectionTitle>
+              <SectionText>
                 Período: {selectedDocument.period}
-              </p>
-              <p className='section-title'>
+              </SectionText>
+              <SectionText>
                 Valor: {formatCurrency(selectedDocument.amount)}
-              </p>
+              </SectionText>
             </UnifiedModalSection>
 
-            <PDFViewer theme={theme}>
-              <div className='stat-item'>
+            <PDFViewer $theme={theme}>
+              <StatItem>
                 <LargeIcon>
                   <AccessibleEmoji emoji='📄' label='Documento' />
                 </LargeIcon>
                 <div>Visualizador de PDF</div>
                 <SmallText>Aqui seria exibido o documento PDF</SmallText>
-              </div>
+              </StatItem>
             </PDFViewer>
 
             <FlexRow>
               <FlexColumn>
                 <UnifiedButton
-                  variant='success'
-                  theme={theme}
+                  $variant='success'
+                  $theme={theme}
                   onClick={() => handleDownloadDocument(selectedDocument)}
                 >
                   <AccessibleEmoji emoji='⬇️' label='Baixar' /> Baixar PDF
@@ -1108,8 +1154,8 @@ export default function PayrollManagement() {
               </FlexColumn>
               <FlexColumn>
                 <UnifiedButton
-                  variant='secondary'
-                  theme={theme}
+                  $variant='secondary'
+                  $theme={theme}
                   onClick={() => handlePrintDocument(selectedDocument)}
                 >
                   <AccessibleEmoji emoji='🖨' label='Imprimir' /> Imprimir
@@ -1127,22 +1173,22 @@ export default function PayrollManagement() {
         title='Processar Pagamento'
       >
         <div>
-          <PaymentSection theme={theme}>
-            <h3 className='section-title'>Confirmar Pagamento</h3>
-            <p className='section-title'>
+          <PaymentSection $theme={theme}>
+            <SectionTitle>Confirmar Pagamento</SectionTitle>
+            <SectionText>
               Funcionário:{' '}
               {employees.find(e => e.id === selectedEmployee)?.name}
-            </p>
-            <p className='section-title'>
+            </SectionText>
+            <SectionText>
               Valor: {formatCurrency(payrollSummary.netSalary)}
-            </p>
+            </SectionText>
           </PaymentSection>
 
           <Form onSubmit={e => e.preventDefault()}>
             <FormGroup>
               <OptimizedLabel>Data do Pagamento</OptimizedLabel>
               <Input
-                theme={theme}
+                $theme={theme}
                 type='date'
                 defaultValue={new Date().toISOString().split('T')[0]}
               />
@@ -1151,7 +1197,7 @@ export default function PayrollManagement() {
             <FormGroup>
               <OptimizedLabel>Método de Pagamento</OptimizedLabel>
               <Select
-                theme={theme}
+                $theme={theme}
                 aria-label='Selecionar método de pagamento'
                 title='Selecionar método de pagamento'
               >
@@ -1164,8 +1210,8 @@ export default function PayrollManagement() {
             <FlexRow>
               <FlexColumn>
                 <UnifiedButton
-                  variant='primary'
-                  theme={theme}
+                  $variant='primary'
+                  $theme={theme}
                   onClick={handleProcessPayment}
                 >
                   <AccessibleEmoji emoji='💵' label='Pagamento' /> Confirmar
@@ -1174,8 +1220,8 @@ export default function PayrollManagement() {
               </FlexColumn>
               <FlexColumn>
                 <UnifiedButton
-                  variant='secondary'
-                  theme={theme}
+                  $variant='secondary'
+                  $theme={theme}
                   onClick={() => setShowPaymentForm(false)}
                 >
                   <AccessibleEmoji emoji='❌' label='Erro' /> Cancelar

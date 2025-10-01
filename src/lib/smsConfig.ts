@@ -27,10 +27,7 @@ export const createSMSClient = () => {
     throw new Error('Twilio credentials not configured');
   }
 
-  console.log('📱 Configurando cliente SMS Twilio:', {
-    accountSid: accountSid.substring(0, 8) + '...',
-    hasToken: !!authToken,
-  });
+  // 📱 Configurando cliente SMS Twilio
 
   return twilio(accountSid, authToken);
 };
@@ -76,13 +73,7 @@ Verifique sua conta para mais detalhes.
 // Função para enviar SMS com validação aprimorada
 export const sendSMS = async (telefone: string, codigo: string) => {
   try {
-    console.log('📱 Iniciando envio de SMS:', {
-      telefone:
-        telefone.substring(0, 4) +
-        '****' +
-        telefone.substring(telefone.length - 4),
-      codigo: codigo,
-    });
+    // 📱 Iniciando envio de SMS
 
     const client = createSMSClient();
     const message = createValidationSMSTemplate(codigo);
@@ -113,15 +104,11 @@ export const sendSMS = async (telefone: string, codigo: string) => {
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    console.error('❌ Erro ao enviar SMS:', error);
+    // ❌ Erro ao enviar SMS
 
     // Log detalhado do erro para debug
     if (error instanceof Error) {
-      console.error('Detalhes do erro:', {
-        message: error.message,
-        name: error.name,
-        stack: error.stack,
-      });
+      // Detalhes do erro: ${error.message}
     }
 
     throw error;

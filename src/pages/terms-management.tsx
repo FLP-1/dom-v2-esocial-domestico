@@ -3,20 +3,24 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
-import { UnifiedButton } from '../components/unified';
 import { Form, FormGroup, Input } from '../components/FormComponents';
-import {
-  UnifiedModal,
-  UnifiedModalBody,
-  UnifiedModalContent,
-  UnifiedModalFooter,
-  UnifiedModalHeader,
-} from '../components/UnifiedModal';
+import { 
+  UnifiedModal, 
+  // UnifiedModalContent, // Não existe
+  // UnifiedModalHeader, // Não existe
+  // UnifiedModalBody, // Não existe
+  // UnifiedModalFooter // Não existe
+} from '../components/unified';
 import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
+import {
+  UnifiedButton,
+  UnifiedModal as UnifiedModalComponent,
+  UnifiedCard,
+} from '../components/unified';
+import { MOCK_TERMOS } from '../data/centralized';
 
 // Animações
 const fadeIn = keyframes`
@@ -41,6 +45,23 @@ const GlobalStyle = styled.div`
       outline: none;
       border-color: #29abe2;
     }
+  }
+`;
+
+const DocumentTextarea = styled.textarea`
+  width: 100%;
+  height: 400px;
+  padding: 1rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Roboto', sans-serif;
+  resize: vertical;
+  transition: border-color 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #29abe2;
   }
 `;
 
@@ -358,148 +379,10 @@ interface TermsData {
   privacyPolicy: DocumentVersion[];
 }
 
-// Dados mockados
+// Usar dados centralizados
 const mockTermsData: TermsData = {
-  termsOfUse: [
-    {
-      id: '1',
-      version: 'v2.1.0',
-      effectiveDate: '2024-01-15',
-      content: `
-        <h3>1. Aceitação dos Termos</h3>
-        <p>Estes Termos de Uso ("Termos") regem o uso do Sistema DOM ("Sistema", "Serviço") operado por nossa empresa ("nós", "nosso", "empresa").</p>
-
-        <h3>2. Descrição do Serviço</h3>
-        <p>O Sistema DOM é uma plataforma de gestão doméstica que oferece funcionalidades para:</p>
-        <ul>
-          <li>Gestão de tarefas e atividades</li>
-          <li>Controle de documentos</li>
-          <li>Gestão financeira e salarial</li>
-          <li>Comunicação interna</li>
-          <li>Controle de acesso e segurança</li>
-        </ul>
-
-        <h3>3. Conta de Usuário</h3>
-        <p>Ao criar uma conta, você concorda em:</p>
-        <ul>
-          <li>Fornecer informações precisas e atualizadas</li>
-          <li>Manter a segurança de sua senha</li>
-          <li>Ser responsável por todas as atividades em sua conta</li>
-          <li>Notificar-nos imediatamente sobre qualquer uso não autorizado</li>
-        </ul>
-
-        <h3>4. Uso Aceitável</h3>
-        <p>Você concorda em não usar o Sistema para:</p>
-        <ul>
-          <li>Atividades ilegais ou não autorizadas</li>
-          <li>Interferir com o funcionamento do Sistema</li>
-          <li>Tentar acessar contas de outros usuários</li>
-          <li>Distribuir malware ou código malicioso</li>
-        </ul>
-
-        <h3>5. Propriedade Intelectual</h3>
-        <p>O Sistema e seu conteúdo são protegidos por direitos autorais e outras leis de propriedade intelectual. Você não pode copiar, modificar ou distribuir nosso conteúdo sem autorização.</p>
-
-        <h3>6. Limitação de Responsabilidade</h3>
-        <p>O Sistema é fornecido "como está". Não garantimos que será ininterrupto ou livre de erros. Nossa responsabilidade é limitada ao máximo permitido por lei.</p>
-
-        <h3>7. Modificações dos Termos</h3>
-        <p>Reservamo-nos o direito de modificar estes Termos a qualquer momento. Mudanças significativas serão comunicadas com 30 dias de antecedência.</p>
-
-        <h3>8. Rescisão</h3>
-        <p>Podemos suspender ou encerrar sua conta se você violar estes Termos. Você pode encerrar sua conta a qualquer momento.</p>
-
-        <h3>9. Lei Aplicável</h3>
-        <p>Estes Termos são regidos pelas leis brasileiras. Qualquer disputa será resolvida nos tribunais competentes do Brasil.</p>
-
-        <h3>10. Contato</h3>
-        <p>Para questões sobre estes Termos, entre em contato conosco através dos canais oficiais do Sistema DOM.</p>
-      `,
-      isActive: true,
-      changes: [
-        'Atualização de políticas de segurança',
-        'Novos termos de responsabilidade',
-      ],
-    },
-    {
-      id: '2',
-      version: 'v2.0.0',
-      effectiveDate: '2023-12-01',
-      content: 'Versão anterior dos Termos de Uso...',
-      isActive: false,
-      changes: ['Versão anterior'],
-    },
-  ],
-  privacyPolicy: [
-    {
-      id: '1',
-      version: 'v1.8.0',
-      effectiveDate: '2024-01-15',
-      content: `
-        <h3>1. Informações que Coletamos</h3>
-        <p>Coletamos informações que você nos fornece diretamente, como:</p>
-        <ul>
-          <li>Nome, email e informações de contato</li>
-          <li>Dados de perfil e preferências</li>
-          <li>Conteúdo que você cria ou compartilha</li>
-          <li>Informações de pagamento (quando aplicável)</li>
-        </ul>
-
-        <h3>2. Como Usamos suas Informações</h3>
-        <p>Utilizamos suas informações para:</p>
-        <ul>
-          <li>Fornecer e melhorar nossos serviços</li>
-          <li>Processar transações e pagamentos</li>
-          <li>Comunicar-nos com você</li>
-          <li>Garantir a segurança da plataforma</li>
-          <li>Cumprir obrigações legais</li>
-        </ul>
-
-        <h3>3. Compartilhamento de Informações</h3>
-        <p>Não vendemos suas informações pessoais. Podemos compartilhar informações apenas:</p>
-        <ul>
-          <li>Com seu consentimento explícito</li>
-          <li>Para cumprir obrigações legais</li>
-          <li>Com prestadores de serviços confiáveis</li>
-          <li>Em caso de fusão ou aquisição</li>
-        </ul>
-
-        <h3>4. Segurança dos Dados</h3>
-        <p>Implementamos medidas de segurança técnicas e organizacionais para proteger suas informações contra acesso não autorizado, alteração, divulgação ou destruição.</p>
-
-        <h3>5. Seus Direitos (LGPD)</h3>
-        <p>Conforme a Lei Geral de Proteção de Dados, você tem direito a:</p>
-        <ul>
-          <li>Confirmar a existência de tratamento de dados</li>
-          <li>Acessar seus dados pessoais</li>
-          <li>Corrigir dados incompletos ou inexatos</li>
-          <li>Solicitar anonimização ou eliminação</li>
-          <li>Portabilidade dos dados</li>
-          <li>Revogar o consentimento</li>
-        </ul>
-
-        <h3>6. Cookies e Tecnologias Similares</h3>
-        <p>Utilizamos cookies e tecnologias similares para melhorar sua experiência, analisar o uso do serviço e personalizar conteúdo.</p>
-
-        <h3>7. Retenção de Dados</h3>
-        <p>Mantemos suas informações pelo tempo necessário para cumprir os propósitos descritos nesta política, a menos que um período de retenção mais longo seja exigido por lei.</p>
-
-        <h3>8. Transferência Internacional</h3>
-        <p>Seus dados podem ser transferidos e processados em países diferentes do seu. Garantimos proteções adequadas conforme a legislação aplicável.</p>
-
-        <h3>9. Menores de Idade</h3>
-        <p>Não coletamos intencionalmente informações de menores de 18 anos sem o consentimento dos pais ou responsáveis.</p>
-
-        <h3>10. Alterações nesta Política</h3>
-        <p>Podemos atualizar esta Política periodicamente. Notificaremos sobre mudanças significativas através do Sistema ou por email.</p>
-
-        <h3>11. Contato</h3>
-        <p>Para exercer seus direitos ou esclarecer dúvidas sobre esta Política, entre em contato conosco através dos canais oficiais do Sistema DOM.</p>
-      `,
-      isActive: true,
-      changes: ['Atualização conforme LGPD', 'Novos direitos do titular'],
-    },
-  ],
+  termsOfUse: MOCK_TERMOS,
+  privacyPolicy: MOCK_TERMOS,
 };
 
 const TermsManagement: React.FC = () => {
@@ -592,8 +475,7 @@ const TermsManagement: React.FC = () => {
           currentPath={router.pathname}
         />
         <MainContent>
-          <WelcomeSection
-            theme={theme}
+        <WelcomeSection $theme={theme}
             userAvatar={currentProfile?.avatar || 'U'}
             userName={currentProfile?.name || 'Usuário'}
             userRole={currentProfile?.role || 'Usuário'}
@@ -611,24 +493,24 @@ const TermsManagement: React.FC = () => {
           </Header>
 
           <StatsGrid>
-            <StatCard theme={theme}>
-              <StatNumber theme={theme}>
+            <StatCard $theme={theme}>
+              <StatNumber $theme={theme}>
                 {documents.termsOfUse.length}
               </StatNumber>
               <StatLabel>Versões dos Termos</StatLabel>
             </StatCard>
-            <StatCard theme={theme}>
-              <StatNumber theme={theme}>
+            <StatCard $theme={theme}>
+              <StatNumber $theme={theme}>
                 {documents.privacyPolicy.length}
               </StatNumber>
               <StatLabel>Versões da Política</StatLabel>
             </StatCard>
-            <StatCard theme={theme}>
-              <StatNumber theme={theme}>1,247</StatNumber>
+            <StatCard $theme={theme}>
+              <StatNumber $theme={theme}>1,247</StatNumber>
               <StatLabel>Usuários Ativos</StatLabel>
             </StatCard>
-            <StatCard theme={theme}>
-              <StatNumber theme={theme}>98.5%</StatNumber>
+            <StatCard $theme={theme}>
+              <StatNumber $theme={theme}>98.5%</StatNumber>
               <StatLabel>Taxa de Aceite</StatLabel>
             </StatCard>
           </StatsGrid>
@@ -638,14 +520,14 @@ const TermsManagement: React.FC = () => {
               <DocumentTabs>
                 <TabButton
                   $active={activeTab === 'terms'}
-                  theme={theme}
+                  $theme={theme}
                   onClick={() => setActiveTab('terms')}
                 >
                   <AccessibleEmoji emoji='📋' label='Checklist' /> Termos de Uso
                 </TabButton>
                 <TabButton
                   $active={activeTab === 'privacy'}
-                  theme={theme}
+                  $theme={theme}
                   onClick={() => setActiveTab('privacy')}
                 >
                   <AccessibleEmoji emoji='🔒' label='Privado' /> Políticas de
@@ -662,7 +544,7 @@ const TermsManagement: React.FC = () => {
                   </DocumentTitle>
                   {activeVersion && (
                     <VersionInfo>
-                      <VersionBadge theme={theme}>
+                      <VersionBadge $theme={theme}>
                         {activeVersion.version} - Atual
                       </VersionBadge>
                       <EffectiveDate>
@@ -684,23 +566,23 @@ const TermsManagement: React.FC = () => {
 
               <DocumentActions>
                 <UnifiedButton
-                  variant='primary'
-                  theme={theme}
+                  $variant='primary'
+                  $theme={theme}
                   onClick={handleDownloadPDF}
                 >
                   <AccessibleEmoji emoji='📄' label='Documento' /> Baixar PDF
                 </UnifiedButton>
                 <UnifiedButton
-                  variant='secondary'
-                  theme={theme}
+                  $variant='secondary'
+                  $theme={theme}
                   onClick={handlePrint}
                 >
                   <AccessibleEmoji emoji='🖨' label='Impressora' /> Imprimir
                 </UnifiedButton>
                 {isAdmin && (
                   <UnifiedButton
-                    variant='warning'
-                    theme={theme}
+                    $variant='warning'
+                    $theme={theme}
                     onClick={handleEditDocument}
                   >
                     <AccessibleEmoji emoji='✏' label='Lápis' /> Editar
@@ -717,7 +599,7 @@ const TermsManagement: React.FC = () => {
                   <VersionItem
                     key={version.id}
                     $active={version.id === selectedVersion}
-                    theme={theme}
+                    $theme={theme}
                     onClick={() => setSelectedVersion(version.id)}
                   >
                     <VersionNumber>{version.version}</VersionNumber>
@@ -727,7 +609,7 @@ const TermsManagement: React.FC = () => {
                       )}
                     </VersionDate>
                     {version.isActive && (
-                      <VersionStatus theme={theme}>Atual</VersionStatus>
+                      <VersionStatus $theme={theme}>Atual</VersionStatus>
                     )}
                   </VersionItem>
                 ))}
@@ -737,8 +619,8 @@ const TermsManagement: React.FC = () => {
                 <AdminSection>
                   <AdminTitle>Área Administrativa</AdminTitle>
                   <UnifiedButton
-                    variant='success'
-                    theme={theme}
+                    $variant='success'
+                    $theme={theme}
                     onClick={() => {
                       const newDoc: DocumentVersion = {
                         id: Date.now().toString(),
@@ -764,17 +646,17 @@ const TermsManagement: React.FC = () => {
             isOpen={isEditUnifiedModalOpen}
             onClose={() => setIsEditUnifiedModalOpen(false)}
           >
-            <UnifiedModalContent>
-              <UnifiedModalHeader>
+            <div>
+              <div>
                 <h2>Editar Documento</h2>
-              </UnifiedModalHeader>
-              <UnifiedModalBody>
+              </div>
+              <div>
                 <Form onSubmit={e => e.preventDefault()}>
                   <FormGroup>
                     <label htmlFor='document-version'>Versão:</label>
                     <Input
                       id='document-version'
-                      theme={theme}
+                      $theme={theme}
                       value={editingDocument?.version || ''}
                       readOnly
                     />
@@ -785,7 +667,7 @@ const TermsManagement: React.FC = () => {
                     </label>
                     <Input
                       id='document-effective-date'
-                      theme={theme}
+                      $theme={theme}
                       type='date'
                       value={editingDocument?.effectiveDate || ''}
                       readOnly
@@ -795,9 +677,8 @@ const TermsManagement: React.FC = () => {
                     <label htmlFor='document-content'>
                       Conteúdo do Documento:
                     </label>
-                    <textarea
+                    <DocumentTextarea
                       id='document-content'
-                      className='document-textarea'
                       value={editingDocument?.content || ''}
                       onChange={e =>
                         setEditingDocument(prev =>
@@ -808,26 +689,26 @@ const TermsManagement: React.FC = () => {
                     />
                   </FormGroup>
                 </Form>
-              </UnifiedModalBody>
-              <UnifiedModalFooter>
+              </div>
+              <div>
                 <UnifiedButton
-                  variant='secondary'
-                  theme={theme}
+                  $variant='secondary'
+                  $theme={theme}
                   onClick={() => setIsEditUnifiedModalOpen(false)}
                 >
                   Cancelar
                 </UnifiedButton>
                 <UnifiedButton
-                  variant='success'
-                  theme={theme}
+                  $variant='success'
+                  $theme={theme}
                   onClick={() =>
                     handleSaveDocument(editingDocument?.content || '')
                   }
                 >
                   Salvar Documento
                 </UnifiedButton>
-              </UnifiedModalFooter>
-            </UnifiedModalContent>
+              </div>
+            </div>
           </UnifiedModal>
         </MainContent>
       </Container>

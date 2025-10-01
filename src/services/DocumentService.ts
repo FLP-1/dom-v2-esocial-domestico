@@ -126,7 +126,7 @@ export class DocumentService {
         metadata: documentMetadata,
       };
     } catch (error) {
-      console.error('Erro no DocumentService.upload:', error);
+      // Erro no DocumentService.upload
       return {
         success: false,
         message: `Erro no upload: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
@@ -140,7 +140,6 @@ export class DocumentService {
    */
   async validate(documentId: string, cpf?: string): Promise<ValidationResult> {
     try {
-
       // Simular validação do certificado
       await new Promise(resolve => setTimeout(resolve, 1000));
 
@@ -180,7 +179,7 @@ export class DocumentService {
         },
       };
     } catch (error) {
-      console.error('Erro na validação do documento:', error);
+      // Erro na validação do documento
       return {
         valid: false,
         message: `Erro na validação: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
@@ -195,7 +194,6 @@ export class DocumentService {
     documentId: string
   ): Promise<{ success: boolean; message: string }> {
     try {
-
       // Simular exclusão
       await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -209,7 +207,7 @@ export class DocumentService {
         message: 'Documento excluído com sucesso',
       };
     } catch (error) {
-      console.error('Erro ao excluir documento:', error);
+      // Erro ao excluir documento
       return {
         success: false,
         message: `Erro na exclusão: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
@@ -225,7 +223,6 @@ export class DocumentService {
     category?: string
   ): Promise<DocumentMetadata[]> {
     try {
-
       // Simular busca no banco
       await new Promise(resolve => setTimeout(resolve, 300));
 
@@ -252,7 +249,7 @@ export class DocumentService {
 
       return filteredDocs;
     } catch (error) {
-      console.error('Erro ao buscar documentos:', error);
+      // Erro ao buscar documentos
       return [];
     }
   }

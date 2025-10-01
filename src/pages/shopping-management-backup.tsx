@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
-import { UnifiedButton } from '../components/unified';
+// import { UnifiedButton } from '../components/unified'; // Duplicado
 import FilterSection from '../components/FilterSection';
 import {
   Form,
@@ -14,7 +14,7 @@ import {
   Label,
   Select,
 } from '../components/FormComponents';
-import { UnifiedUnifiedModal } from '../components/unified';
+// import { UnifiedUnifiedModal } from '../components/unified'; // Não existe
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
@@ -22,9 +22,16 @@ import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
-import { OptimizedFormRow, OptimizedSectionTitle, OptimizedLabel } from '../components/shared/optimized-styles';
-
+import {
+  UnifiedButton,
+  UnifiedModal,
+  UnifiedCard,
+} from '../components/unified';
+import {
+  OptimizedFormRow,
+  OptimizedSectionTitle,
+  OptimizedLabel,
+} from '../components/shared/optimized-styles';
 
 // Interfaces
 interface ShoppingItem {
@@ -593,16 +600,16 @@ export default function ShoppingManagement() {
   const getTotalLists = () => shoppingLists.length;
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
+      <TopBar $theme={theme}>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -614,19 +621,19 @@ export default function ShoppingManagement() {
       </TopBar>
 
       <PageHeader
-        theme={theme}
+        $theme={theme}
         title='Gestão de Compras'
         subtitle='Organize suas listas de compras e mantenha o lar sempre abastecido'
       />
 
-      <CreateListSection theme={theme}>
+      <CreateListSection $theme={theme}>
         <OptimizedSectionTitle>Criar Nova Lista</OptimizedSectionTitle>
         <Form onSubmit={handleCreateList}>
           <OptimizedFormRow>
             <FormGroupFlex>
               <OptimizedLabel>Nome da Lista</OptimizedLabel>
               <Input
-                theme={theme}
+                $theme={theme}
                 type='text'
                 value={newList.name}
                 onChange={e =>
@@ -640,7 +647,7 @@ export default function ShoppingManagement() {
             <FormGroupFlex>
               <OptimizedLabel>Categoria</OptimizedLabel>
               <Select
-                theme={theme}
+                $theme={theme}
                 value={newList.category}
                 onChange={e =>
                   setNewList(prev => ({ ...prev, category: e.target.value }))
@@ -658,19 +665,19 @@ export default function ShoppingManagement() {
               </Select>
             </FormGroupFlex>
 
-            <UnifiedButton type='submit' variant='primary' theme={theme}>
+            <UnifiedButton type='submit' $variant='primary' $theme={theme}>
               <AccessibleEmoji emoji='➕' label='Novo' /> Criar Lista
             </UnifiedButton>
           </OptimizedFormRow>
         </Form>
       </CreateListSection>
 
-      <FilterSection theme={theme} title='Filtros e Busca'>
+      <FilterSection $theme={theme} title='Filtros e Busca'>
         <OptimizedFormRow>
           <FormGroup>
             <OptimizedLabel>Buscar Listas</OptimizedLabel>
             <Input
-              theme={theme}
+              $theme={theme}
               type='text'
               value={filters.search}
               onChange={e =>
@@ -683,7 +690,7 @@ export default function ShoppingManagement() {
           <FormGroup>
             <OptimizedLabel>Filtrar por Categoria</OptimizedLabel>
             <Select
-              theme={theme}
+              $theme={theme}
               value={filters.category}
               onChange={e =>
                 setFilters(prev => ({ ...prev, category: e.target.value }))
@@ -703,7 +710,7 @@ export default function ShoppingManagement() {
           <FormGroup>
             <OptimizedLabel>Mostrar apenas</OptimizedLabel>
             <Select
-              theme={theme}
+              $theme={theme}
               value={filters.showCompleted ? 'completed' : 'all'}
               onChange={e =>
                 setFilters(prev => ({
@@ -739,7 +746,7 @@ export default function ShoppingManagement() {
             return (
               <ListCard
                 key={list.id}
-                theme={theme}
+                $theme={theme}
                 onClick={() => openListUnifiedModal(list)}
               >
                 <ListHeader>
@@ -779,7 +786,7 @@ export default function ShoppingManagement() {
 
                 <ListActions>
                   <UnifiedButtonSmall
-                    theme={theme}
+                    $theme={theme}
                     onClick={e => {
                       e.stopPropagation();
                       openListUnifiedModal(list);
@@ -788,7 +795,7 @@ export default function ShoppingManagement() {
                     <AccessibleEmoji emoji='👁' label='Ver' /> Ver
                   </UnifiedButtonSmall>
                   <UnifiedButtonSmall
-                    theme={theme}
+                    $theme={theme}
                     onClick={e => {
                       e.stopPropagation();
                       toast.info('Compartilhamento em desenvolvimento');
@@ -798,8 +805,8 @@ export default function ShoppingManagement() {
                     Compartilhar
                   </UnifiedButtonSmall>
                   <UnifiedButtonSmall
-                    theme={theme}
-                    variant='danger'
+                    $theme={theme}
+                    $variant='danger'
                     onClick={e => {
                       e.stopPropagation();
                       handleDeleteList(list.id);
@@ -834,13 +841,13 @@ export default function ShoppingManagement() {
 
             <AddItemForm onSubmit={e => handleAddItem(selectedList.id, e)}>
               <AddItemInput
-                theme={theme}
+                $theme={theme}
                 type='text'
                 value={newItemName}
                 onChange={e => setNewItemName(e.target.value)}
                 placeholder='Adicionar novo item...'
               />
-              <AddItemButton theme={theme} type='submit'>
+              <AddItemButton $theme={theme} type='submit'>
                 <AccessibleEmoji emoji='➕' label='Novo' />
               </AddItemButton>
             </AddItemForm>
@@ -849,7 +856,7 @@ export default function ShoppingManagement() {
               {selectedList.items.map(item => (
                 <ItemRow key={item.id} $isBought={item.isBought}>
                   <ItemCheckbox
-                    theme={theme}
+                    $theme={theme}
                     type='checkbox'
                     checked={item.isBought}
                     onChange={() => handleToggleItem(selectedList.id, item.id)}
@@ -862,7 +869,7 @@ export default function ShoppingManagement() {
                   </ItemInfo>
                   <ItemActions>
                     <ItemUnifiedButton
-                      theme={theme}
+                      $theme={theme}
                       onClick={() => handleDeleteItem(selectedList.id, item.id)}
                       title='Remover item'
                     >
@@ -874,7 +881,7 @@ export default function ShoppingManagement() {
             </ItemList>
 
             {selectedList.items.length > 0 && (
-              <ListSummary theme={theme}>
+              <ListSummary $theme={theme}>
                 <p className='summary-title'>Resumo da Lista</p>
                 <p className='summary-total'>
                   {selectedList.boughtItems} de {selectedList.totalItems} itens

@@ -3,8 +3,21 @@ import styled from 'styled-components';
 import AccessibleEmoji from './AccessibleEmoji';
 import { Form, FormGroup, Input, Select } from './FormComponents';
 import { UnifiedButton, UnifiedModal } from './unified';
-import { OptimizedFormRow, OptimizedFormSection, OptimizedSectionTitle, OptimizedLabel, OptimizedInputStyled, OptimizedSelectStyled, OptimizedErrorMessage, OptimizedHelpText, OptimizedCheckboxContainer, OptimizedCheckboxItem, OptimizedCheckboxLabel, OptimizedRadioGroup, OptimizedPeriodGroup } from '../components/shared/optimized-styles';
-
+import {
+  OptimizedFormRow,
+  OptimizedFormSection,
+  OptimizedSectionTitle,
+  OptimizedLabel,
+  OptimizedInputStyled,
+  OptimizedSelectStyled,
+  OptimizedErrorMessage,
+  OptimizedHelpText,
+  OptimizedCheckboxContainer,
+  OptimizedCheckboxItem,
+  OptimizedCheckboxLabel,
+  OptimizedRadioGroup,
+  OptimizedPeriodGroup,
+} from '../components/shared/optimized-styles';
 
 const FormRow = styled.div`
   display: grid;
@@ -228,7 +241,7 @@ interface PayrollModalProps {
     payroll: Omit<PayrollData, 'id' | 'salarioLiquido' | 'status'>
   ) => Promise<void> | void;
   employees: Employee[];
-  theme: any;
+  $theme: any;
 }
 
 const PayrollModalNew: React.FC<PayrollModalProps> = ({
@@ -236,7 +249,7 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
   onClose,
   onSave,
   employees,
-  theme,
+  $theme,
 }) => {
   const [formData, setFormData] = useState({
     employeeId: '',
@@ -432,12 +445,12 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
       maxWidth='700px'
       footer={
         <>
-          <UnifiedButton variant='secondary' theme={theme} onClick={onClose}>
+          <UnifiedButton $variant='secondary' $theme={$theme} onClick={onClose}>
             Cancelar
           </UnifiedButton>
           <UnifiedButton
-            variant='primary'
-            theme={theme}
+            $variant='primary'
+            $theme={$theme}
             onClick={() => handleSubmit({} as React.FormEvent)}
           >
             <AccessibleEmoji emoji='💾' label='Salvar' /> Gerar Folha
@@ -473,7 +486,7 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 />
                 <span>Múltiplos funcionários</span>
               </label>
-            </RadioGroup>
+            </OptimizedRadioGroup>
 
             {!useMultipleSelection ? (
               <OptimizedSelectStyled
@@ -481,7 +494,7 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 value={formData.employeeId}
                 onChange={e => handleInputChange('employeeId', e.target.value)}
                 $hasError={!!errors['employeeId']}
-                $theme={theme}
+                $theme={$theme}
                 aria-label='Selecionar funcionário'
                 title='Selecionar funcionário'
               >
@@ -515,17 +528,21 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                         <OptimizedCheckboxLabel>
                           {employee.nome} - {employee.cargo}
                         </OptimizedCheckboxLabel>
-                      </CheckboxItem>
+                      </OptimizedCheckboxItem>
                     ))}
-                </CheckboxContainer>
+                </OptimizedCheckboxContainer>
               </div>
             )}
 
             {errors['employeeId'] && (
-              <OptimizedErrorMessage>{errors['employeeId']}</OptimizedErrorMessage>
+              <OptimizedErrorMessage>
+                {errors['employeeId']}
+              </OptimizedErrorMessage>
             )}
             {errors['employees'] && (
-              <OptimizedErrorMessage>{errors['employees']}</OptimizedErrorMessage>
+              <OptimizedErrorMessage>
+                {errors['employees']}
+              </OptimizedErrorMessage>
             )}
           </FormGroup>
         </OptimizedFormSection>
@@ -545,7 +562,7 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                   value={formData.mes}
                   onChange={e => handleInputChange('mes', e.target.value)}
                   $hasError={!!errors['mes']}
-                  $theme={theme}
+                  $theme={$theme}
                   aria-label='Selecionar mês'
                   title='Selecionar mês'
                 >
@@ -564,16 +581,22 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                   min='2020'
                   max='2030'
                   $hasError={!!errors['ano']}
-                  $theme={theme}
+                  $theme={$theme}
                   placeholder='Ano'
                 />
-              </PeriodGroup>
-              {errors['mes'] && <OptimizedErrorMessage>{errors['mes']}</OptimizedErrorMessage>}
-              {errors['ano'] && <OptimizedErrorMessage>{errors['ano']}</OptimizedErrorMessage>}
+              </OptimizedPeriodGroup>
+              {errors['mes'] && (
+                <OptimizedErrorMessage>{errors['mes']}</OptimizedErrorMessage>
+              )}
+              {errors['ano'] && (
+                <OptimizedErrorMessage>{errors['ano']}</OptimizedErrorMessage>
+              )}
             </FormGroup>
 
             <FormGroup>
-              <OptimizedLabel htmlFor='salarioBase'>Salário Base *</OptimizedLabel>
+              <OptimizedLabel htmlFor='salarioBase'>
+                Salário Base *
+              </OptimizedLabel>
               <OptimizedInputStyled
                 id='salarioBase'
                 type='number'
@@ -582,10 +605,12 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 step='0.01'
                 min='0'
                 $hasError={!!errors['salarioBase']}
-                $theme={theme}
+                $theme={$theme}
               />
               {errors['salarioBase'] && (
-                <OptimizedErrorMessage>{errors['salarioBase']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['salarioBase']}
+                </OptimizedErrorMessage>
               )}
               <OptimizedHelpText>Valor em reais (R$)</OptimizedHelpText>
             </FormGroup>
@@ -600,7 +625,9 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
 
           <OptimizedFormRow>
             <FormGroup>
-              <OptimizedLabel htmlFor='horasTrabalhadas'>Horas Trabalhadas *</OptimizedLabel>
+              <OptimizedLabel htmlFor='horasTrabalhadas'>
+                Horas Trabalhadas *
+              </OptimizedLabel>
               <OptimizedInputStyled
                 id='horasTrabalhadas'
                 type='number'
@@ -611,16 +638,20 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 min='0'
                 max='300'
                 $hasError={!!errors['horasTrabalhadas']}
-                $theme={theme}
+                $theme={$theme}
               />
               {errors['horasTrabalhadas'] && (
-                <OptimizedErrorMessage>{errors['horasTrabalhadas']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['horasTrabalhadas']}
+                </OptimizedErrorMessage>
               )}
               <OptimizedHelpText>Padrão: 220h</OptimizedHelpText>
             </FormGroup>
 
             <FormGroup>
-              <OptimizedLabel htmlFor='horasExtras'>Horas Extras</OptimizedLabel>
+              <OptimizedLabel htmlFor='horasExtras'>
+                Horas Extras
+              </OptimizedLabel>
               <OptimizedInputStyled
                 id='horasExtras'
                 type='number'
@@ -630,7 +661,9 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 $hasError={!!errors['horasExtras']}
               />
               {errors['horasExtras'] && (
-                <OptimizedErrorMessage>{errors['horasExtras']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['horasExtras']}
+                </OptimizedErrorMessage>
               )}
               <OptimizedHelpText>+50% adicional</OptimizedHelpText>
             </FormGroup>
@@ -646,10 +679,12 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 onChange={e => handleInputChange('faltas', e.target.value)}
                 min='0'
                 $hasError={!!errors['faltas']}
-                $theme={theme}
+                $theme={$theme}
               />
               {errors['faltas'] && (
-                <OptimizedErrorMessage>{errors['faltas']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['faltas']}
+                </OptimizedErrorMessage>
               )}
               <OptimizedHelpText>Número de faltas</OptimizedHelpText>
             </FormGroup>
@@ -665,7 +700,9 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 $hasError={!!errors['atestados']}
               />
               {errors['atestados'] && (
-                <OptimizedErrorMessage>{errors['atestados']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['atestados']}
+                </OptimizedErrorMessage>
               )}
               <OptimizedHelpText>Dias de atestado</OptimizedHelpText>
             </FormGroup>
@@ -690,10 +727,12 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 step='0.01'
                 min='0'
                 $hasError={!!errors['descontos']}
-                $theme={theme}
+                $theme={$theme}
               />
               {errors['descontos'] && (
-                <OptimizedErrorMessage>{errors['descontos']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['descontos']}
+                </OptimizedErrorMessage>
               )}
               <OptimizedHelpText>Empréstimos, adiantamentos</OptimizedHelpText>
             </FormGroup>
@@ -708,10 +747,12 @@ const PayrollModalNew: React.FC<PayrollModalProps> = ({
                 step='0.01'
                 min='0'
                 $hasError={!!errors['adicionais']}
-                $theme={theme}
+                $theme={$theme}
               />
               {errors['adicionais'] && (
-                <OptimizedErrorMessage>{errors['adicionais']}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors['adicionais']}
+                </OptimizedErrorMessage>
               )}
               <OptimizedHelpText>Bônus, comissões</OptimizedHelpText>
             </FormGroup>

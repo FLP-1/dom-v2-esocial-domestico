@@ -5,13 +5,15 @@ import type { ProxyInfo } from '../services/esocialHybridApi';
 import { getESocialApiService } from '../services/esocialHybridApi';
 import AccessibleEmoji from './AccessibleEmoji';
 import { UnifiedButton, UnifiedModal } from './unified';
-import { OptimizedErrorMessage, OptimizedHelpText } from '../components/shared/optimized-styles';
-
+import {
+  OptimizedErrorMessage,
+  OptimizedHelpText,
+} from '../components/shared/optimized-styles';
 
 const StyledComponent1 = styled.div`
-  marginBottom: 0.5rem; display: block
+  marginbottom: 0.5rem;
+  display: block;
 `;
-
 
 // Animações
 const fadeIn = keyframes`
@@ -215,7 +217,7 @@ interface ProxyUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (proxyInfo: ProxyInfo) => void;
-  theme: any;
+  $theme: any;
   esocialConfig?: any;
 }
 
@@ -223,7 +225,7 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  theme,
+  $theme,
   esocialConfig,
 }) => {
   const alertManager = useAlertManager();
@@ -356,35 +358,30 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
     <UnifiedModal
       isOpen={isOpen}
       onClose={handleClose}
-      title={
-        <>
-          <AccessibleEmoji emoji='📋' label='Checklist' /> Configurar Procuração
-          Eletrônica
-        </>
-      }
+      title="Configurar Procuração Eletrônica"
       maxWidth='600px'
-      theme={theme}
+      $theme={$theme}
       footer={
         <>
           <UnifiedButton
-            variant='secondary'
-            theme={theme}
+            $variant='secondary'
+            $theme={$theme}
             onClick={handleClose}
-            disabled={isLoading}
+            $disabled={isLoading}
           >
             {proxyInfo ? 'Fechar' : 'Cancelar'}
           </UnifiedButton>
 
           {selectedFile && !proxyInfo && (
             <UnifiedButton
-              variant='primary'
-              theme={theme}
+              $variant='primary'
+              $theme={$theme}
               onClick={handleUpload}
-              disabled={isLoading}
+              $disabled={isLoading}
             >
               {isLoading ? (
                 <>
-                  <LoadingSpinner $theme={theme} />
+                  <LoadingSpinner $theme={$theme} />
                   Processando...
                 </>
               ) : (
@@ -402,13 +399,13 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
         <>
           <UploadArea
             $isDragOver={isDragOver}
-            $theme={theme}
+            $theme={$theme}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
           >
-            <UploadIcon $theme={theme}>
+            <UploadIcon $theme={$theme}>
               <AccessibleEmoji emoji='📄' label='Documento' />
             </UploadIcon>
             <UploadText>
@@ -429,7 +426,7 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
           </UploadArea>
 
           {selectedFile && (
-            <FileInfo $theme={theme}>
+            <FileInfo $theme={$theme}>
               <FileName>
                 <AccessibleEmoji emoji='📄' label='Documento' />{' '}
                 {selectedFile.name}
@@ -440,8 +437,8 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
 
           {error && <OptimizedErrorMessage>{error}</OptimizedErrorMessage>}
 
-          <HelpSection $theme={theme}>
-            <HelpTitle $theme={theme}>
+          <HelpSection $theme={$theme}>
+            <HelpTitle $theme={$theme}>
               <AccessibleEmoji emoji='ℹ️' label='Informação' /> Informações
               sobre Procuração Eletrônica
             </HelpTitle>
@@ -453,11 +450,11 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
           </HelpSection>
         </>
       ) : (
-        <ProxyInfo $theme={theme}>
-          <InfoTitle $theme={theme}>
+        <ProxyInfo $theme={$theme}>
+          <InfoTitle $theme={$theme}>
             <AccessibleEmoji emoji='✅' label='Sucesso' /> Procuração Eletrônica
             Configurada
-            <StatusBadge $isValid={proxyInfo.isValid} $theme={theme}>
+            <StatusBadge $isValid={proxyInfo.isValid} $theme={$theme}>
               {proxyInfo.isValid ? 'Válida' : 'Inválida'}
             </StatusBadge>
           </InfoTitle>
@@ -478,11 +475,9 @@ const ProxyUploadModal: React.FC<ProxyUploadModalProps> = ({
           </InfoRow>
 
           <PermissionsList>
-            <InfoLabel as={StyledComponent1}>
-              Permissões:
-            </InfoLabel>
+            <InfoLabel as={StyledComponent1}>Permissões:</InfoLabel>
             {proxyInfo.permissions.map((permission, index) => (
-              <PermissionItem key={index} $theme={theme}>
+              <PermissionItem key={index} $theme={$theme}>
                 <span>
                   <AccessibleEmoji emoji='✅' label='Sucesso' />
                 </span>

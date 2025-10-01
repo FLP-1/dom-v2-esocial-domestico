@@ -100,70 +100,70 @@ const ButtonContainer = styled.button<{
     switch (props.$variant) {
       case 'primary':
         return `
-          background: ${baseStyles.colors?.primary || '#29abe2'};
+          background: ${baseStyles.primary || '#29abe2'};
           color: white;
-          box-shadow: ${componentShadows.sm};
+          box-shadow: ${componentShadows.button};
 
           &:hover:not(:disabled) {
-            background: ${baseStyles.colors?.primaryDark || '#1e8bc3'};
-            box-shadow: ${componentShadows.md};
+            background: ${baseStyles.primary || '#1e8bc3'};
+            box-shadow: ${componentShadows.buttonHover};
             transform: translateY(-1px);
           }
 
           &:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: ${componentShadows.sm};
+            box-shadow: ${componentShadows.button};
           }
         `;
 
       case 'secondary':
         return `
-          background: ${baseStyles.colors?.secondary || '#6c757d'};
+          background: ${baseStyles.secondary || '#6c757d'};
           color: white;
-          box-shadow: ${componentShadows.sm};
+          box-shadow: ${componentShadows.button};
 
           &:hover:not(:disabled) {
-            background: ${baseStyles.colors?.secondaryDark || '#5a6268'};
-            box-shadow: ${componentShadows.md};
+            background: ${baseStyles.secondary || '#5a6268'};
+            box-shadow: ${componentShadows.buttonHover};
             transform: translateY(-1px);
           }
         `;
 
       case 'success':
         return `
-          background: ${baseStyles.colors?.success || '#28a745'};
+          background: ${baseStyles.success || '#28a745'};
           color: white;
-          box-shadow: ${componentShadows.sm};
+          box-shadow: ${componentShadows.button};
 
           &:hover:not(:disabled) {
-            background: ${baseStyles.colors?.successDark || '#218838'};
-            box-shadow: ${componentShadows.md};
+            background: ${baseStyles.success || '#218838'};
+            box-shadow: ${componentShadows.buttonHover};
             transform: translateY(-1px);
           }
         `;
 
       case 'warning':
         return `
-          background: ${baseStyles.colors?.warning || '#ffc107'};
-          color: ${baseStyles.colors?.text || '#212529'};
-          box-shadow: ${componentShadows.sm};
+          background: ${baseStyles.warning || '#ffc107'};
+          color: ${baseStyles.text || '#212529'};
+          box-shadow: ${componentShadows.button};
 
           &:hover:not(:disabled) {
-            background: ${baseStyles.colors?.warningDark || '#e0a800'};
-            box-shadow: ${componentShadows.md};
+            background: ${baseStyles.warning || '#e0a800'};
+            box-shadow: ${componentShadows.buttonHover};
             transform: translateY(-1px);
           }
         `;
 
       case 'danger':
         return `
-          background: ${baseStyles.colors?.danger || '#dc3545'};
+          background: ${baseStyles.error || '#dc3545'};
           color: white;
-          box-shadow: ${componentShadows.sm};
+          box-shadow: ${componentShadows.button};
 
           &:hover:not(:disabled) {
-            background: ${baseStyles.colors?.dangerDark || '#c82333'};
-            box-shadow: ${componentShadows.md};
+            background: ${baseStyles.error || '#c82333'};
+            box-shadow: ${componentShadows.buttonHover};
             transform: translateY(-1px);
           }
         `;
@@ -171,11 +171,11 @@ const ButtonContainer = styled.button<{
       case 'ghost':
         return `
           background: transparent;
-          color: ${baseStyles.colors?.primary || '#29abe2'};
-          border: 1px solid ${baseStyles.colors?.primary || '#29abe2'};
+          color: ${baseStyles.primary || '#29abe2'};
+          border: 1px solid ${baseStyles.primary || '#29abe2'};
 
           &:hover:not(:disabled) {
-            background: ${baseStyles.colors?.primary || '#29abe2'};
+            background: ${baseStyles.primary || '#29abe2'};
             color: white;
             transform: translateY(-1px);
           }
@@ -184,7 +184,7 @@ const ButtonContainer = styled.button<{
       case 'link':
         return `
           background: transparent;
-          color: ${baseStyles.colors?.primary || '#29abe2'};
+          color: ${baseStyles.primary || '#29abe2'};
           padding: 0;
           min-height: auto;
           text-decoration: underline;
@@ -201,7 +201,7 @@ const ButtonContainer = styled.button<{
 
   /* Icon styles */
   .icon {
-    font-size: ${props.$size === 'xs'
+    font-size: ${props => props.$size === 'xs'
       ? '0.875rem'
       : props.$size === 'sm'
         ? '1rem'
@@ -216,7 +216,7 @@ const ButtonContainer = styled.button<{
   }
 
   /* Link variant specific styles */
-  ${props.$variant === 'link'
+  ${props => props.$variant === 'link'
     ? `
         &:hover {
           text-decoration: underline;
@@ -276,7 +276,7 @@ const LoadingSpinner = styled.div<{
 `;
 
 export interface UnifiedButtonProps {
-  variant?:
+  $variant?:
     | 'primary'
     | 'secondary'
     | 'success'
@@ -286,44 +286,43 @@ export interface UnifiedButtonProps {
     | 'link';
   children: ReactNode;
   icon?: string | ReactNode;
-  theme?: any;
-  size?: 'xs' | 'sm' | 'medium' | 'lg' | 'xl';
+  $theme?: any;
+  $size?: 'xs' | 'sm' | 'medium' | 'lg' | 'xl';
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-  disabled?: boolean;
-  loading?: boolean;
+  $disabled?: boolean;
+  $loading?: boolean;
   type?: 'button' | 'submit' | 'reset';
   'aria-label'?: string;
-  fullWidth?: boolean;
+  $fullWidth?: boolean;
 }
 
 export const UnifiedButton: React.FC<UnifiedButtonProps> = ({
-  variant = 'primary',
+  $variant = 'primary',
   children,
   icon,
-  theme,
-  size = 'medium',
+  $theme,
+  $size = 'medium',
   onClick,
-  disabled = false,
-  loading = false,
+  $disabled = false,
+  $loading = false,
   type = 'button',
   'aria-label': ariaLabel,
-  fullWidth = false,
+  $fullWidth = false,
 }) => {
   return (
     <ButtonContainer
-      $variant={variant}
-      $theme={theme}
-      $size={size}
-      $fullWidth={fullWidth}
-      $disabled={disabled}
-      $loading={loading}
+      $variant={$variant}
+      $theme={$theme}
+      $size={$size}
+      $fullWidth={$fullWidth}
+      $loading={$loading}
       onClick={onClick}
-      disabled={disabled || loading}
+      disabled={$disabled || $loading}
       type={type}
       aria-label={ariaLabel}
     >
-      {loading && <LoadingSpinner $size={size} />}
-      {icon && !loading && <span className='icon'>{icon}</span>}
+      {$loading && <LoadingSpinner $size={$size} />}
+      {icon && !$loading && <span className='icon'>{icon}</span>}
       {children}
     </ButtonContainer>
   );

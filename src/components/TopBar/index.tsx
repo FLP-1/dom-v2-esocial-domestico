@@ -2,7 +2,7 @@
 import styled from 'styled-components';
 
 interface TopBarProps {
-  theme: any;
+  $theme: any;
   children: React.ReactNode;
 }
 
@@ -21,6 +21,6 @@ const TopBarContainer = styled.header<{ $theme: any }>`
   box-sizing: border-box;
 `;
 
-export default function TopBar({ theme, children }: TopBarProps) {
-  return <TopBarContainer $theme={theme}>{children}</TopBarContainer>;
+export default function TopBar({ $theme, children }: TopBarProps) {
+  return <TopBarContainer $theme={$theme}>{children}</TopBarContainer>;
 }

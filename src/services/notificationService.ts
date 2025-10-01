@@ -268,7 +268,7 @@ class NotificationService {
     _notification: Notification
   ): Promise<void> {
     // Em produção, integrar com serviço de email
-    // 
+    //
   }
 
   // Enviar push notification (simulado)

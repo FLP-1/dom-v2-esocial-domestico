@@ -21,8 +21,33 @@ import WelcomeSection from '../components/WelcomeSection';
 import { UnifiedButton, UnifiedModal } from '../components/unified';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { OptimizedSectionTitle, OptimizedLabel } from '../components/shared/optimized-styles';
+import {
+  OptimizedSectionTitle,
+  OptimizedLabel,
+} from '../components/shared/optimized-styles';
 
+// Styled Components
+const TaskCount = styled.span`
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+`;
+
+const TaskAssignee = styled.div`
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  margin-top: 0.5rem;
+`;
+
+const TaskDueDate = styled.div<{ $isOverdue: boolean }>`
+  font-size: 0.8rem;
+  color: ${props => props.$isOverdue ? '#e74c3c' : '#7f8c8d'};
+  margin-top: 0.5rem;
+  font-weight: ${props => props.$isOverdue ? '600' : '400'};
+`;
 
 // Interfaces
 interface Task {
@@ -369,75 +394,15 @@ const CommentAuthor = styled.div<{ $theme: any }>`
   color: ${props => props.$theme.colors.text};
 `;
 
-// Mock data
-const mockTasks: Task[] = [
-  {
-    id: '1',
-    title: 'Implementar autenticação',
-    description: 'Criar sistema de login e registro de usuários',
-    priority: 'high',
-    status: 'in-progress',
-    assignee: 'João Silva',
-    dueDate: '2024-01-15',
-    createdAt: '2024-01-10',
-    comments: [
-      {
-        id: '1',
-        text: 'Vou começar pela validação de formulários',
-        author: 'João Silva',
-        avatar: 'JS',
-        timestamp: '2024-01-10T10:00:00Z',
-      },
-    ],
-    checklist: [
-      { id: '1', text: 'Criar formulário de login', completed: true },
-      { id: '2', text: 'Implementar validação', completed: false },
-      { id: '3', text: 'Adicionar recuperação de senha', completed: false },
-    ],
-  },
-  {
-    id: '2',
-    title: 'Design do dashboard',
-    description: 'Criar interface principal do sistema',
-    priority: 'medium',
-    status: 'todo',
-    assignee: 'Maria Santos',
-    dueDate: '2024-01-20',
-    createdAt: '2024-01-12',
-    comments: [],
-    checklist: [
-      { id: '1', text: 'Wireframes', completed: false },
-      { id: '2', text: 'Prototipagem', completed: false },
-    ],
-  },
-  {
-    id: '3',
-    title: 'Testes unitários',
-    description: 'Implementar testes para componentes principais',
-    priority: 'low',
-    status: 'completed',
-    assignee: 'Pedro Costa',
-    dueDate: '2024-01-18',
-    createdAt: '2024-01-08',
-    comments: [
-      {
-        id: '1',
-        text: 'Testes implementados com sucesso!',
-        author: 'Pedro Costa',
-        avatar: 'PC',
-        timestamp: '2024-01-18T15:30:00Z',
-      },
-    ],
-    checklist: [
-      { id: '1', text: 'Testes de componentes', completed: true },
-      { id: '2', text: 'Testes de integração', completed: true },
-    ],
-  },
-];
+// Importar dados centralizados
+import { MOCK_TAREFAS, TaskData } from '../data/centralized';
+
+// Usar dados centralizados
+const mockTasks: TaskData[] = MOCK_TAREFAS;
 
 const TaskManagement: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<TaskData[]>(mockTasks);
   const [modalOpen, setUnifiedModalOpen] = useState(false);
   const [modalType, setUnifiedModalType] = useState<'comments' | 'checklist'>(
     'comments'
@@ -447,7 +412,7 @@ const TaskManagement: React.FC = () => {
   // Hook do contexto de perfil
   const { currentProfile } = useUserProfile();
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
   const [newTask, setNewTask] = useState({
     title: '',
     priority: 'medium' as 'high' | 'medium' | 'low',
@@ -470,12 +435,12 @@ const TaskManagement: React.FC = () => {
       return;
     }
 
-    const task: Task = {
+    const task: TaskData = {
       id: Date.now().toString(),
       title: newTask.title,
       description: '',
       priority: newTask.priority,
-      status: 'todo',
+      status: 'pending',
       assignee: newTask.assignee,
       dueDate: newTask.dueDate,
       createdAt: new Date().toISOString(),
@@ -490,7 +455,7 @@ const TaskManagement: React.FC = () => {
 
   const handleTaskStatusChange = (
     taskId: string,
-    newStatus: 'todo' | 'in-progress' | 'completed'
+    newStatus: 'pending' | 'in_progress' | 'completed' | 'cancelled'
   ) => {
     setTasks(prev =>
       prev.map(task =>
@@ -500,7 +465,7 @@ const TaskManagement: React.FC = () => {
     toast.success('Status da tarefa atualizado!');
   };
 
-  const handleTaskClick = (task: Task, type: 'comments' | 'checklist') => {
+  const handleTaskClick = (task: TaskData, type: 'comments' | 'checklist') => {
     setSelectedTask(task);
     setUnifiedModalType(type);
     setUnifiedModalOpen(true);
@@ -567,7 +532,7 @@ const TaskManagement: React.FC = () => {
     );
   };
 
-  const getTasksByStatus = (status: 'todo' | 'in-progress' | 'completed') => {
+  const getTasksByStatus = (status: 'pending' | 'in_progress' | 'completed') => {
     return tasks.filter(task => task.status === status);
   };
 
@@ -584,35 +549,35 @@ const TaskManagement: React.FC = () => {
   };
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+      <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath='/task-management'
       />
 
-      <TopBar theme={theme}>
-        <WelcomeSection
-          theme={theme}
+      <TopBar $theme={theme}>
+        <WelcomeSection $theme={theme}
           userAvatar='U'
           userName='Usuário'
           userRole='Usuário'
         />
       </TopBar>
 
-      <PageHeader
-        theme={theme}
+      <PageHeader $theme={theme}
         title='Gestão de Tarefas'
         subtitle='Organize e acompanhe as tarefas da sua equipe de forma colaborativa'
       />
 
-      <TaskCreationSection theme={theme}>
-        <OptimizedSectionTitle theme={theme}>Criar Nova Tarefa</OptimizedSectionTitle>
+      <TaskCreationSection $theme={theme}>
+        <OptimizedSectionTitle $theme={theme}>
+          Criar Nova Tarefa
+        </OptimizedSectionTitle>
         <TaskForm onSubmit={handleCreateTask}>
           <FormGroup>
             <OptimizedLabel>Título da Tarefa</OptimizedLabel>
             <Input
-              theme={theme}
+              $theme={theme}
               type='text'
               value={newTask.title}
               onChange={e =>
@@ -627,8 +592,9 @@ const TaskManagement: React.FC = () => {
             <OptimizedLabel htmlFor='task-priority'>Prioridade</OptimizedLabel>
             <Select
               id='task-priority'
-              theme={theme}
+              $theme={theme}
               value={newTask.priority}
+              title="Prioridade da Tarefa"
               onChange={e =>
                 setNewTask(prev => ({
                   ...prev,
@@ -636,7 +602,6 @@ const TaskManagement: React.FC = () => {
                 }))
               }
               aria-label='Selecionar prioridade da tarefa'
-              title='Selecionar prioridade da tarefa'
             >
               <option value='low'>Baixa</option>
               <option value='medium'>Média</option>
@@ -648,13 +613,13 @@ const TaskManagement: React.FC = () => {
             <OptimizedLabel htmlFor='task-assignee'>Responsável</OptimizedLabel>
             <Select
               id='task-assignee'
-              theme={theme}
+              $theme={theme}
               value={newTask.assignee}
+              title="Responsável pela Tarefa"
               onChange={e =>
                 setNewTask(prev => ({ ...prev, assignee: e.target.value }))
               }
               aria-label='Selecionar responsável pela tarefa'
-              title='Selecionar responsável pela tarefa'
             >
               <option value=''>Selecionar responsável</option>
               <option value='João Silva'>João Silva</option>
@@ -666,7 +631,7 @@ const TaskManagement: React.FC = () => {
           <FormGroup>
             <OptimizedLabel>Data de Vencimento</OptimizedLabel>
             <Input
-              theme={theme}
+              $theme={theme}
               type='date'
               value={newTask.dueDate}
               onChange={e =>
@@ -676,20 +641,20 @@ const TaskManagement: React.FC = () => {
             />
           </FormGroup>
 
-          <UnifiedButton type='submit' variant='primary' theme={theme}>
+          <UnifiedButton type='submit' $variant='primary' $theme={theme}>
             Criar Tarefa
           </UnifiedButton>
         </TaskForm>
       </TaskCreationSection>
 
-      <FilterSection theme={theme} title='Filtros e Ordenação'>
+      <FilterSection $theme={theme} title='Filtros e Ordenação'>
         <FormGroup>
           <OptimizedLabel htmlFor='filter-status-select'>Status</OptimizedLabel>
           <Select
             id='filter-status-select'
-            theme={theme}
+            $theme={theme}
             aria-label='Filtrar tarefas por status'
-            title='Filtrar tarefas por status'
+            title="Filtrar por Status"
             value={filters.status}
             onChange={e =>
               setFilters(prev => ({ ...prev, status: e.target.value }))
@@ -703,12 +668,14 @@ const TaskManagement: React.FC = () => {
         </FormGroup>
 
         <FormGroup>
-          <OptimizedLabel htmlFor='filter-priority-select'>Prioridade</OptimizedLabel>
+          <OptimizedLabel htmlFor='filter-priority-select'>
+            Prioridade
+          </OptimizedLabel>
           <Select
             id='filter-priority-select'
-            theme={theme}
+            $theme={theme}
             aria-label='Filtrar tarefas por prioridade'
-            title='Filtrar tarefas por prioridade'
+            title="Filtrar por Prioridade"
             value={filters.priority}
             onChange={e =>
               setFilters(prev => ({ ...prev, priority: e.target.value }))
@@ -722,12 +689,14 @@ const TaskManagement: React.FC = () => {
         </FormGroup>
 
         <FormGroup>
-          <OptimizedLabel htmlFor='filter-assignee-select'>Responsável</OptimizedLabel>
+          <OptimizedLabel htmlFor='filter-assignee-select'>
+            Responsável
+          </OptimizedLabel>
           <Select
             id='filter-assignee-select'
-            theme={theme}
+            $theme={theme}
             aria-label='Filtrar tarefas por responsável'
-            title='Filtrar tarefas por responsável'
+            title="Filtrar por Responsável"
             value={filters.assignee}
             onChange={e =>
               setFilters(prev => ({ ...prev, assignee: e.target.value }))
@@ -744,21 +713,21 @@ const TaskManagement: React.FC = () => {
       </FilterSection>
 
       <TaskBoard>
-        <TaskColumn theme={theme}>
-          <ColumnHeader theme={theme} $status='todo'>
+        <TaskColumn $theme={theme}>
+          <ColumnHeader $theme={theme} $status='todo'>
             <h3>A Fazer</h3>
-            <span className='count'>{getTasksByStatus('todo').length}</span>
+            <TaskCount>{getTasksByStatus('pending').length}</TaskCount>
           </ColumnHeader>
-          {getTasksByStatus('todo').map(task => (
+          {getTasksByStatus('pending').map(task => (
             <TaskCard
               key={task.id}
-              theme={theme}
+              $theme={theme}
               $priority={task.priority}
-              onClick={() => handleTaskStatusChange(task.id, 'in-progress')}
+              onClick={() => handleTaskStatusChange(task.id, 'in_progress')}
             >
               <h4>{task.title}</h4>
               <p>{task.description}</p>
-              <TaskMeta theme={theme}>
+              <TaskMeta $theme={theme}>
                 <div>
                   <PriorityBadge $priority={task.priority}>
                     {task.priority === 'high'
@@ -768,18 +737,16 @@ const TaskManagement: React.FC = () => {
                         : 'Baixa'}
                   </PriorityBadge>
                 </div>
-                <div className='assignee'>{task.assignee}</div>
+                <TaskAssignee>{task.assignee}</TaskAssignee>
               </TaskMeta>
-              <TaskMeta theme={theme}>
-                <div
-                  className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
-                >
+              <TaskMeta $theme={theme}>
+                <TaskDueDate $isOverdue={isOverdue(task.dueDate)}>
                   {new Date(task.dueDate).toLocaleDateString('pt-BR')}
-                </div>
+                </TaskDueDate>
                 <div>
                   <UnifiedButton
-                    variant='ghost'
-                    size='sm'
+                    $variant='ghost'
+                    $size='sm'
                     onClick={e => {
                       e.stopPropagation();
                       handleTaskClick(task, 'comments');
@@ -789,8 +756,8 @@ const TaskManagement: React.FC = () => {
                     {task.comments.length}
                   </UnifiedButton>
                   <UnifiedButton
-                    variant='ghost'
-                    size='sm'
+                    $variant='ghost'
+                    $size='sm'
                     onClick={e => {
                       e.stopPropagation();
                       handleTaskClick(task, 'checklist');
@@ -805,23 +772,23 @@ const TaskManagement: React.FC = () => {
           ))}
         </TaskColumn>
 
-        <TaskColumn theme={theme}>
-          <ColumnHeader theme={theme} $status='in-progress'>
+        <TaskColumn $theme={theme}>
+          <ColumnHeader $theme={theme} $status='in-progress'>
             <h3>Em Andamento</h3>
             <span className='count'>
-              {getTasksByStatus('in-progress').length}
+              {getTasksByStatus('in_progress').length}
             </span>
           </ColumnHeader>
-          {getTasksByStatus('in-progress').map(task => (
+          {getTasksByStatus('in_progress').map(task => (
             <TaskCard
               key={task.id}
-              theme={theme}
+              $theme={theme}
               $priority={task.priority}
               onClick={() => handleTaskStatusChange(task.id, 'completed')}
             >
               <h4>{task.title}</h4>
               <p>{task.description}</p>
-              <TaskMeta theme={theme}>
+              <TaskMeta $theme={theme}>
                 <div>
                   <PriorityBadge $priority={task.priority}>
                     {task.priority === 'high'
@@ -831,18 +798,16 @@ const TaskManagement: React.FC = () => {
                         : 'Baixa'}
                   </PriorityBadge>
                 </div>
-                <div className='assignee'>{task.assignee}</div>
+                <TaskAssignee>{task.assignee}</TaskAssignee>
               </TaskMeta>
-              <TaskMeta theme={theme}>
-                <div
-                  className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
-                >
+              <TaskMeta $theme={theme}>
+                <TaskDueDate $isOverdue={isOverdue(task.dueDate)}>
                   {new Date(task.dueDate).toLocaleDateString('pt-BR')}
-                </div>
+                </TaskDueDate>
                 <div>
                   <UnifiedButton
-                    variant='ghost'
-                    size='sm'
+                    $variant='ghost'
+                    $size='sm'
                     onClick={e => {
                       e.stopPropagation();
                       handleTaskClick(task, 'comments');
@@ -852,8 +817,8 @@ const TaskManagement: React.FC = () => {
                     {task.comments.length}
                   </UnifiedButton>
                   <UnifiedButton
-                    variant='ghost'
-                    size='sm'
+                    $variant='ghost'
+                    $size='sm'
                     onClick={e => {
                       e.stopPropagation();
                       handleTaskClick(task, 'checklist');
@@ -868,8 +833,8 @@ const TaskManagement: React.FC = () => {
           ))}
         </TaskColumn>
 
-        <TaskColumn theme={theme}>
-          <ColumnHeader theme={theme} $status='completed'>
+        <TaskColumn $theme={theme}>
+          <ColumnHeader $theme={theme} $status='completed'>
             <h3>Concluído</h3>
             <span className='count'>
               {getTasksByStatus('completed').length}
@@ -878,13 +843,13 @@ const TaskManagement: React.FC = () => {
           {getTasksByStatus('completed').map(task => (
             <TaskCard
               key={task.id}
-              theme={theme}
+              $theme={theme}
               $priority={task.priority}
-              onClick={() => handleTaskStatusChange(task.id, 'todo')}
+              onClick={() => handleTaskStatusChange(task.id, 'pending')}
             >
               <h4>{task.title}</h4>
               <p>{task.description}</p>
-              <TaskMeta theme={theme}>
+              <TaskMeta $theme={theme}>
                 <div>
                   <PriorityBadge $priority={task.priority}>
                     {task.priority === 'high'
@@ -894,18 +859,16 @@ const TaskManagement: React.FC = () => {
                         : 'Baixa'}
                   </PriorityBadge>
                 </div>
-                <div className='assignee'>{task.assignee}</div>
+                <TaskAssignee>{task.assignee}</TaskAssignee>
               </TaskMeta>
-              <TaskMeta theme={theme}>
-                <div
-                  className={`due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}
-                >
+              <TaskMeta $theme={theme}>
+                <TaskDueDate $isOverdue={isOverdue(task.dueDate)}>
                   {new Date(task.dueDate).toLocaleDateString('pt-BR')}
-                </div>
+                </TaskDueDate>
                 <div>
                   <UnifiedButton
-                    variant='ghost'
-                    size='sm'
+                    $variant='ghost'
+                    $size='sm'
                     onClick={e => {
                       e.stopPropagation();
                       handleTaskClick(task, 'comments');
@@ -915,8 +878,8 @@ const TaskManagement: React.FC = () => {
                     {task.comments.length}
                   </UnifiedButton>
                   <UnifiedButton
-                    variant='ghost'
-                    size='sm'
+                    $variant='ghost'
+                    $size='sm'
                     onClick={e => {
                       e.stopPropagation();
                       handleTaskClick(task, 'checklist');
@@ -936,31 +899,22 @@ const TaskManagement: React.FC = () => {
         isOpen={modalOpen}
         onClose={() => setUnifiedModalOpen(false)}
         title={modalType === 'comments' ? 'Comentários' : 'Checklist'}
-        buttonContainer={
-          <UnifiedButton
-            variant='secondary'
-            onClick={() => setUnifiedModalOpen(false)}
-            theme={theme}
-          >
-            Fechar
-          </UnifiedButton>
-        }
       >
         {modalType === 'comments' && selectedTask && (
           <div>
-            <CommentSection theme={theme}>
-              <CommentForm theme={theme}>
+            <CommentSection $theme={theme}>
+              <CommentForm $theme={theme}>
                 <Input
-                  theme={theme}
+                  $theme={theme}
                   type='text'
                   value={newComment}
                   onChange={e => setNewComment(e.target.value)}
                   placeholder='Digite seu comentário...'
                 />
                 <UnifiedButton
-                  variant='primary'
+                  $variant='primary'
                   onClick={addComment}
-                  theme={theme}
+                  $theme={theme}
                 >
                   Adicionar
                 </UnifiedButton>
@@ -970,21 +924,21 @@ const TaskManagement: React.FC = () => {
             <div>
               <h4>Comentários ({selectedTask.comments.length})</h4>
               {selectedTask.comments.map(comment => (
-                <CommentItem key={comment.id} theme={theme}>
-                  <CommentHeader theme={theme}>
-                    <CommentAvatar theme={theme}>
+                <CommentItem key={comment.id} $theme={theme}>
+                  <CommentHeader $theme={theme}>
+                    <CommentAvatar $theme={theme}>
                       {comment.avatar}
                     </CommentAvatar>
                     <div>
-                      <CommentAuthor theme={theme}>
+                      <CommentAuthor $theme={theme}>
                         {comment.author}
                       </CommentAuthor>
-                      <CommentTime theme={theme}>
+                      <CommentTime $theme={theme}>
                         {new Date(comment.timestamp).toLocaleString('pt-BR')}
                       </CommentTime>
                     </div>
                   </CommentHeader>
-                  <CommentText theme={theme}>{comment.text}</CommentText>
+                  <CommentText $theme={theme}>{comment.text}</CommentText>
                 </CommentItem>
               ))}
             </div>
@@ -993,19 +947,19 @@ const TaskManagement: React.FC = () => {
 
         {modalType === 'checklist' && selectedTask && (
           <div>
-            <ChecklistSection theme={theme}>
-              <ChecklistForm theme={theme}>
+            <ChecklistSection $theme={theme}>
+              <ChecklistForm $theme={theme}>
                 <Input
-                  theme={theme}
+                  $theme={theme}
                   type='text'
                   value={newChecklistItem}
                   onChange={e => setNewChecklistItem(e.target.value)}
                   placeholder='Digite o item do checklist...'
                 />
                 <UnifiedButton
-                  variant='primary'
+                  $variant='primary'
                   onClick={addChecklistItem}
-                  theme={theme}
+                  $theme={theme}
                 >
                   Adicionar
                 </UnifiedButton>
@@ -1015,7 +969,7 @@ const TaskManagement: React.FC = () => {
             <div>
               <h4>Checklist ({selectedTask.checklist.length} itens)</h4>
               {selectedTask.checklist.map(item => (
-                <ChecklistItem key={item.id} theme={theme}>
+                <ChecklistItem key={item.id} $theme={theme}>
                   <input
                     type='checkbox'
                     id={`checklist-${item.id}`}

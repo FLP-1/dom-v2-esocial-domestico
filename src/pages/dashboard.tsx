@@ -10,7 +10,7 @@ import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { WidgetGrid } from '../components/WidgetGrid';
-import { UnifiedButton, UnifiedUnifiedModal } from '../components/unified';
+import { UnifiedButton, UnifiedModal } from '../components/unified';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
@@ -82,7 +82,7 @@ const TaskList = styled.div`
   }
 `;
 
-// UnifiedModal e Button styled components removidos - agora usando UnifiedUnifiedModal e UnifiedButton
+// UnifiedModal e Button styled components removidos - agora usando UnifiedModal e UnifiedButton
 
 // Tipos
 interface Task {
@@ -282,16 +282,16 @@ export default function Dashboard() {
   };
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
+      <TopBar $theme={theme}>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -303,46 +303,46 @@ export default function Dashboard() {
       </TopBar>
 
       <PageHeader
-        theme={theme}
+        $theme={theme}
         title='Dashboard'
         subtitle='Visão geral do seu sistema de gestão doméstica'
       />
 
       <WidgetGrid widgets={widgets} onWidgetClick={handleWidgetClick} />
 
-      <UnifiedUnifiedModal
+      <UnifiedModal
         isOpen={modalOpen}
         onClose={() => setUnifiedModalOpen(false)}
         title={
           selectedWidget ? getWidgetDetails(selectedWidget).title : 'Detalhes'
         }
         footer={
-          <div as={StyledComponent1}>
+          <>
             <UnifiedButton
-              variant='secondary'
+              $variant='secondary'
               onClick={() => setUnifiedModalOpen(false)}
-              theme={theme}
+              $theme={theme}
             >
               Fechar
             </UnifiedButton>
             <UnifiedButton
-              variant='primary'
+              $variant='primary'
               onClick={() => {
                 toast.success('Ação executada com sucesso!');
                 setUnifiedModalOpen(false);
               }}
-              theme={theme}
+              $theme={theme}
             >
               Executar Ação
             </UnifiedButton>
-          </div>
+          </>
         }
-        theme={theme}
+        $theme={theme}
       >
         {selectedWidget
           ? getWidgetDetails(selectedWidget).content
           : 'Nenhum widget selecionado.'}
-      </UnifiedUnifiedModal>
+      </UnifiedModal>
 
       <ToastContainer
         position='top-right'

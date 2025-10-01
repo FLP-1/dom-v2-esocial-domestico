@@ -5,13 +5,13 @@ import { createThemedStyles, designConstants } from '../../design-system';
 interface LoadingSpinnerProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   color?: string;
-  theme?: any;
+  $theme?: any;
 }
 
 interface LoadingOverlayProps {
   isLoading: boolean;
   message?: string;
-  theme?: any;
+  $theme?: any;
   children: React.ReactNode;
 }
 
@@ -19,7 +19,7 @@ interface LoadingButtonProps {
   isLoading: boolean;
   loadingText?: string;
   children: React.ReactNode;
-  theme?: any;
+  $theme?: any;
 }
 
 // Animações
@@ -76,9 +76,9 @@ const SpinnerContainer = styled.div<{ $size: string; $color: string }>`
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = 'md',
   color,
-  theme,
+  $theme,
 }) => {
-  const themedStyles = createThemedStyles(theme);
+  const themedStyles = createThemedStyles($theme);
   const spinnerColor = color || themedStyles.primary;
 
   return <SpinnerContainer $size={size} $color={spinnerColor} />;
@@ -130,15 +130,15 @@ const LoadingMessage = styled.div<{ $theme: any }>`
 export const LoadingOverlay: React.FC<LoadingOverlayProps> = ({
   isLoading,
   message = 'Carregando...',
-  theme,
+  $theme,
   children,
 }) => {
   return (
     <OverlayContainer>
       {children}
-      <LoadingOverlayStyled $isVisible={isLoading} $theme={theme}>
-        <LoadingSpinner size='lg' theme={theme} />
-        <LoadingMessage $theme={theme}>{message}</LoadingMessage>
+      <LoadingOverlayStyled $isVisible={isLoading} $theme={$theme}>
+        <LoadingSpinner size='lg' $theme={$theme} />
+        <LoadingMessage $theme={$theme}>{message}</LoadingMessage>
       </LoadingOverlayStyled>
     </OverlayContainer>
   );
@@ -168,11 +168,11 @@ const Dot = styled.span<{ $delay: number; $color: string }>`
   }
 `;
 
-export const LoadingDots: React.FC<{ color?: string; theme?: any }> = ({
+export const LoadingDots: React.FC<{ color?: string; $theme?: any }> = ({
   color,
-  theme,
+  $theme,
 }) => {
-  const themedStyles = createThemedStyles(theme);
+  const themedStyles = createThemedStyles($theme);
   const dotColor = color || themedStyles.primary;
 
   return (
@@ -259,14 +259,14 @@ export const LoadingButton: React.FC<LoadingButtonProps> = ({
   isLoading,
   loadingText = 'Carregando',
   children,
-  theme,
+  $theme,
 }) => {
   return (
     <LoadingButtonContainer $isLoading={isLoading}>
       {children}
       {isLoading && (
-        <ButtonLoadingOverlay $theme={theme}>
-          <LoadingSpinner size='sm' theme={theme} />
+        <ButtonLoadingOverlay $theme={$theme}>
+          <LoadingSpinner size='sm' $theme={$theme} />
           {loadingText && <span>{loadingText}</span>}
         </ButtonLoadingOverlay>
       )}
@@ -329,4 +329,4 @@ export const ProgressIndicator: React.FC<{
   );
 };
 
-export default MultiStepForm;
+export default ProgressBar;

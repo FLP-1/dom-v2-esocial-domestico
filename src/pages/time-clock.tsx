@@ -4,10 +4,8 @@ import { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
-import { UnifiedButton } from '../components/unified';
 import ClockInButton from '../components/ClockInButton';
 import InfoCard from '../components/InfoCard';
-import { UnifiedUnifiedModal } from '../components/unified';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
@@ -16,7 +14,11 @@ import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
+import {
+  UnifiedButton,
+  UnifiedModal,
+  UnifiedCard,
+} from '../components/unified';
 
 // Animações removidas - agora usando componentes reutilizáveis com suas próprias animações
 
@@ -129,9 +131,9 @@ export default function TimeClock() {
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [justRegistered, setJustRegistered] = useState(false);
   const [modalOpen, setUnifiedModalOpen] = useState(false);
-  const [modalType, setUnifiedModalType] = useState<'history' | 'details' | 'break'>(
-    'history'
-  );
+  const [modalType, setUnifiedModalType] = useState<
+    'history' | 'details' | 'break'
+  >('history');
   // Hook do contexto de perfil
   const { currentProfile } = useUserProfile();
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
@@ -254,16 +256,16 @@ export default function TimeClock() {
   const statusInfo = getStatusInfo();
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
+      <TopBar $theme={theme}>
         <WelcomeSection
-          theme={theme}
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -275,7 +277,7 @@ export default function TimeClock() {
       </TopBar>
 
       <PageHeader
-        theme={theme}
+        $theme={theme}
         title='Controle de Ponto'
         subtitle='Registre sua entrada, saída e intervalos de forma segura'
       />
@@ -349,26 +351,26 @@ export default function TimeClock() {
 
       <UnifiedButtons>
         <UnifiedButton
-          variant='secondary'
+          $variant='secondary'
           onClick={() => openUnifiedModal('history')}
           icon='📋'
-          theme={theme}
+          $theme={theme}
         >
           Histórico
         </UnifiedButton>
         <UnifiedButton
-          variant='warning'
+          $variant='warning'
           onClick={handleBreak}
           icon='☕'
-          theme={theme}
+          $theme={theme}
         >
           Intervalo
         </UnifiedButton>
         <UnifiedButton
-          variant='success'
+          $variant='success'
           onClick={() => openUnifiedModal('details')}
           icon='📝'
-          theme={theme}
+          $theme={theme}
         >
           Detalhes
         </UnifiedButton>
@@ -383,29 +385,6 @@ export default function TimeClock() {
             : modalType === 'details'
               ? 'Detalhes do Registro'
               : 'Registrar Intervalo'
-        }
-        buttonContainer={
-          <>
-            <UnifiedButton
-              variant='secondary'
-              onClick={() => setUnifiedModalOpen(false)}
-              theme={theme}
-            >
-              Fechar
-            </UnifiedButton>
-            {modalType === 'break' && (
-              <UnifiedButton
-                variant='warning'
-                onClick={() => {
-                  handleBreak();
-                  setUnifiedModalOpen(false);
-                }}
-                theme={theme}
-              >
-                Registrar Intervalo
-              </UnifiedButton>
-            )}
-          </>
         }
       >
         {modalType === 'history' && (

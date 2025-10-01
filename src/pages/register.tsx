@@ -4,12 +4,21 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
-import { UnifiedButton } from '../components/unified';
+// import { UnifiedButton } from '../components/unified'; // Duplicado
 import { Form, FormGroup, Input, Select } from '../components/FormComponents';
 import { validateCpf } from '../utils/cpfValidator';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
-import { OptimizedFormRow, OptimizedLabel, OptimizedInputStyled, OptimizedSelectStyled, OptimizedErrorMessage } from '../components/shared/optimized-styles';
-
+import {
+  UnifiedButton,
+  UnifiedModal,
+  UnifiedCard,
+} from '../components/unified';
+import {
+  OptimizedFormRow,
+  OptimizedLabel,
+  OptimizedInputStyled,
+  OptimizedSelectStyled,
+  OptimizedErrorMessage,
+} from '../components/shared/optimized-styles';
 
 // Animações
 const fadeInUp = keyframes`
@@ -479,10 +488,12 @@ const Register: React.FC = () => {
                 value={formData.name}
                 onChange={e => handleInputChange('name', e.target.value)}
                 placeholder='Digite seu nome completo'
-                theme={theme}
+                $theme={theme}
                 $hasError={!!errors.name}
               />
-              {errors.name && <OptimizedErrorMessage>{errors.name}</OptimizedErrorMessage>}
+              {errors.name && (
+                <OptimizedErrorMessage>{errors.name}</OptimizedErrorMessage>
+              )}
             </FormGroupStyled>
 
             <FormGroupStyled>
@@ -493,7 +504,7 @@ const Register: React.FC = () => {
                 value={formData.nickname}
                 onChange={e => handleInputChange('nickname', e.target.value)}
                 placeholder='Como gostaria de ser chamado'
-                theme={theme}
+                $theme={theme}
                 $hasError={!!errors.nickname}
               />
               {errors.nickname && (
@@ -514,10 +525,12 @@ const Register: React.FC = () => {
                 }
                 placeholder='000.000.000-00'
                 maxLength={14}
-                theme={theme}
+                $theme={theme}
                 $hasError={!!errors.cpf}
               />
-              {errors.cpf && <OptimizedErrorMessage>{errors.cpf}</OptimizedErrorMessage>}
+              {errors.cpf && (
+                <OptimizedErrorMessage>{errors.cpf}</OptimizedErrorMessage>
+              )}
             </FormGroupStyled>
 
             <FormGroupStyled>
@@ -528,10 +541,12 @@ const Register: React.FC = () => {
                 value={formData.email}
                 onChange={e => handleInputChange('email', e.target.value)}
                 placeholder='seu@email.com'
-                theme={theme}
+                $theme={theme}
                 $hasError={!!errors.email}
               />
-              {errors.email && <OptimizedErrorMessage>{errors.email}</OptimizedErrorMessage>}
+              {errors.email && (
+                <OptimizedErrorMessage>{errors.email}</OptimizedErrorMessage>
+              )}
             </FormGroupStyled>
           </OptimizedFormRow>
 
@@ -547,24 +562,30 @@ const Register: React.FC = () => {
                 }
                 placeholder='(00) 00000-0000'
                 maxLength={15}
-                theme={theme}
+                $theme={theme}
                 $hasError={!!errors.phone}
               />
-              {errors.phone && <OptimizedErrorMessage>{errors.phone}</OptimizedErrorMessage>}
+              {errors.phone && (
+                <OptimizedErrorMessage>{errors.phone}</OptimizedErrorMessage>
+              )}
             </FormGroupStyled>
 
             <FormGroupStyled>
-              <OptimizedLabel htmlFor='birthDate'>Data de Nascimento *</OptimizedLabel>
+              <OptimizedLabel htmlFor='birthDate'>
+                Data de Nascimento *
+              </OptimizedLabel>
               <OptimizedInputStyled
                 id='birthDate'
                 type='date'
                 value={formData.birthDate}
                 onChange={e => handleInputChange('birthDate', e.target.value)}
-                theme={theme}
+                $theme={theme}
                 $hasError={!!errors.birthDate}
               />
               {errors.birthDate && (
-                <OptimizedErrorMessage>{errors.birthDate}</OptimizedErrorMessage>
+                <OptimizedErrorMessage>
+                  {errors.birthDate}
+                </OptimizedErrorMessage>
               )}
             </FormGroupStyled>
           </OptimizedFormRow>
@@ -580,7 +601,7 @@ const Register: React.FC = () => {
                   e.target.value as 'employer' | 'admin'
                 )
               }
-              theme={theme}
+              $theme={theme}
               $hasError={!!errors.role}
               aria-label='Selecionar tipo de conta'
               title='Selecionar tipo de conta'
@@ -592,17 +613,19 @@ const Register: React.FC = () => {
                 <AccessibleEmoji emoji='👑' label='Coroa' /> Administrador
               </option>
             </OptimizedSelectStyled>
-            {errors.role && <OptimizedErrorMessage>{errors.role}</OptimizedErrorMessage>}
+            {errors.role && (
+              <OptimizedErrorMessage>{errors.role}</OptimizedErrorMessage>
+            )}
           </FormGroupStyled>
 
           <ButtonContainer>
             <LoginLink href='/login'>← Já tenho conta</LoginLink>
             <RegisterButton
               type='submit'
-              variant='primary'
-              theme={theme}
+              $variant='primary'
+              $theme={theme}
               $canSubmit={canSubmit}
-              disabled={!canSubmit || isLoading}
+              $disabled={!canSubmit || isLoading}
             >
               {isLoading ? (
                 <>

@@ -2,7 +2,7 @@
 import styled from 'styled-components';
 
 interface PageContainerProps {
-  theme: any;
+  $theme: any;
   children: React.ReactNode;
   className?: string;
 }
@@ -39,13 +39,13 @@ interface PageContainerPropsWithSidebar extends PageContainerProps {
 }
 
 export default function PageContainer({
-  theme,
+  $theme,
   children,
   className,
   sidebarCollapsed = false,
 }: PageContainerPropsWithSidebar) {
   return (
-    <Container $theme={theme} className={className}>
+    <Container $theme={$theme} className={className}>
       <MainContent $sidebarCollapsed={sidebarCollapsed}>
         <ContentWrapper>{children}</ContentWrapper>
       </MainContent>

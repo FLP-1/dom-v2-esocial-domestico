@@ -5,7 +5,6 @@ const StyledComponent1 = styled.div`
   cursor: onClick ? pointer : default
 `;
 
-
 const fadeIn = keyframes`
   from {
     opacity: 0;
@@ -93,11 +92,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
   onClick,
 }) => {
   return (
-    <CardContainer
-      $theme={theme}
-      onClick={onClick}
-      as={StyledComponent1}
-    >
+    <CardContainer $theme={theme} onClick={onClick} as={StyledComponent1}>
       <CardHeader>
         <CardIcon $theme={theme}>{icon}</CardIcon>
         <CardTitle>{title}</CardTitle>

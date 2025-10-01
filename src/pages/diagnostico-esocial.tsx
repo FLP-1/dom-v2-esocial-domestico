@@ -1,5 +1,6 @@
 import { NextPage } from 'next';
 import { useState } from 'react';
+import { UnifiedButton } from '../components/UnifiedButton';
 
 interface TesteResultado {
   nome: string;
@@ -62,7 +63,6 @@ const DiagnosticoESocial: NextPage = () => {
       }
     } catch (error) {
       setErro('Erro na comunicação com o servidor');
-
     } finally {
       setCarregando(false);
     }
@@ -115,45 +115,36 @@ const DiagnosticoESocial: NextPage = () => {
               Selecione o Ambiente:
             </p>
             <div className='flex space-x-4'>
-              <button
+              <UnifiedButton
                 onClick={() => setAmbiente('homologacao')}
-                className={`px-6 py-3 rounded-lg font-medium ${
-                  ambiente === 'homologacao'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                $variant={ambiente === 'homologacao' ? 'primary' : 'secondary'}
+                $size='lg'
               >
                 <span role='img' aria-label='Teste'>
                   🧪
                 </span>{' '}
                 Homologação
-              </button>
-              <button
+              </UnifiedButton>
+              <UnifiedButton
                 onClick={() => setAmbiente('producao')}
-                className={`px-6 py-3 rounded-lg font-medium ${
-                  ambiente === 'producao'
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
+                $variant={ambiente === 'producao' ? 'success' : 'secondary'}
+                $size='lg'
               >
                 <span role='img' aria-label='Foguete'>
                   🚀
                 </span>{' '}
                 Produção
-              </button>
+              </UnifiedButton>
             </div>
           </div>
 
           {/* Botão de Execução */}
           <div className='text-center mb-8'>
-            <button
+            <UnifiedButton
               onClick={executarDiagnostico}
-              disabled={carregando}
-              className={`px-8 py-4 rounded-lg font-medium text-lg ${
-                carregando
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              $disabled={carregando}
+              $variant='primary'
+              $size='lg'
             >
               {carregando ? (
                 <>
@@ -170,7 +161,7 @@ const DiagnosticoESocial: NextPage = () => {
                   Executar Diagnóstico Completo
                 </>
               )}
-            </button>
+            </UnifiedButton>
           </div>
 
           {/* Resultados do Diagnóstico */}

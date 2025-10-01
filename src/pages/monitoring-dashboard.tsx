@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
-import { UnifiedButton } from '../components/unified';
 import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
@@ -11,9 +10,15 @@ import { useTheme } from '../hooks/useTheme';
 import { getAuditService } from '../services/auditService';
 import { getBackupService } from '../services/backupService';
 import { getWebhookService } from '../services/webhookService';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
-import { OptimizedFlexContainer, OptimizedStatusIndicator } from '../components/shared/optimized-styles';
-
+import {
+  UnifiedButton,
+  UnifiedModal,
+  UnifiedCard,
+} from '../components/unified';
+import {
+  OptimizedFlexContainer,
+  OptimizedStatusIndicator,
+} from '../components/shared/optimized-styles';
 
 // Animações
 const fadeIn = keyframes`
@@ -304,7 +309,7 @@ const MonitoringDashboard: React.FC = () => {
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
   const [collapsed, setCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [systemStatus, setSystemStatus] = useState('online');
+  const [systemStatus, setSystemStatus] = useState<'success' | 'warning' | 'error' | 'info'>('success');
   const [metrics, setMetrics] = useState({
     eventosEnviados: 0,
     eventosProcessados: 0,
@@ -400,7 +405,7 @@ const MonitoringDashboard: React.FC = () => {
       } else if (metrics.eventosComErro > 20) {
         setSystemStatus('warning');
       } else {
-        setSystemStatus('online');
+        setSystemStatus('success');
       }
     } catch (error) {
       toast.error('Erro ao carregar métricas');
@@ -457,8 +462,7 @@ const MonitoringDashboard: React.FC = () => {
         currentPath={router.pathname}
       />
       <MainContent>
-        <WelcomeSection
-          theme={theme}
+        <WelcomeSection $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -477,14 +481,14 @@ const MonitoringDashboard: React.FC = () => {
             </Subtitle>
           </div>
           <OptimizedFlexContainer>
-            <OptimizedStatusIndicator $status={systemStatus} theme={theme}>
+            <OptimizedStatusIndicator $status={systemStatus} $theme={theme}>
               {getStatusIcon(systemStatus)} {getStatusText(systemStatus)}
             </OptimizedStatusIndicator>
             <RefreshButton
-              variant='primary'
-              theme={theme}
+              $variant='primary'
+              $theme={theme}
               onClick={handleRefresh}
-              disabled={isLoading}
+              $disabled={isLoading}
             >
               {isLoading ? '⏳' : '🔄'} Atualizar
             </RefreshButton>
@@ -493,7 +497,7 @@ const MonitoringDashboard: React.FC = () => {
 
         {/* Alertas */}
         {alerts.map((alert, index) => (
-          <AlertBanner key={index} $type={alert.type} theme={theme}>
+          <AlertBanner key={index} $type={alert.type} $theme={theme}>
             <AlertIcon>{alert.icon}</AlertIcon>
             <AlertText>{alert.text}</AlertText>
           </AlertBanner>
@@ -501,11 +505,11 @@ const MonitoringDashboard: React.FC = () => {
 
         {/* Métricas Principais */}
         <DashboardGrid>
-          <MetricCard theme={theme}>
+          <MetricCard $theme={theme}>
             <MetricTitle>
               <AccessibleEmoji emoji='📤' label='Exportar' /> Eventos Enviados
             </MetricTitle>
-            <MetricValue theme={theme}>
+            <MetricValue $theme={theme}>
               {metrics.eventosEnviados.toLocaleString()}
             </MetricValue>
             <MetricSubtext>
@@ -513,50 +517,48 @@ const MonitoringDashboard: React.FC = () => {
             </MetricSubtext>
           </MetricCard>
 
-          <MetricCard theme={theme}>
+          <MetricCard $theme={theme}>
             <MetricTitle>
               <AccessibleEmoji emoji='✅' label='Sucesso' /> Eventos Processados
             </MetricTitle>
-            <MetricValue theme={theme}>
+            <MetricValue $theme={theme}>
               {metrics.eventosProcessados.toLocaleString()}
             </MetricValue>
             <MetricSubtext>Eventos processados com sucesso</MetricSubtext>
           </MetricCard>
 
-          <MetricCard theme={theme}>
+          <MetricCard $theme={theme}>
             <MetricTitle>
               <AccessibleEmoji emoji='❌' label='Erro' /> Eventos com Erro
             </MetricTitle>
-            <MetricValue theme={theme}>
+            <MetricValue $theme={theme}>
               {metrics.eventosComErro.toLocaleString()}
             </MetricValue>
             <MetricSubtext>Eventos que falharam no processamento</MetricSubtext>
           </MetricCard>
 
-          <MetricCard theme={theme}>
+          <MetricCard $theme={theme}>
             <MetricTitle>
               <AccessibleEmoji emoji='🔗' label='Link' /> Webhooks Ativos
             </MetricTitle>
-            <MetricValue theme={theme}>{metrics.webhooksAtivos}</MetricValue>
+            <MetricValue $theme={theme}>{metrics.webhooksAtivos}</MetricValue>
             <MetricSubtext>Webhooks configurados e funcionando</MetricSubtext>
           </MetricCard>
 
-          <MetricCard theme={theme}>
+          <MetricCard $theme={theme}>
             <MetricTitle>
               <AccessibleEmoji emoji='💾' label='Armazenar' /> Backups
               Realizados
             </MetricTitle>
-            <MetricValue theme={theme}>
-              {metrics.backupsRealizados}
-            </MetricValue>
+            <MetricValue $theme={theme}>{metrics.backupsRealizados}</MetricValue>
             <MetricSubtext>Backups executados com sucesso</MetricSubtext>
           </MetricCard>
 
-          <MetricCard theme={theme}>
+          <MetricCard $theme={theme}>
             <MetricTitle>
               <AccessibleEmoji emoji='📋' label='Checklist' /> Logs de Auditoria
             </MetricTitle>
-            <MetricValue theme={theme}>
+            <MetricValue $theme={theme}>
               {metrics.logsAuditoria.toLocaleString()}
             </MetricValue>
             <MetricSubtext>Logs gerados nos últimos 30 dias</MetricSubtext>
@@ -573,7 +575,7 @@ const MonitoringDashboard: React.FC = () => {
               <ActivityItem
                 key={activity.id}
                 $type={activity.type}
-                theme={theme}
+                $theme={theme}
               >
                 <ActivityIcon>{activity.icon}</ActivityIcon>
                 <ActivityContent>

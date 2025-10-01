@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useTheme } from '../../hooks/useTheme';
 import { Button, Card, Input, Modal } from '../components';
-import { colors } from '../tokens';
-import { OptimizedSectionTitle, OptimizedButtonGroup } from '../components/shared/optimized-styles';
-
+import { colors } from '../tokens/colors';
+import {
+  OptimizedSectionTitle,
+  OptimizedButtonGroup,
+} from '../../components/shared/optimized-styles';
 
 const DemoContainer = styled.div`
   padding: 2rem;

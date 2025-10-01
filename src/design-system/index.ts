@@ -134,7 +134,7 @@ export const responsive = (styles: Record<string, any>) => {
   return responsiveStyles;
 };
 
-export default {
+const designSystem = {
   colors,
   spacing,
   typography,
@@ -145,3 +145,5 @@ export default {
   createThemedStyles,
   responsive,
 };
+
+export default designSystem;

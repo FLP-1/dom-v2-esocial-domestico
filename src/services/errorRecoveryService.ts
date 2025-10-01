@@ -190,7 +190,7 @@ class ErrorRecoveryService {
     await new Promise(resolve => setTimeout(resolve, this.retryDelay));
 
     // Em produção, reexecutar a operação original
-    // 
+    //
   }
 
   // Executar fallback
@@ -199,31 +199,31 @@ class ErrorRecoveryService {
     switch (errorInfo.tipo) {
       case 'network':
         // Tentar conexão alternativa
-        // 
+        //
         break;
       case 'authentication':
         // Tentar reautenticação
-        // 
+        //
         break;
       case 'validation':
         // Usar dados padrão
-        // 
+        //
         break;
       default:
-      // 
+      //
     }
   }
 
   // Enviar notificação de erro
   private async sendErrorNotification(_errorInfo: ErrorInfo): Promise<void> {
     // Integrar com serviço de notificações
-    // 
+    //
   }
 
   // Executar rollback
   private async executeRollback(_errorInfo: ErrorInfo): Promise<void> {
     // Implementar lógica de rollback
-    // 
+    //
   }
 
   // Categorizar erro

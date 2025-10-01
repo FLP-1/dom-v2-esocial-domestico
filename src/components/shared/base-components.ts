@@ -1,13 +1,21 @@
 import styled from 'styled-components';
-import { tokens, getColor, getSpacing, getFontSize, getShadow, getTransition, getBorderRadius } from './tokens';
-import { 
-  themedMixin, 
-  responsiveMixin, 
-  sizeMixin, 
-  validationMixin, 
-  transitionMixin, 
-  hoverMixin, 
-  focusMixin, 
+import {
+  tokens,
+  getColor,
+  getSpacing,
+  getFontSize,
+  getShadow,
+  getTransition,
+  getBorderRadius,
+} from './tokens';
+import {
+  themedMixin,
+  responsiveMixin,
+  sizeMixin,
+  validationMixin,
+  transitionMixin,
+  hoverMixin,
+  focusMixin,
   disabledMixin,
   gridMixin,
   flexMixin,
@@ -17,7 +25,7 @@ import {
   animationMixin,
   shadowMixin,
   borderRadiusMixin,
-  spacingMixin
+  spacingMixin,
 } from './mixins';
 
 // 🎯 Componentes base otimizados
@@ -32,10 +40,18 @@ export const BaseContainer = styled.div<{
   $borderRadius?: string;
   $shadow?: 'sm' | 'md' | 'lg';
 }>`
-  ${spacingMixin(props => props.$padding || getSpacing('md'), props => props.$margin || '0')}
-  background: ${props => props.$background || getColor('surface.primary', props.$theme?.colors?.background)};
-  border: ${props => props.$border || `1px solid ${getColor('border.primary', props.$theme?.colors?.border)}`};
-  ${props => borderRadiusMixin(props.$borderRadius as any || 'md')}
+  padding: ${props => props.$padding || getSpacing('md')};
+  margin: ${props => props.$margin || '0'};
+  background: ${props =>
+    props.$background ||
+    getColor('surface.primary', props.$theme?.colors?.background)};
+  border: ${props =>
+    props.$border ||
+    `1px solid ${getColor('border.primary', props.$theme?.colors?.border)}`};
+  border-radius: ${props => {
+    const radius = (props.$borderRadius as any) || 'md';
+    return radius === 'sm' ? '0.25rem' : radius === 'md' ? '0.5rem' : radius === 'lg' ? '1rem' : radius === 'full' ? '9999px' : radius;
+  }};
   ${props => props.$shadow && shadowMixin(props.$shadow)}
   ${themedMixin}
   ${transitionMixin}
@@ -48,11 +64,13 @@ export const BaseInput = styled.input<{
   $hasError?: boolean;
   $fullWidth?: boolean;
 }>`
-  ${sizeMixin(props => props.$size || 'md')}
-  width: ${props => props.$fullWidth ? '100%' : 'auto'};
-  border: 1px solid ${props => getColor('border.primary', props.$theme?.colors?.border)};
-  ${props => borderRadiusMixin('md')}
-  background: ${props => getColor('surface.primary', props.$theme?.colors?.background)};
+  ${props => sizeMixin(props.$size || 'md')}
+  width: ${props => (props.$fullWidth ? '100%' : 'auto')};
+  border: 1px solid
+    ${props => getColor('border.primary', props.$theme?.colors?.border)};
+  border-radius: 0.5rem;
+  background: ${props =>
+    getColor('surface.primary', props.$theme?.colors?.background)};
   color: ${props => getColor('text.primary', props.$theme?.colors?.text)};
   ${props => validationMixin(props.$hasError || false, props.$theme)}
   ${transitionMixin}
@@ -62,7 +80,8 @@ export const BaseInput = styled.input<{
   ${accessibilityMixin}
   
   &::placeholder {
-    color: ${props => getColor('text.secondary', props.$theme?.colors?.placeholder)};
+    color: ${props =>
+      getColor('text.secondary', props.$theme?.colors?.placeholder)};
   }
 `;
 
@@ -73,11 +92,13 @@ export const BaseSelect = styled.select<{
   $hasError?: boolean;
   $fullWidth?: boolean;
 }>`
-  ${sizeMixin(props => props.$size || 'md')}
-  width: ${props => props.$fullWidth ? '100%' : 'auto'};
-  border: 1px solid ${props => getColor('border.primary', props.$theme?.colors?.border)};
-  ${props => borderRadiusMixin('md')}
-  background: ${props => getColor('surface.primary', props.$theme?.colors?.background)};
+  ${props => sizeMixin(props.$size || 'md')}
+  width: ${props => (props.$fullWidth ? '100%' : 'auto')};
+  border: 1px solid
+    ${props => getColor('border.primary', props.$theme?.colors?.border)};
+  border-radius: 0.5rem;
+  background: ${props =>
+    getColor('surface.primary', props.$theme?.colors?.background)};
   color: ${props => getColor('text.primary', props.$theme?.colors?.text)};
   cursor: pointer;
   ${props => validationMixin(props.$hasError || false, props.$theme)}
@@ -92,15 +113,22 @@ export const BaseSelect = styled.select<{
 export const BaseButton = styled.button<{
   $theme?: any;
   $size?: 'sm' | 'md' | 'lg';
-  $variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'danger' | 'ghost' | 'link';
+  $variant?:
+    | 'primary'
+    | 'secondary'
+    | 'success'
+    | 'warning'
+    | 'danger'
+    | 'ghost'
+    | 'link';
   $fullWidth?: boolean;
   $loading?: boolean;
 }>`
-  ${sizeMixin(props => props.$size || 'md')}
-  width: ${props => props.$fullWidth ? '100%' : 'auto'};
+  ${props => sizeMixin(props.$size || 'md')}
+  width: ${props => (props.$fullWidth ? '100%' : 'auto')};
   border: none;
-  ${props => borderRadiusMixin('md')}
-  cursor: ${props => props.$loading ? 'wait' : 'pointer'};
+  border-radius: 0.5rem;
+  cursor: ${props => (props.$loading ? 'wait' : 'pointer')};
   font-weight: ${tokens.fontWeight.medium};
   ${transitionMixin}
   ${props => hoverMixin(props.$theme)}
@@ -113,28 +141,36 @@ export const BaseButton = styled.button<{
   /* Variantes de cor */
   background: ${props => {
     const variant = props.$variant || 'primary';
-    return variant === 'primary' ? getColor('primary', props.$theme?.colors?.primary) :
-           variant === 'secondary' ? getColor('surface.secondary', props.$theme?.colors?.secondary) :
-           variant === 'success' ? getColor('success', props.$theme?.colors?.success) :
-           variant === 'warning' ? getColor('warning', props.$theme?.colors?.warning) :
-           variant === 'danger' ? getColor('error', props.$theme?.colors?.error) :
-           variant === 'ghost' ? 'transparent' :
-           'transparent';
+    return variant === 'primary'
+      ? getColor('primary', props.$theme?.colors?.primary)
+      : variant === 'secondary'
+        ? getColor('surface.secondary', props.$theme?.colors?.secondary)
+        : variant === 'success'
+          ? getColor('success', props.$theme?.colors?.success)
+          : variant === 'warning'
+            ? getColor('warning', props.$theme?.colors?.warning)
+            : variant === 'danger'
+              ? getColor('error', props.$theme?.colors?.error)
+              : variant === 'ghost'
+                ? 'transparent'
+                : 'transparent';
   }};
-  
+
   color: ${props => {
     const variant = props.$variant || 'primary';
-    return variant === 'ghost' || variant === 'link' ? 
-           getColor('primary', props.$theme?.colors?.primary) : 
-           getColor('surface.primary', props.$theme?.colors?.white);
+    return variant === 'ghost' || variant === 'link'
+      ? getColor('primary', props.$theme?.colors?.primary)
+      : getColor('surface.primary', props.$theme?.colors?.white);
   }};
-  
+
   &:hover {
     background: ${props => {
       const variant = props.$variant || 'primary';
-      return variant === 'ghost' ? getColor('hover', props.$theme?.colors?.hover) :
-             variant === 'link' ? 'transparent' :
-             'auto';
+      return variant === 'ghost'
+        ? getColor('hover', props.$theme?.colors?.hover)
+        : variant === 'link'
+          ? 'transparent'
+          : 'auto';
     }};
   }
 `;
@@ -145,13 +181,15 @@ export const BaseLabel = styled.label<{
   $size?: 'sm' | 'md' | 'lg';
   $required?: boolean;
 }>`
-  ${sizeMixin(props => props.$size || 'md')}
+  ${props => sizeMixin(props.$size || 'md')}
   font-weight: ${tokens.fontWeight.semibold};
   color: ${props => getColor('text.primary', props.$theme?.colors?.text)};
   display: block;
   margin-bottom: ${getSpacing('sm')};
-  
-  ${props => props.$required && `
+
+  ${props =>
+    props.$required &&
+    `
     &::after {
       content: ' *';
       color: ${getColor('error', props.$theme?.colors?.error)};
@@ -164,7 +202,7 @@ export const BaseErrorMessage = styled.div<{
   $theme?: any;
   $size?: 'sm' | 'md' | 'lg';
 }>`
-  ${sizeMixin(props => props.$size || 'sm')}
+  ${props => sizeMixin(props.$size || 'sm')}
   color: ${props => getColor('error', props.$theme?.colors?.error)};
   font-weight: ${tokens.fontWeight.medium};
   margin-top: ${getSpacing('sm')};
@@ -178,12 +216,14 @@ export const BaseSuccessMessage = styled.div<{
   $theme?: any;
   $size?: 'sm' | 'md' | 'lg';
 }>`
-  ${sizeMixin(props => props.$size || 'sm')}
+  ${props => sizeMixin(props.$size || 'sm')}
   color: ${props => getColor('success', props.$theme?.colors?.success)};
-  background: ${props => getColor('successLight', props.$theme?.colors?.successLight)};
+  background: ${props =>
+    getColor('successLight', props.$theme?.colors?.successLight)};
   padding: ${getSpacing('md')};
-  ${props => borderRadiusMixin('md')}
-  border: 1px solid ${props => getColor('success', props.$theme?.colors?.success)};
+  border-radius: 0.5rem;
+  border: 1px solid ${props =>
+    getColor('success', props.$theme?.colors?.success)};
   font-weight: ${tokens.fontWeight.medium};
   margin-top: ${getSpacing('sm')};
   display: flex;
@@ -197,13 +237,20 @@ export const BaseFlexContainer = styled.div<{
   $direction?: 'row' | 'column';
   $gap?: string;
   $align?: 'flex-start' | 'center' | 'flex-end' | 'stretch';
-  $justify?: 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
+  $justify?:
+    | 'flex-start'
+    | 'center'
+    | 'flex-end'
+    | 'space-between'
+    | 'space-around';
   $wrap?: boolean;
 }>`
-  ${flexMixin(props => props.$direction || 'row', props => props.$gap || getSpacing('md'))}
+  display: flex;
+  flex-direction: ${props => props.$direction || 'row'};
+  gap: ${props => props.$gap || getSpacing('md')};
   align-items: ${props => props.$align || 'center'};
   justify-content: ${props => props.$justify || 'flex-start'};
-  flex-wrap: ${props => props.$wrap ? 'wrap' : 'nowrap'};
+  flex-wrap: ${props => (props.$wrap ? 'wrap' : 'nowrap')};
   ${responsiveMixin}
 `;
 
@@ -216,7 +263,8 @@ export const BaseGridContainer = styled.div<{
   $justify?: 'start' | 'center' | 'end' | 'stretch';
 }>`
   ${gridMixin}
-  grid-template-columns: ${props => props.$columns || 'repeat(auto-fit, minmax(200px, 1fr))'};
+  grid-template-columns: ${props =>
+    props.$columns || 'repeat(auto-fit, minmax(200px, 1fr))'};
   gap: ${props => props.$gap || getSpacing('md')};
   align-items: ${props => props.$align || 'stretch'};
   justify-items: ${props => props.$justify || 'stretch'};
@@ -232,10 +280,18 @@ export const BaseCard = styled.div<{
   $borderRadius?: string;
   $background?: string;
 }>`
-  ${spacingMixin(props => props.$padding || getSpacing('lg'), props => props.$margin || '0')}
-  background: ${props => props.$background || getColor('surface.primary', props.$theme?.colors?.background)};
-  border: ${props => props.$border || `1px solid ${getColor('border.primary', props.$theme?.colors?.border)}`};
-  ${props => borderRadiusMixin(props.$borderRadius as any || 'md')}
+  padding: ${props => props.$padding || getSpacing('lg')};
+  margin: ${props => props.$margin || '0'};
+  background: ${props =>
+    props.$background ||
+    getColor('surface.primary', props.$theme?.colors?.background)};
+  border: ${props =>
+    props.$border ||
+    `1px solid ${getColor('border.primary', props.$theme?.colors?.border)}`};
+  border-radius: ${props => {
+    const radius = (props.$borderRadius as any) || 'md';
+    return radius === 'sm' ? '0.25rem' : radius === 'md' ? '0.5rem' : radius === 'lg' ? '1rem' : radius === 'full' ? '9999px' : radius;
+  }};
   ${props => props.$shadow && shadowMixin(props.$shadow)}
   ${transitionMixin}
   ${animationMixin}
@@ -247,20 +303,30 @@ export const BaseModal = styled.div<{
   $size?: 'sm' | 'md' | 'lg' | 'xl';
   $fullscreen?: boolean;
 }>`
-  background: ${props => getColor('surface.primary', props.$theme?.colors?.background)};
-  ${props => borderRadiusMixin(props.$fullscreen ? 'sm' : 'lg')}
+  background: ${props =>
+    getColor('surface.primary', props.$theme?.colors?.background)};
+  border-radius: ${props => props.$fullscreen ? '0.25rem' : '1rem'};
   ${props => shadowMixin('lg')}
   ${transitionMixin}
   ${animationMixin}
   
-  ${props => props.$fullscreen ? `
+  ${props =>
+    props.$fullscreen
+      ? `
     width: 100vw;
     height: 100vh;
     border-radius: 0;
-  ` : `
-    width: ${props.$size === 'sm' ? '400px' : 
-            props.$size === 'md' ? '600px' : 
-            props.$size === 'lg' ? '800px' : '1000px'};
+  `
+      : `
+    width: ${
+      props.$size === 'sm'
+        ? '400px'
+        : props.$size === 'md'
+          ? '600px'
+          : props.$size === 'lg'
+            ? '800px'
+            : '1000px'
+    };
     max-width: 90vw;
     max-height: 90vh;
   `}
@@ -291,40 +357,50 @@ export const BaseTooltip = styled.div<{
   $position?: 'top' | 'bottom' | 'left' | 'right';
   $size?: 'sm' | 'md' | 'lg';
 }>`
-  ${sizeMixin(props => props.$size || 'sm')}
-  background: ${props => getColor('text.primary', props.$theme?.colors?.tooltipBackground)};
-  color: ${props => getColor('surface.primary', props.$theme?.colors?.tooltipText)};
+  ${props => sizeMixin(props.$size || 'sm')}
+  background: ${props =>
+    getColor('text.primary', props.$theme?.colors?.tooltipBackground)};
+  color: ${props =>
+    getColor('surface.primary', props.$theme?.colors?.tooltipText)};
   padding: ${getSpacing('sm')} ${getSpacing('md')};
-  ${props => borderRadiusMixin('sm')}
+  border-radius: 0.25rem;
   ${shadowMixin('md')}
   position: absolute;
   z-index: ${tokens.zIndex.tooltip};
   white-space: nowrap;
   ${transitionMixin}
-  
+
   /* Posicionamento */
-  ${props => props.$position === 'top' && `
+  ${props =>
+    props.$position === 'top' &&
+    `
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
     margin-bottom: ${getSpacing('sm')};
   `}
   
-  ${props => props.$position === 'bottom' && `
+  ${props =>
+    props.$position === 'bottom' &&
+    `
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
     margin-top: ${getSpacing('sm')};
   `}
   
-  ${props => props.$position === 'left' && `
+  ${props =>
+    props.$position === 'left' &&
+    `
     right: 100%;
     top: 50%;
     transform: translateY(-50%);
     margin-right: ${getSpacing('sm')};
   `}
   
-  ${props => props.$position === 'right' && `
+  ${props =>
+    props.$position === 'right' &&
+    `
     left: 100%;
     top: 50%;
     transform: translateY(-50%);
@@ -338,16 +414,26 @@ export const BaseSpinner = styled.div<{
   $size?: 'sm' | 'md' | 'lg';
   $color?: string;
 }>`
-  width: ${props => props.$size === 'sm' ? '16px' : props.$size === 'lg' ? '32px' : '24px'};
-  height: ${props => props.$size === 'sm' ? '16px' : props.$size === 'lg' ? '32px' : '24px'};
-  border: 2px solid ${props => props.$color || getColor('border.primary', props.$theme?.colors?.border)};
-  border-top: 2px solid ${props => props.$color || getColor('primary', props.$theme?.colors?.primary)};
+  width: ${props =>
+    props.$size === 'sm' ? '16px' : props.$size === 'lg' ? '32px' : '24px'};
+  height: ${props =>
+    props.$size === 'sm' ? '16px' : props.$size === 'lg' ? '32px' : '24px'};
+  border: 2px solid
+    ${props =>
+      props.$color || getColor('border.primary', props.$theme?.colors?.border)};
+  border-top: 2px solid
+    ${props =>
+      props.$color || getColor('primary', props.$theme?.colors?.primary)};
   border-radius: 50%;
   animation: spin 1s linear infinite;
-  
+
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -359,20 +445,24 @@ export const BaseProgressBar = styled.div<{
   $background?: string;
 }>`
   width: 100%;
-  height: ${props => props.$size === 'sm' ? '4px' : props.$size === 'lg' ? '12px' : '8px'};
-  background: ${props => props.$background || getColor('surface.secondary', props.$theme?.colors?.background)};
-  ${props => borderRadiusMixin('full')}
+  height: ${props =>
+    props.$size === 'sm' ? '4px' : props.$size === 'lg' ? '12px' : '8px'};
+  background: ${props =>
+    props.$background ||
+    getColor('surface.secondary', props.$theme?.colors?.background)};
+  border-radius: 9999px;
   overflow: hidden;
   position: relative;
-  
+
   &::after {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     height: 100%;
-    background: ${props => props.$color || getColor('primary', props.$theme?.colors?.primary)};
-    ${props => borderRadiusMixin('full')}
+    background: ${props =>
+      props.$color || getColor('primary', props.$theme?.colors?.primary)};
+    border-radius: 9999px;
     ${transitionMixin}
   }
 `;
@@ -383,14 +473,14 @@ export const BaseBadge = styled.span<{
   $variant?: 'success' | 'warning' | 'error' | 'info' | 'neutral';
   $size?: 'sm' | 'md' | 'lg';
 }>`
-  ${sizeMixin(props => props.$size || 'sm')}
+  ${props => sizeMixin(props.$size || 'sm')}
   display: inline-flex;
   align-items: center;
   gap: ${getSpacing('xs')};
   padding: ${getSpacing('xs')} ${getSpacing('sm')};
-  ${props => borderRadiusMixin('full')}
+  border-radius: 9999px;
   font-weight: ${tokens.fontWeight.medium};
-  ${statusColorMixin(props => props.$variant || 'neutral', props.$theme)}
+  ${props => statusColorMixin((props.$variant === 'neutral' ? 'info' : props.$variant) || 'info', props.$theme)}
   ${transitionMixin}
 `;
 
@@ -402,13 +492,17 @@ export const BaseDivider = styled.hr<{
   $color?: string;
 }>`
   border: none;
-  background: ${props => props.$color || getColor('border.primary', props.$theme?.colors?.border)};
-  
-  ${props => props.$orientation === 'horizontal' ? `
+  background: ${props =>
+    props.$color || getColor('border.primary', props.$theme?.colors?.border)};
+
+  ${props =>
+    props.$orientation === 'horizontal'
+      ? `
     width: 100%;
     height: ${props.$size === 'sm' ? '1px' : props.$size === 'lg' ? '3px' : '2px'};
     margin: ${getSpacing('md')} 0;
-  ` : `
+  `
+      : `
     height: 100%;
     width: ${props.$size === 'sm' ? '1px' : props.$size === 'lg' ? '3px' : '2px'};
     margin: 0 ${getSpacing('md')};

@@ -1,5 +1,5 @@
 import AccessibleEmoji from '../components/AccessibleEmoji';
-import EmployerUnifiedModal from '../components/EmployerUnifiedModal';
+import { EmployerModalNew } from '../components/EmployerModalNew';
 // src/pages/login-biometric.tsx
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -10,8 +10,11 @@ import styled, { keyframes } from 'styled-components';
 import { UserProfile, useUserProfile } from '../contexts/UserProfileContext';
 import { useAlertManager } from '../hooks/useAlertManager';
 import { validateCpf } from '../utils/cpfValidator';
-import { OptimizedErrorMessage, OptimizedCheckboxContainer, OptimizedCheckboxLabel } from '../components/shared/optimized-styles';
-
+import {
+  OptimizedErrorMessage,
+  OptimizedCheckboxContainer,
+  OptimizedCheckboxLabel,
+} from '../components/shared/optimized-styles';
 
 // Carrega o MotivationCarousel dinamicamente
 const MotivationCarousel = dynamic(
@@ -370,7 +373,8 @@ export default function LoginBiometric() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isEmployerUnifiedModalOpen, setIsEmployerUnifiedModalOpen] = useState(false);
+  const [isEmployerModalNewOpen, setIsEmployerModalNewOpen] =
+    useState(false);
   const [errors, setErrors] = useState<{
     cpf?: string;
     password?: string;
@@ -378,8 +382,10 @@ export default function LoginBiometric() {
   }>({});
 
   // Hook do contexto de perfil
-  const { setAvailableProfiles, setShowProfileUnifiedModal, handleProfileSelection } =
-    useUserProfile();
+  const {
+    setAvailableProfiles,
+    handleProfileSelection,
+  } = useUserProfile();
 
   const motivationalPhrases = [
     'Transforme sua casa em um lar organizado e acolhedor',
@@ -521,8 +527,8 @@ export default function LoginBiometric() {
         }
       } else {
         // Se há múltiplos perfis, mostra o modal de seleção
-        // 
-        setShowProfileUnifiedModal(true);
+        //
+        // setShowProfileUnifiedModal removido
       }
     }, 1500);
   };
@@ -581,7 +587,7 @@ export default function LoginBiometric() {
           }
         } else {
           // Se há múltiplos perfis, mostra o modal de seleção
-          setShowProfileUnifiedModal(true);
+          // setShowProfileUnifiedModal removido
         }
       }, 1500);
       return;
@@ -595,7 +601,7 @@ export default function LoginBiometric() {
   const handleSaveEmployer = (employer: any) => {
     try {
       alertManager.showSuccess('Empregador cadastrado com sucesso!');
-      setIsEmployerUnifiedModalOpen(false);
+      setIsEmployerModalNewOpen(false);
       // Aqui você implementaria a lógica real de cadastro do empregador
     } catch (error) {
       alertManager.showError('Erro ao cadastrar empregador');
@@ -633,7 +639,9 @@ export default function LoginBiometric() {
               placeholder='000.000.000-00'
               $hasError={!!errors.cpf}
             />
-            {errors.cpf && <OptimizedErrorMessage>{errors.cpf}</OptimizedErrorMessage>}
+            {errors.cpf && (
+              <OptimizedErrorMessage>{errors.cpf}</OptimizedErrorMessage>
+            )}
           </InputGroup>
 
           <InputGroup>
@@ -665,7 +673,9 @@ export default function LoginBiometric() {
                 <AccessibleEmoji emoji='👁' label='Ocultar' />
               )}
             </PasswordToggle>
-            {errors.password && <OptimizedErrorMessage>{errors.password}</OptimizedErrorMessage>}
+            {errors.password && (
+              <OptimizedErrorMessage>{errors.password}</OptimizedErrorMessage>
+            )}
           </InputGroup>
 
           <RememberMeContainer>
@@ -676,8 +686,10 @@ export default function LoginBiometric() {
                 checked={rememberMe}
                 onChange={e => setRememberMe(e.target.checked)}
               />
-              <OptimizedCheckboxLabel htmlFor='remember'>Lembrar de mim</OptimizedCheckboxLabel>
-            </CheckboxContainer>
+              <label htmlFor='remember'>
+                Lembrar de mim
+              </label>
+            </OptimizedCheckboxContainer>
             <Link href='/forgot-password'>Esqueci minha senha</Link>
           </RememberMeContainer>
 
@@ -689,27 +701,21 @@ export default function LoginBiometric() {
                 checked={acceptedTerms}
                 onChange={e => setAcceptedTerms(e.target.checked)}
               />
-              <OptimizedCheckboxLabel htmlFor='terms'>
+              <label htmlFor='terms'>
                 Li e aceito os{' '}
-                <Link
-                  href='/terms'
-                  onClick={e => e.stopPropagation()}
-                >
+                <Link href='/terms' onClick={e => e.stopPropagation()}>
                   Termos de Uso
-                </Link>
-{' '}
+                </Link>{' '}
                 e as{' '}
-                <Link
-                  href='/privacy'
-                  onClick={e => e.stopPropagation()}
-                >
+                <Link href='/privacy' onClick={e => e.stopPropagation()}>
                   Políticas de Privacidade
                 </Link>
-              </OptimizedCheckboxLabel>
-            </CheckboxContainer>
-        
+              </label>
+            </OptimizedCheckboxContainer>
           </RememberMeContainer>
-          {errors.terms && <OptimizedErrorMessage>{errors.terms}</OptimizedErrorMessage>}
+          {errors.terms && (
+            <OptimizedErrorMessage>{errors.terms}</OptimizedErrorMessage>
+          )}
         </Form>
 
         <BiometricSection>
@@ -723,7 +729,7 @@ export default function LoginBiometric() {
           </BiometricContainer>
           <BiometricOptions>
             <BiometricButton
-              variant='primary'
+              $variant='primary'
               onClick={() => handleBiometricLogin('password')}
               disabled={isLoading}
             >
@@ -746,7 +752,9 @@ export default function LoginBiometric() {
               </span>
               <span className='label'>Digital</span>
             </BiometricButton>
-            <BiometricButton onClick={() => setIsEmployerUnifiedModalOpen(true)}>
+            <BiometricButton
+              onClick={() => setIsEmployerModalNewOpen(true)}
+            >
               <span className='icon'>
                 <AccessibleEmoji emoji='📝' label='Formulário' />
               </span>
@@ -756,11 +764,11 @@ export default function LoginBiometric() {
         </BiometricSection>
       </LoginCard>
 
-      <EmployerUnifiedModal
-        isOpen={isEmployerUnifiedModalOpen}
-        onClose={() => setIsEmployerUnifiedModalOpen(false)}
+      <EmployerModalNew
+        isOpen={isEmployerModalNewOpen}
+        onClose={() => setIsEmployerModalNewOpen(false)}
         onSave={handleSaveEmployer}
-        theme={{
+        $theme={{
           colors: {
             primary: '#29abe2',
             secondary: '#2c3e50',

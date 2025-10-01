@@ -6,10 +6,9 @@ import { useRef, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
-import { UnifiedButton } from '../components/unified';
 import FilterSection from '../components/FilterSection';
 import { FormGroup, Input, Label, Select } from '../components/FormComponents';
-import { UnifiedUnifiedModal } from '../components/unified';
+import { UnifiedButton, UnifiedModal } from '../components/unified';
 import PageContainer from '../components/PageContainer';
 import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
@@ -17,9 +16,13 @@ import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
-import { OptimizedFormRow, OptimizedLabel } from '../components/shared/optimized-styles';
-
+import {
+  UnifiedCard,
+} from '../components/unified';
+import {
+  OptimizedFormRow,
+  OptimizedLabel,
+} from '../components/shared/optimized-styles';
 
 // Interfaces
 interface Document {
@@ -502,7 +505,10 @@ export default function DocumentManagement() {
     toast.success('Documento excluído com sucesso!');
   };
 
-  const openUnifiedModal = (type: 'view' | 'edit' | 'upload', document?: Document) => {
+  const openUnifiedModal = (
+    type: 'view' | 'edit' | 'upload',
+    document?: Document
+  ) => {
     setUnifiedModalType(type);
     setSelectedDocument(document || null);
     setUnifiedModalOpen(true);
@@ -538,16 +544,15 @@ export default function DocumentManagement() {
   };
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
-        <WelcomeSection
-          theme={theme}
+      <TopBar $theme={theme}>
+        <WelcomeSection $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -558,14 +563,13 @@ export default function DocumentManagement() {
         />
       </TopBar>
 
-      <PageHeader
-        theme={theme}
+      <PageHeader $theme={theme}
         title='Gestão de Documentos'
         subtitle='Organize, armazene e gerencie todos os documentos importantes do lar'
       />
 
       <UploadSection
-        theme={theme}
+        $theme={theme}
         $isDragOver={isDragOver}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -573,7 +577,7 @@ export default function DocumentManagement() {
         onClick={() => fileInputRef.current?.click()}
       >
         <UploadContent>
-          <UploadIcon theme={theme}>
+          <UploadIcon $theme={theme}>
             <AccessibleEmoji emoji='📁' label='Pasta' />
           </UploadIcon>
           <UploadText>
@@ -581,8 +585,8 @@ export default function DocumentManagement() {
             <p>Arraste e solte arquivos aqui ou clique para selecionar</p>
           </UploadText>
           <UnifiedButton
-            variant='primary'
-            theme={theme}
+            $variant='primary'
+            $theme={theme}
             onClick={() => {
               fileInputRef.current?.click();
             }}
@@ -598,12 +602,12 @@ export default function DocumentManagement() {
         />
       </UploadSection>
 
-      <FilterSection theme={theme} title='Filtros e Busca'>
+      <FilterSection $theme={theme} title='Filtros e Busca'>
         <FilterRow>
           <FormGroup>
             <OptimizedLabel>Buscar Documentos</OptimizedLabel>
             <Input
-              theme={theme}
+              $theme={theme}
               type='text'
               value={filters.search}
               onChange={e =>
@@ -614,10 +618,12 @@ export default function DocumentManagement() {
           </FormGroup>
 
           <FormGroup>
-            <OptimizedLabel htmlFor='filter-category'>Filtrar por Categoria</OptimizedLabel>
+            <OptimizedLabel htmlFor='filter-category'>
+              Filtrar por Categoria
+            </OptimizedLabel>
             <Select
               id='filter-category'
-              theme={theme}
+              $theme={theme}
               value={filters.category}
               onChange={e =>
                 setFilters(prev => ({ ...prev, category: e.target.value }))
@@ -635,10 +641,12 @@ export default function DocumentManagement() {
           </FormGroup>
 
           <FormGroup>
-            <OptimizedLabel htmlFor='filter-expiring'>Mostrar apenas</OptimizedLabel>
+            <OptimizedLabel htmlFor='filter-expiring'>
+              Mostrar apenas
+            </OptimizedLabel>
             <Select
               id='filter-expiring'
-              theme={theme}
+              $theme={theme}
               value={filters.expiring ? 'expiring' : 'all'}
               onChange={e =>
                 setFilters(prev => ({
@@ -662,7 +670,7 @@ export default function DocumentManagement() {
           return (
             <DocumentCard
               key={document.id}
-              theme={theme}
+              $theme={theme}
               $isExpiring={document.isExpiring}
               onClick={() => openUnifiedModal('view', document)}
             >
@@ -807,7 +815,7 @@ export default function DocumentManagement() {
               <FormGroup>
                 <OptimizedLabel>Nome do Documento</OptimizedLabel>
                 <Input
-                  theme={theme}
+                  $theme={theme}
                   type='text'
                   value={newDocument.name}
                   onChange={e =>
@@ -819,10 +827,12 @@ export default function DocumentManagement() {
               </FormGroup>
 
               <FormGroup>
-                <OptimizedLabel htmlFor='document-category'>Categoria</OptimizedLabel>
+                <OptimizedLabel htmlFor='document-category'>
+                  Categoria
+                </OptimizedLabel>
                 <Select
                   id='document-category'
-                  theme={theme}
+                  $theme={theme}
                   value={newDocument.category}
                   onChange={e =>
                     setNewDocument(prev => ({
@@ -848,7 +858,7 @@ export default function DocumentManagement() {
               <FormGroup>
                 <OptimizedLabel>Data de Vencimento (Opcional)</OptimizedLabel>
                 <Input
-                  theme={theme}
+                  $theme={theme}
                   type='date'
                   value={newDocument.dueDate}
                   onChange={e =>
@@ -861,10 +871,12 @@ export default function DocumentManagement() {
               </FormGroup>
 
               <FormGroup>
-                <OptimizedLabel htmlFor='document-permissions'>Permissões</OptimizedLabel>
+                <OptimizedLabel htmlFor='document-permissions'>
+                  Permissões
+                </OptimizedLabel>
                 <Select
                   id='document-permissions'
-                  theme={theme}
+                  $theme={theme}
                   value={newDocument.permissions}
                   onChange={e =>
                     setNewDocument(prev => ({
@@ -888,7 +900,7 @@ export default function DocumentManagement() {
             <FormGroup>
               <OptimizedLabel>Descrição (Opcional)</OptimizedLabel>
               <TextArea
-                theme={theme}
+                $theme={theme}
                 value={newDocument.description}
                 onChange={e =>
                   setNewDocument(prev => ({
@@ -903,8 +915,8 @@ export default function DocumentManagement() {
             {modalType === 'upload' && uploadProgress < 100 && (
               <UploadProgressContainer>
                 <OptimizedLabel>Progresso do Upload</OptimizedLabel>
-                <ProgressBar theme={theme}>
-                  <ProgressFill $progress={uploadProgress} theme={theme} />
+                <ProgressBar $theme={theme}>
+                  <ProgressFill $progress={uploadProgress} $theme={theme} />
                 </ProgressBar>
                 <ProgressText>{uploadProgress}% concluído</ProgressText>
               </UploadProgressContainer>
@@ -912,9 +924,9 @@ export default function DocumentManagement() {
 
             <UnifiedButton
               type='submit'
-              variant='primary'
-              theme={theme}
-              disabled={modalType === 'upload' && uploadProgress < 100}
+              $variant='primary'
+              $theme={theme}
+              $disabled={modalType === 'upload' && uploadProgress < 100}
             >
               {modalType === 'edit'
                 ? 'Salvar Alterações'

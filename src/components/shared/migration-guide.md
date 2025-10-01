@@ -3,6 +3,7 @@
 ## 📋 **VISÃO GERAL**
 
 Este guia mostra como migrar dos componentes atuais para os componentes otimizados, resultando em:
+
 - ⚡ **30% redução** no bundle size
 - 🚀 **50% menos** re-renders
 - 💾 **40% menos** memória usada
@@ -13,6 +14,7 @@ Este guia mostra como migrar dos componentes atuais para os componentes otimizad
 ### **1. Atualizar Imports**
 
 #### ❌ **Antes:**
+
 ```typescript
 import {
   FormRow,
@@ -29,6 +31,7 @@ import {
 ```
 
 #### ✅ **Depois:**
+
 ```typescript
 import {
   OptimizedFormRow,
@@ -47,6 +50,7 @@ import {
 ### **2. Substituir Componentes**
 
 #### **FormRow → OptimizedFormRow**
+
 ```typescript
 // ❌ Antes
 <FormRow>
@@ -62,6 +66,7 @@ import {
 ```
 
 #### **FormSection → OptimizedFormSection**
+
 ```typescript
 // ❌ Antes
 <FormSection $theme={theme}>
@@ -77,6 +82,7 @@ import {
 ```
 
 #### **InputStyled → OptimizedInputStyled**
+
 ```typescript
 // ❌ Antes
 <InputStyled
@@ -98,16 +104,19 @@ import {
 ### **3. Benefícios Imediatos**
 
 #### **Performance:**
+
 - ⚡ **Lazy loading** automático
 - 🚀 **Memoização** inteligente
 - 💾 **Tree shaking** otimizado
 
 #### **Manutenibilidade:**
+
 - 🔧 **Código duplicado** eliminado
 - 🎯 **Consistência** visual garantida
 - 📚 **Documentação** integrada
 
 #### **Developer Experience:**
+
 - 🚀 **Autocomplete** melhorado
 - 🎨 **IntelliSense** para tokens
 - 🔍 **Debugging** mais fácil
@@ -115,6 +124,7 @@ import {
 ## 🎯 **EXEMPLOS PRÁTICOS**
 
 ### **Exemplo 1: Formulário Simples**
+
 ```typescript
 // ❌ Antes
 const MyForm = () => (
@@ -156,6 +166,7 @@ const MyForm = () => (
 ```
 
 ### **Exemplo 2: Modal Complexo**
+
 ```typescript
 // ❌ Antes
 const MyModal = () => (
@@ -209,12 +220,14 @@ const MyModal = () => (
 ## 📊 **MÉTRICAS DE SUCESSO**
 
 ### **Antes da Otimização:**
+
 - Bundle size: ~150KB
 - Componentes: 25
 - Código duplicado: ~40%
 - Performance score: 75
 
 ### **Depois da Otimização:**
+
 - Bundle size: ~105KB (-30%)
 - Componentes: 15 (-40%)
 - Código duplicado: ~5% (-87%)
@@ -223,16 +236,19 @@ const MyModal = () => (
 ## 🚀 **PRÓXIMOS PASSOS**
 
 ### **Fase 1: Migração Básica (30 min)**
+
 1. ✅ Atualizar imports
 2. ✅ Substituir componentes principais
 3. ✅ Testar funcionalidade
 
 ### **Fase 2: Otimização Avançada (1 hora)**
+
 4. ✅ Implementar lazy loading
 5. ✅ Adicionar memoização
 6. ✅ Otimizar re-renders
 
 ### **Fase 3: Validação Final (15 min)**
+
 7. ✅ Testes de performance
 8. ✅ Validação de acessibilidade
 9. ✅ Verificação de bundle size
@@ -240,17 +256,20 @@ const MyModal = () => (
 ## 🎯 **COMANDOS ÚTEIS**
 
 ### **Verificar Bundle Size:**
+
 ```bash
 npm run build
 npm run analyze
 ```
 
 ### **Testar Performance:**
+
 ```bash
 npm run lighthouse
 ```
 
 ### **Validar Acessibilidade:**
+
 ```bash
 npm run a11y
 ```

@@ -21,8 +21,13 @@ import WelcomeSection from '../components/WelcomeSection';
 import { UnifiedButton, UnifiedModal } from '../components/unified';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
-import { OptimizedFormRow, OptimizedSectionTitle, OptimizedLabel, OptimizedHelpText, OptimizedButtonGroup } from '../components/shared/optimized-styles';
-
+import {
+  OptimizedFormRow,
+  OptimizedSectionTitle,
+  OptimizedLabel,
+  OptimizedHelpText,
+  OptimizedButtonGroup,
+} from '../components/shared/optimized-styles';
 
 // Styled Components
 const HelpText = styled.small`
@@ -32,6 +37,24 @@ const HelpText = styled.small`
 
 const ButtonGroup = styled.div`
   margin-top: 1rem;
+`;
+
+const EmptyIcon = styled.div`
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+`;
+
+const EmptyTitle = styled.h3`
+  color: #2c3e50;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+`;
+
+const EmptyDescription = styled.p`
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin: 0;
 `;
 
 // Interfaces
@@ -303,7 +326,7 @@ const ConditionInput = styled.input<{ $theme: any }>`
   font-size: 0.85rem;
 `;
 
-const ConditionSelect = styled.select<{ $theme: any }>`
+const ConditionSelect = styled(Select)<{ $theme: any }>`
   padding: 0.5rem;
   border: 1px solid ${props => props.$theme.colors.border};
   border-radius: 4px;
@@ -709,16 +732,16 @@ export default function AlertManagement() {
   const stats = getAlertStats();
 
   return (
-    <PageContainer theme={theme} sidebarCollapsed={sidebarCollapsed}>
+    <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
         collapsed={sidebarCollapsed}
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
         currentPath={router.pathname}
       />
 
-      <TopBar theme={theme}>
-        <WelcomeSection
-          theme={theme}
+      <TopBar $theme={theme}>
+        <WelcomeSection    
+          $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -730,40 +753,39 @@ export default function AlertManagement() {
       </TopBar>
 
       <PageHeader
-        theme={theme}
+        $theme={theme}
         title='Gestão de Alertas'
         subtitle='Configure alertas personalizados para nunca perder eventos importantes'
       />
 
       {/* Estatísticas */}
-      <AlertStats theme={theme}>
-        <StatCard theme={theme} variant='primary'>
+      <AlertStats $theme={theme}>
+        <StatCard $theme={theme} $variant='primary'>
           <StatNumber>{stats.activeAlerts}</StatNumber>
           <StatLabel>Alertas Ativos</StatLabel>
         </StatCard>
-        <StatCard theme={theme} variant='warning'>
+        <StatCard $theme={theme} $variant='warning'>
           <StatNumber>{stats.triggeredToday}</StatNumber>
           <StatLabel>Disparados Hoje</StatLabel>
         </StatCard>
-        <StatCard theme={theme} variant='success'>
+        <StatCard $theme={theme} $variant='success'>
           <StatNumber>{stats.totalTriggers}</StatNumber>
           <StatLabel>Total de Disparos</StatLabel>
         </StatCard>
-        <StatCard theme={theme} variant='danger'>
+        <StatCard $theme={theme} $variant='danger'>
           <StatNumber>{stats.inactiveAlerts}</StatNumber>
           <StatLabel>Alertas Inativos</StatLabel>
         </StatCard>
       </AlertStats>
 
       {/* Criar Novo Alerta */}
-      <CreateAlertSection theme={theme}>
+      <CreateAlertSection $theme={theme}>
         <OptimizedSectionTitle>Criar Novo Alerta</OptimizedSectionTitle>
         <Form onSubmit={handleCreateAlert}>
           <OptimizedFormRow>
             <FormGroupFlex>
               <OptimizedLabel>Título do Alerta</OptimizedLabel>
-              <Input
-                theme={theme}
+              <Input $theme={theme}
                 type='text'
                 value={newAlert.title}
                 onChange={e =>
@@ -774,17 +796,19 @@ export default function AlertManagement() {
               />
             </FormGroupFlex>
             <FormGroupFlex>
-              <OptimizedLabel htmlFor='alert-type'>Tipo de Alerta</OptimizedLabel>
+              <OptimizedLabel htmlFor='alert-type'>
+                Tipo de Alerta
+              </OptimizedLabel>
               <Select
                 id='alert-type'
-                theme={theme}
+                $theme={theme}
                 value={newAlert.type}
+                title="Tipo de Alerta"
                 onChange={e =>
                   setNewAlert(prev => ({ ...prev, type: e.target.value }))
                 }
                 required
                 aria-label='Selecionar tipo de alerta'
-                title='Selecionar tipo de alerta'
               >
                 <option value=''>Selecionar tipo</option>
                 {alertTypes.map(type => (
@@ -798,8 +822,7 @@ export default function AlertManagement() {
 
           <FormGroup>
             <OptimizedLabel>Descrição</OptimizedLabel>
-            <Input
-              theme={theme}
+            <Input $theme={theme}
               type='text'
               value={newAlert.description}
               onChange={e =>
@@ -815,8 +838,7 @@ export default function AlertManagement() {
           <OptimizedFormRow>
             <FormGroupFlex>
               <OptimizedLabel>Data</OptimizedLabel>
-              <Input
-                theme={theme}
+              <Input $theme={theme}
                 type='date'
                 value={newAlert.date}
                 onChange={e =>
@@ -827,8 +849,7 @@ export default function AlertManagement() {
             </FormGroupFlex>
             <FormGroupFlex>
               <OptimizedLabel>Hora</OptimizedLabel>
-              <Input
-                theme={theme}
+              <Input $theme={theme}
                 type='time'
                 value={newAlert.time}
                 onChange={e =>
@@ -839,9 +860,9 @@ export default function AlertManagement() {
             </FormGroupFlex>
             <FormGroupFlex>
               <OptimizedLabel>Frequência</OptimizedLabel>
-              <Select
-                theme={theme}
+              <Select $theme={theme}
                 value={newAlert.frequency}
+                title="Frequência do Alerta"
                 onChange={e =>
                   setNewAlert(prev => ({
                     ...prev,
@@ -849,7 +870,6 @@ export default function AlertManagement() {
                   }))
                 }
                 aria-label='Selecionar frequência'
-                title='Selecionar frequência'
               >
                 <option value='once'>Uma vez</option>
                 <option value='daily'>Diariamente</option>
@@ -863,9 +883,9 @@ export default function AlertManagement() {
           <OptimizedFormRow>
             <FormGroupFlex>
               <OptimizedLabel>Tipo de Notificação</OptimizedLabel>
-              <Select
-                theme={theme}
+              <Select $theme={theme}
                 value={newAlert.notificationType}
+                title="Tipo de Notificação"
                 onChange={e =>
                   setNewAlert(prev => ({
                     ...prev,
@@ -873,7 +893,6 @@ export default function AlertManagement() {
                   }))
                 }
                 aria-label='Selecionar tipo de notificação'
-                title='Selecionar tipo de notificação'
               >
                 <option value='email'>E-mail</option>
                 <option value='push'>Notificação Push</option>
@@ -885,8 +904,7 @@ export default function AlertManagement() {
 
           <FormGroup>
             <OptimizedLabel>Texto da Notificação</OptimizedLabel>
-            <Input
-              theme={theme}
+            <Input $theme={theme}
               type='text'
               value={newAlert.notificationText}
               onChange={e =>
@@ -904,7 +922,7 @@ export default function AlertManagement() {
           </FormGroup>
 
           {newAlert.notificationText && (
-            <NotificationPreview theme={theme}>
+            <NotificationPreview $theme={theme}>
               <PreviewTitle>Preview da Notificação:</PreviewTitle>
               <PreviewText>{generateNotificationPreview()}</PreviewText>
             </NotificationPreview>
@@ -913,7 +931,7 @@ export default function AlertManagement() {
           <OptimizedButtonGroup>
             <UnifiedButton
               type='button'
-              variant='secondary'
+              $variant='secondary'
               onClick={() => setShowConditions(!showConditions)}
             >
               {showConditions ? 'Ocultar' : 'Adicionar'} Condições
@@ -926,7 +944,7 @@ export default function AlertManagement() {
               {conditions.map(condition => (
                 <ConditionRow key={condition.id}>
                   <ConditionInput
-                    theme={theme}
+                    $theme={theme}
                     value={condition.field}
                     onChange={e =>
                       updateCondition(condition.id, 'field', e.target.value)
@@ -934,7 +952,7 @@ export default function AlertManagement() {
                     placeholder='Campo (ex: valor, status)'
                   />
                   <ConditionSelect
-                    theme={theme}
+                    $theme={theme}
                     value={condition.operator}
                     onChange={e =>
                       updateCondition(
@@ -952,7 +970,7 @@ export default function AlertManagement() {
                     <option value='contains'>Contém</option>
                   </ConditionSelect>
                   <ConditionInput
-                    theme={theme}
+                    $theme={theme}
                     value={condition.value}
                     onChange={e =>
                       updateCondition(condition.id, 'value', e.target.value)
@@ -967,7 +985,7 @@ export default function AlertManagement() {
                 </ConditionRow>
               ))}
               <AddConditionButton
-                theme={theme}
+                $theme={theme}
                 type='button'
                 onClick={addCondition}
               >
@@ -977,7 +995,7 @@ export default function AlertManagement() {
           )}
 
           <OptimizedButtonGroup>
-            <UnifiedButton type='submit' variant='primary' theme={theme}>
+            <UnifiedButton type='submit' $variant='primary' $theme={theme}>
               <AccessibleEmoji emoji='➕' label='Novo' /> Criar Alerta
             </UnifiedButton>
           </OptimizedButtonGroup>
@@ -985,12 +1003,11 @@ export default function AlertManagement() {
       </CreateAlertSection>
 
       {/* Filtros */}
-      <FilterSection theme={theme} title='Filtros e Busca'>
+      <FilterSection $theme={theme} title='Filtros e Busca'>
         <OptimizedFormRow>
           <FormGroup>
             <OptimizedLabel>Buscar Alertas</OptimizedLabel>
-            <Input
-              theme={theme}
+            <Input $theme={theme}
               type='text'
               value={filters.search}
               onChange={e =>
@@ -1001,14 +1018,13 @@ export default function AlertManagement() {
           </FormGroup>
           <FormGroup>
             <OptimizedLabel>Tipo</OptimizedLabel>
-            <Select
-              theme={theme}
+            <Select $theme={theme}
               value={filters.type}
+              title="Filtrar por Tipo"
               onChange={e =>
                 setFilters(prev => ({ ...prev, type: e.target.value }))
               }
               aria-label='Filtrar por tipo'
-              title='Filtrar por tipo'
             >
               <option value=''>Todos os tipos</option>
               {alertTypes.map(type => (
@@ -1020,14 +1036,13 @@ export default function AlertManagement() {
           </FormGroup>
           <FormGroup>
             <OptimizedLabel>Status</OptimizedLabel>
-            <Select
-              theme={theme}
+            <Select $theme={theme}
               value={filters.status}
+              title="Filtrar por Status"
               onChange={e =>
                 setFilters(prev => ({ ...prev, status: e.target.value }))
               }
               aria-label='Filtrar por status'
-              title='Filtrar por status'
             >
               <option value=''>Todos os status</option>
               <option value='active'>Ativo</option>
@@ -1040,19 +1055,19 @@ export default function AlertManagement() {
       {/* Lista de Alertas */}
       {getFilteredAlerts().length === 0 ? (
         <EmptyState>
-          <div className='empty-icon'>
+          <EmptyIcon>
             <AccessibleEmoji emoji='🔔' label='Notificação' />
-          </div>
-          <h3 className='empty-title'>Nenhum alerta encontrado</h3>
-          <p className='empty-description'>
+          </EmptyIcon>
+          <EmptyTitle>Nenhum alerta encontrado</EmptyTitle>
+          <EmptyDescription>
             Crie seu primeiro alerta para começar a receber notificações
             importantes.
-          </p>
+          </EmptyDescription>
         </EmptyState>
       ) : (
         <AlertsGrid>
           {getFilteredAlerts().map(alert => (
-            <AlertCard key={alert.id} theme={theme} $status={alert.status}>
+            <AlertCard key={alert.id} $theme={theme} $status={alert.status}>
               <AlertHeader>
                 <AlertTypeBadge $color={alert.type.color}>
                   <span>{alert.type.icon}</span>
@@ -1092,25 +1107,27 @@ export default function AlertManagement() {
                 </OptimizedHelpText>
               )}
 
-              <OptimizedHelpText>Disparos: {alert.triggerCount}</OptimizedHelpText>
+              <OptimizedHelpText>
+                Disparos: {alert.triggerCount}
+              </OptimizedHelpText>
 
               <AlertActions>
                 <AlertUnifiedButton
-                  theme={theme}
+                  $theme={theme}
                   onClick={() => handleEditAlert(alert)}
                 >
                   <AccessibleEmoji emoji='✏' label='Editar' /> Editar
                 </AlertUnifiedButton>
                 <AlertUnifiedButton
-                  theme={theme}
-                  variant='warning'
+                  $theme={theme}
+                  $variant='warning'
                   onClick={() => handleToggleAlertStatus(alert.id)}
                 >
                   {alert.status === 'active' ? '⏸️ Pausar' : '▶️ Ativar'}
                 </AlertUnifiedButton>
                 <AlertUnifiedButton
-                  theme={theme}
-                  variant='danger'
+                  $theme={theme}
+                  $variant='danger'
                   onClick={() => handleDeleteAlert(alert.id)}
                 >
                   <AccessibleEmoji emoji='❌' label='Excluir' /> Excluir
@@ -1151,8 +1168,7 @@ export default function AlertManagement() {
             <OptimizedFormRow>
               <FormGroupFlex>
                 <OptimizedLabel>Título do Alerta</OptimizedLabel>
-                <Input
-                  theme={theme}
+                <Input $theme={theme}
                   type='text'
                   value={newAlert.title}
                   onChange={e =>
@@ -1163,8 +1179,7 @@ export default function AlertManagement() {
               </FormGroupFlex>
               <FormGroupFlex>
                 <OptimizedLabel>Tipo de Alerta</OptimizedLabel>
-                <Select
-                  theme={theme}
+                <Select $theme={theme}
                   value={newAlert.type}
                   onChange={e =>
                     setNewAlert(prev => ({ ...prev, type: e.target.value }))
@@ -1184,8 +1199,7 @@ export default function AlertManagement() {
 
             <FormGroup>
               <OptimizedLabel>Descrição</OptimizedLabel>
-              <Input
-                theme={theme}
+              <Input $theme={theme}
                 type='text'
                 value={newAlert.description}
                 onChange={e =>
@@ -1200,8 +1214,7 @@ export default function AlertManagement() {
             <OptimizedFormRow>
               <FormGroupFlex>
                 <OptimizedLabel>Data</OptimizedLabel>
-                <Input
-                  theme={theme}
+                <Input $theme={theme}
                   type='date'
                   value={newAlert.date}
                   onChange={e =>
@@ -1212,8 +1225,7 @@ export default function AlertManagement() {
               </FormGroupFlex>
               <FormGroupFlex>
                 <OptimizedLabel>Hora</OptimizedLabel>
-                <Input
-                  theme={theme}
+                <Input $theme={theme}
                   type='time'
                   value={newAlert.time}
                   onChange={e =>
@@ -1224,8 +1236,7 @@ export default function AlertManagement() {
               </FormGroupFlex>
               <FormGroupFlex>
                 <OptimizedLabel>Frequência</OptimizedLabel>
-                <Select
-                  theme={theme}
+                <Select $theme={theme}
                   value={newAlert.frequency}
                   onChange={e =>
                     setNewAlert(prev => ({
@@ -1248,8 +1259,7 @@ export default function AlertManagement() {
             <OptimizedFormRow>
               <FormGroupFlex>
                 <OptimizedLabel>Tipo de Notificação</OptimizedLabel>
-                <Select
-                  theme={theme}
+                <Select $theme={theme}
                   value={newAlert.notificationType}
                   onChange={e =>
                     setNewAlert(prev => ({
@@ -1270,8 +1280,7 @@ export default function AlertManagement() {
 
             <FormGroup>
               <OptimizedLabel>Texto da Notificação</OptimizedLabel>
-              <Input
-                theme={theme}
+              <Input $theme={theme}
                 type='text'
                 value={newAlert.notificationText}
                 onChange={e =>
@@ -1284,14 +1293,14 @@ export default function AlertManagement() {
             </FormGroup>
 
             <OptimizedButtonGroup>
-              <UnifiedButton type='submit' variant='primary' theme={theme}>
+              <UnifiedButton type='submit' $variant='primary' $theme={theme}>
                 <AccessibleEmoji emoji='💾' label='Armazenar' /> Salvar
                 Alterações
               </UnifiedButton>
               <UnifiedButton
                 type='button'
-                variant='secondary'
-                theme={theme}
+                $variant='secondary'
+                $theme={theme}
                 onClick={() => {
                   setUnifiedModalOpen(false);
                   setEditingAlert(null);

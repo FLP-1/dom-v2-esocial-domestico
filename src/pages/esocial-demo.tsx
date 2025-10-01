@@ -1,5 +1,8 @@
 import { GetServerSideProps } from 'next';
 import { useState } from 'react';
+import { Label, Select, Input } from '../components/FormComponents';
+import { UnifiedButton } from '../components/UnifiedButton';
+import { useTheme } from '../hooks/useTheme';
 
 interface DemoResult {
   success: boolean;
@@ -12,6 +15,7 @@ interface ESocialDemoProps {
 }
 
 export default function ESocialDemo({ initialData }: ESocialDemoProps) {
+  const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DemoResult | null>(initialData || null);
   const [cpf, setCpf] = useState('59876913700');
@@ -134,47 +138,38 @@ export default function ESocialDemo({ initialData }: ESocialDemoProps) {
           <h2 className='text-2xl font-semibold mb-4'>Configuração do Teste</h2>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
             <div>
-              <label
-                htmlFor='cpf-empregador'
-                className='block text-sm font-medium text-gray-700 mb-2'
-              >
-                CPF do Empregador
-              </label>
-              <input
+              <Label htmlFor='cpf-empregador'>CPF do Empregador</Label>
+              <Input
                 id='cpf-empregador'
                 type='text'
                 value={cpf}
                 onChange={e => setCpf(e.target.value)}
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                $theme={theme}
                 placeholder='59876913700'
               />
             </div>
             <div>
-              <label
-                htmlFor='ambiente-esocial'
-                className='block text-sm font-medium text-gray-700 mb-2'
-              >
-                Ambiente
-              </label>
-              <select
+              <Label htmlFor='ambiente-esocial'>Ambiente</Label>
+              <Select
                 id='ambiente-esocial'
                 value={ambiente}
                 onChange={e =>
                   setAmbiente(e.target.value as 'homologacao' | 'producao')
                 }
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                $theme={theme}
                 aria-label='Selecionar ambiente do eSocial'
                 title='Selecionar ambiente do eSocial'
               >
                 <option value='homologacao'>Homologação</option>
                 <option value='producao'>Produção</option>
-              </select>
+              </Select>
             </div>
             <div className='flex items-end space-x-2'>
-              <button
+              <UnifiedButton
                 onClick={executarTeste}
-                disabled={loading}
-                className='flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                $disabled={loading}
+                $variant='primary'
+                $size='lg'
               >
                 {loading ? (
                   <>
@@ -191,14 +186,15 @@ export default function ESocialDemo({ initialData }: ESocialDemoProps) {
                     Diagnóstico
                   </>
                 )}
-              </button>
-              <button
+              </UnifiedButton>
+              <UnifiedButton
                 onClick={executarCadastramento}
-                disabled={loading}
-                className='flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                $disabled={loading}
+                $variant='success'
+                $size='lg'
               >
                 {loading ? '⏳ Enviando...' : '📝 Cadastrar'}
-              </button>
+              </UnifiedButton>
             </div>
           </div>
         </div>

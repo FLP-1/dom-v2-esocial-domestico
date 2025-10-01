@@ -2,7 +2,7 @@
 import styled from 'styled-components';
 
 interface PageHeaderProps {
-  theme: any;
+  $theme: any;
   title: string;
   subtitle: string;
 }
@@ -24,13 +24,13 @@ const PageSubtitle = styled.p`
 `;
 
 export default function PageHeader({
-  theme,
+  $theme,
   title,
   subtitle,
 }: PageHeaderProps) {
   return (
     <>
-      <PageTitle $theme={theme}>{title}</PageTitle>
+      <PageTitle $theme={$theme}>{title}</PageTitle>
       <PageSubtitle>{subtitle}</PageSubtitle>
     </>
   );

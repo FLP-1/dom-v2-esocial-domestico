@@ -1,21 +1,20 @@
 import { useRouter } from 'next/router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { ToastContainer } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
-import EmployeeUnifiedModal from '../components/EmployeeUnifiedModal';
-import EmployerUnifiedModal from '../components/EmployerUnifiedModal';
-import PayrollUnifiedModalNew from '../components/PayrollUnifiedModalNew';
-import ReportUnifiedModal from '../components/ReportUnifiedModal';
+import { EmployeeModalNew } from '../components/EmployeeModalNew';
+import { EmployerModalNew } from '../components/EmployerModalNew';
+import PayrollModalNew from '../components/PayrollModalNew';
+import ReportModal from '../components/ReportModal';
 import Sidebar from '../components/Sidebar';
-import TaxGuideUnifiedModalNew from '../components/TaxGuideUnifiedModalNew';
+import TaxGuideModalNew from '../components/TaxGuideModalNew';
 import WelcomeSection from '../components/WelcomeSection';
 import { UnifiedButton } from '../components/unified';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useAlertManager } from '../hooks/useAlertManager';
 import { useTheme } from '../hooks/useTheme';
 import { OptimizedSectionTitle } from '../components/shared/optimized-styles';
-
 
 // Animações
 const fadeIn = keyframes`
@@ -275,25 +274,21 @@ const ESocialDomesticoCompleto: React.FC = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(
     null
   );
-  const [isEmployeeUnifiedModalOpen, setIsEmployeeUnifiedModalOpen] =
+  const [isEmployeeModalNewOpen, setIsEmployeeModalNewOpen] =
     useState(false);
-  const [isEmployerUnifiedModalOpen, setIsEmployerUnifiedModalOpen] =
+  const [isEmployerModalNewOpen, setIsEmployerModalNewOpen] =
     useState(false);
   const [isPayrollUnifiedModalOpen, setIsPayrollUnifiedModalOpen] =
     useState(false);
   const [isTaxGuideUnifiedModalOpen, setIsTaxGuideUnifiedModalOpen] =
     useState(false);
-  const [isReportUnifiedModalOpen, setIsReportUnifiedModalOpen] =
+  const [isReportModalOpen, setIsReportModalOpen] =
     useState(false);
 
   // useEffect removido - isClient não utilizado
 
   // Carregar dados iniciais
-  useEffect(() => {
-    loadInitialData();
-  }, []);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       // Carregar funcionários
       const employeesResponse = await fetch(
@@ -353,19 +348,23 @@ const ESocialDomesticoCompleto: React.FC = () => {
     } catch (error) {
       alertManager.showError('Erro ao carregar dados iniciais');
     }
-  };
+  }, [alertManager]);
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
   const handleAddEmployee = () => {
     setSelectedEmployee(null);
-    setIsEmployeeUnifiedModalOpen(true);
+    setIsEmployeeModalNewOpen(true);
   };
 
   const handleEditEmployee = (employee: Employee) => {
     setSelectedEmployee(employee);
-    setIsEmployeeUnifiedModalOpen(true);
+    setIsEmployeeModalNewOpen(true);
   };
 
-  const handleSaveEmployee = async (employeeData: Omit<Employee, 'id'>) => {
+  const handleSaveEmployee = async (employeeData: any) => {
     try {
       if (selectedEmployee) {
         // Editar funcionário existente
@@ -643,8 +642,7 @@ const ESocialDomesticoCompleto: React.FC = () => {
         currentPath={router.pathname}
       />
       <MainContent>
-        <WelcomeSection
-          theme={theme}
+        <WelcomeSection $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
@@ -662,21 +660,21 @@ const ESocialDomesticoCompleto: React.FC = () => {
               Gestão completa de funcionários domésticos e folha de pagamento
             </Subtitle>
           </div>
-          <StatusBadge $status='connected' theme={theme}>
+          <StatusBadge $status='connected' $theme={theme}>
             <AccessibleEmoji emoji='🟢' label='Conectado' /> Conectado
           </StatusBadge>
         </Header>
 
         {/* Estatísticas */}
         <StatsGrid>
-          <StatCard theme={theme}>
-            <StatNumber theme={theme}>
+          <StatCard $theme={theme}>
+            <StatNumber $theme={theme}>
               {formatCurrency(totalPayroll)}
             </StatNumber>
             <StatLabel>Total da Folha</StatLabel>
           </StatCard>
-          <StatCard theme={theme}>
-            <StatNumber theme={theme}>{pendingTaxes}</StatNumber>
+          <StatCard $theme={theme}>
+            <StatNumber $theme={theme}>{pendingTaxes}</StatNumber>
             <StatLabel>Impostos Pendentes</StatLabel>
           </StatCard>
         </StatsGrid>
@@ -685,10 +683,10 @@ const ESocialDomesticoCompleto: React.FC = () => {
         <TabGrid>
           <TabCard
             $active={activeTab === 'employer'}
-            theme={theme}
+            $theme={theme}
             onClick={() => setActiveTab('employer')}
           >
-            <TabTitle theme={theme}>
+            <TabTitle $theme={theme}>
               <AccessibleEmoji emoji='🏢' label='Empregador' /> Cadastro do
               Empregador
             </TabTitle>
@@ -699,10 +697,10 @@ const ESocialDomesticoCompleto: React.FC = () => {
 
           <TabCard
             $active={activeTab === 'employees'}
-            theme={theme}
+            $theme={theme}
             onClick={() => setActiveTab('employees')}
           >
-            <TabTitle theme={theme}>
+            <TabTitle $theme={theme}>
               <AccessibleEmoji emoji='👥' label='Funcionários' /> Funcionários
             </TabTitle>
             <TabDescription>
@@ -712,10 +710,10 @@ const ESocialDomesticoCompleto: React.FC = () => {
 
           <TabCard
             $active={activeTab === 'payroll'}
-            theme={theme}
+            $theme={theme}
             onClick={() => setActiveTab('payroll')}
           >
-            <TabTitle theme={theme}>
+            <TabTitle $theme={theme}>
               <AccessibleEmoji emoji='💰' label='Folha' /> Folha de Pagamento
             </TabTitle>
             <TabDescription>
@@ -725,10 +723,10 @@ const ESocialDomesticoCompleto: React.FC = () => {
 
           <TabCard
             $active={activeTab === 'taxes'}
-            theme={theme}
+            $theme={theme}
             onClick={() => setActiveTab('taxes')}
           >
-            <TabTitle theme={theme}>
+            <TabTitle $theme={theme}>
               <AccessibleEmoji emoji='📋' label='Impostos' /> Guias de Impostos
             </TabTitle>
             <TabDescription>
@@ -738,10 +736,10 @@ const ESocialDomesticoCompleto: React.FC = () => {
 
           <TabCard
             $active={activeTab === 'reports'}
-            theme={theme}
+            $theme={theme}
             onClick={() => setActiveTab('reports')}
           >
-            <TabTitle theme={theme}>
+            <TabTitle $theme={theme}>
               <AccessibleEmoji emoji='📈' label='Relatórios' /> Relatórios
             </TabTitle>
             <TabDescription>
@@ -763,9 +761,9 @@ const ESocialDomesticoCompleto: React.FC = () => {
             </p>
             <div>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
-                onClick={() => setIsEmployerUnifiedModalOpen(true)}
+                $variant='primary'
+                $theme={theme}
+                onClick={() => setIsEmployerModalNewOpen(true)}
               >
                 <AccessibleEmoji emoji='⚙️' label='Configurar' /> Configurar
                 Empregador
@@ -783,8 +781,8 @@ const ESocialDomesticoCompleto: React.FC = () => {
 
             <div>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={handleAddEmployee}
               >
                 <AccessibleEmoji emoji='➕' label='Adicionar' /> Adicionar
@@ -812,8 +810,8 @@ const ESocialDomesticoCompleto: React.FC = () => {
                       </div>
                       <div>
                         <UnifiedButton
-                          variant='secondary'
-                          theme={theme}
+                          $variant='secondary'
+                          $theme={theme}
                           onClick={() => handleEditEmployee(employee)}
                         >
                           <AccessibleEmoji emoji='✏️' label='Editar' />
@@ -821,8 +819,8 @@ const ESocialDomesticoCompleto: React.FC = () => {
                         </UnifiedButton>
                         {employee.status === 'ATIVO' && (
                           <UnifiedButton
-                            variant='danger'
-                            theme={theme}
+                            $variant='danger'
+                            $theme={theme}
                             onClick={() => handleDeleteEmployee(employee.id)}
                           >
                             <AccessibleEmoji emoji='🚪' label='Desligar' />{' '}
@@ -845,8 +843,8 @@ const ESocialDomesticoCompleto: React.FC = () => {
             </OptimizedSectionTitle>
             <div>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={handleGeneratePayroll}
               >
                 <AccessibleEmoji emoji='📊' label='Gerar' /> Gerar Folha
@@ -888,8 +886,8 @@ const ESocialDomesticoCompleto: React.FC = () => {
 
             <div>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
+                $variant='primary'
+                $theme={theme}
                 onClick={() => setIsTaxGuideUnifiedModalOpen(true)}
               >
                 <AccessibleEmoji emoji='📊' label='Gerar' />
@@ -925,9 +923,9 @@ const ESocialDomesticoCompleto: React.FC = () => {
 
             <div>
               <UnifiedButton
-                variant='primary'
-                theme={theme}
-                onClick={() => setIsReportUnifiedModalOpen(true)}
+                $variant='primary'
+                $theme={theme}
+                onClick={() => setIsReportModalOpen(true)}
               >
                 <AccessibleEmoji emoji='📊' label='Gerar' /> Gerar Relatórios
               </UnifiedButton>
@@ -947,43 +945,49 @@ const ESocialDomesticoCompleto: React.FC = () => {
         </TabContent>
 
         {/* Modais */}
-        <EmployeeUnifiedModal
-          isOpen={isEmployeeUnifiedModalOpen}
-          onClose={() => setIsEmployeeUnifiedModalOpen(false)}
+        <EmployeeModalNew
+          isOpen={isEmployeeModalNewOpen}
+          onClose={() => setIsEmployeeModalNewOpen(false)}
           onSave={handleSaveEmployee}
-          employee={selectedEmployee}
-          theme={theme}
+          employee={selectedEmployee ? {
+            id: selectedEmployee.id,
+            nome: selectedEmployee.nome,
+            cpf: selectedEmployee.cpf,
+            email: selectedEmployee.contato?.email || '',
+            telefone: selectedEmployee.contato?.telefone || '',
+            cargo: selectedEmployee.cargo,
+            salario: selectedEmployee.salario,
+            dataAdmissao: selectedEmployee.dataAdmissao
+          } : undefined}
+          $theme={theme}
         />
 
-        <PayrollUnifiedModalNew
+        <PayrollModalNew
           isOpen={isPayrollUnifiedModalOpen}
           onClose={() => setIsPayrollUnifiedModalOpen(false)}
           onSave={handleSavePayroll}
           employees={employees}
-          theme={theme}
+          $theme={theme}
         />
 
-        <TaxGuideUnifiedModalNew
+        <TaxGuideModalNew
           isOpen={isTaxGuideUnifiedModalOpen}
           onClose={() => setIsTaxGuideUnifiedModalOpen(false)}
           onSave={handleSaveTaxGuides}
-          theme={theme}
-        />
+          $theme={theme} />
 
-        <ReportUnifiedModal
-          isOpen={isReportUnifiedModalOpen}
-          onClose={() => setIsReportUnifiedModalOpen(false)}
+        <ReportModal
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
           onSave={handleSaveReports}
-          theme={theme}
-        />
+          $theme={theme} />
 
         {/* Toast Container */}
-        <EmployerUnifiedModal
-          isOpen={isEmployerUnifiedModalOpen}
-          onClose={() => setIsEmployerUnifiedModalOpen(false)}
+        <EmployerModalNew
+          isOpen={isEmployerModalNewOpen}
+          onClose={() => setIsEmployerModalNewOpen(false)}
           onSave={handleSaveEmployer}
-          theme={theme}
-        />
+          $theme={theme} />
 
         <ToastContainer
           position='top-right'

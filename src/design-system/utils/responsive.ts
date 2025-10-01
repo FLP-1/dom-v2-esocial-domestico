@@ -1,4 +1,5 @@
 // Utilitários de responsividade padronizados
+import { useState, useEffect } from 'react';
 import { breakpoints } from '../tokens/spacing';
 
 // Media queries padronizadas
@@ -309,7 +310,7 @@ export const useResponsive = () => {
   const [isTablet, setIsTablet] = useState(false);
   const [isDesktop, setIsDesktop] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const checkDevice = () => {
       setIsMobile(deviceDetection.isMobile());
       setIsTablet(deviceDetection.isTablet());
@@ -330,7 +331,7 @@ export const useResponsive = () => {
   };
 };
 
-export default {
+const responsiveUtils = {
   mediaQueries,
   responsive,
   createResponsiveContainer,
@@ -343,3 +344,5 @@ export default {
   deviceDetection,
   useResponsive,
 };
+
+export default responsiveUtils;
