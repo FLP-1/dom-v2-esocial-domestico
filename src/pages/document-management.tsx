@@ -2,7 +2,7 @@ import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/document-management.tsx
 
 import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
@@ -342,72 +342,10 @@ export default function DocumentManagement() {
   const { currentProfile } = useUserProfile();
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
-  const categories: DocumentCategory[] = [
-    {
-      id: '1',
-      name: 'Contratos',
-      color: '#3498db',
-      icon: <AccessibleEmoji emoji='📄' label='Documento' />,
-    },
-    { id: '2', name: 'Recibos', color: '#2ecc71', icon: '🧾' },
-    {
-      id: '3',
-      name: 'Certidões',
-      color: '#f39c12',
-      icon: <AccessibleEmoji emoji='📜' label='Documento' />,
-    },
-    {
-      id: '4',
-      name: 'Fotos',
-      color: '#e74c3c',
-      icon: <AccessibleEmoji emoji='📸' label='Câmera' />,
-    },
-    {
-      id: '5',
-      name: 'Outros',
-      color: '#95a5a6',
-      icon: <AccessibleEmoji emoji='📁' label='Pasta' />,
-    },
-  ];
+  // Usar dados centralizados
+  const [categories, setCategories] = useState<DocumentCategory[]>([]);
 
-  const [documents, setDocuments] = useState<Document[]>([
-    {
-      id: '1',
-      name: 'Contrato de Trabalho - Maria',
-      category: 'Contratos',
-      description: 'Contrato de trabalho da empregada doméstica',
-      dueDate: '2024-12-31',
-      uploadDate: '2024-01-15',
-      fileSize: '2.1 MB',
-      fileType: 'PDF',
-      permissions: 'private',
-      isExpiring: false,
-    },
-    {
-      id: '2',
-      name: 'Recibo de Pagamento - Janeiro',
-      category: 'Recibos',
-      description: 'Recibo de pagamento do mês de janeiro',
-      dueDate: '2024-02-05',
-      uploadDate: '2024-02-01',
-      fileSize: '856 KB',
-      fileType: 'PDF',
-      permissions: 'private',
-      isExpiring: true,
-    },
-    {
-      id: '3',
-      name: 'Certidão de Nascimento',
-      category: 'Certidões',
-      description: 'Certidão de nascimento do filho',
-      uploadDate: '2024-01-20',
-      fileSize: '1.5 MB',
-      fileType: 'PDF',
-      permissions: 'shared',
-      sharedWith: ['Maria Santos'],
-      isExpiring: false,
-    },
-  ]);
+  const [documents, setDocuments] = useState<Document[]>([]);
 
   const [newDocument, setNewDocument] = useState({
     name: '',
@@ -422,6 +360,54 @@ export default function DocumentManagement() {
     category: '',
     expiring: false,
   });
+
+  // Carregar dados centralizados
+  useEffect(() => {
+    const loadCentralizedData = async () => {
+      try {
+        const { dataService } = await import('../data/centralized/services/dataService');
+        
+        // Carregar categorias de documentos
+        const categoriesResult = await dataService.getDocumentCategories();
+        if (categoriesResult.success) {
+          // Mapear para incluir componentes AccessibleEmoji
+          const mappedCategories = categoriesResult.data.map((cat: any) => ({
+            ...cat,
+            icon: cat.icon === '📄' ? <AccessibleEmoji emoji='📄' label='Documento' /> :
+                  cat.icon === '🧾' ? <AccessibleEmoji emoji='🧾' label='Recibo' /> :
+                  cat.icon === '📜' ? <AccessibleEmoji emoji='📜' label='Certidão' /> :
+                  cat.icon === '🏆' ? <AccessibleEmoji emoji='🏆' label='Certificado' /> :
+                  cat.icon === '📁' ? <AccessibleEmoji emoji='📁' label='Pasta' /> :
+                  cat.icon,
+          }));
+          setCategories(mappedCategories);
+        }
+
+        // Carregar documentos
+        const documentsResult = await dataService.getDocumentos();
+        if (documentsResult.success) {
+          // Mapear dados centralizados para o formato da página
+          const mappedDocuments = documentsResult.data.map((doc: any) => ({
+            id: doc.id,
+            name: doc.name,
+            category: doc.category,
+            description: doc.description,
+            uploadDate: doc.uploadDate?.split('T')[0] || new Date().toISOString().split('T')[0],
+            fileSize: `${(doc.fileSize / 1024 / 1024).toFixed(1)} MB`,
+            fileType: doc.fileType?.includes('pdf') ? 'PDF' : 'Arquivo',
+            permissions: doc.permissions || 'private',
+            isExpiring: doc.expirationDate ? new Date(doc.expirationDate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : false,
+            dueDate: doc.expirationDate?.split('T')[0],
+          }));
+          setDocuments(mappedDocuments);
+        }
+      } catch (error) {
+        // console.error('Erro ao carregar dados centralizados:', error);
+      }
+    };
+
+    loadCentralizedData();
+  }, []);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

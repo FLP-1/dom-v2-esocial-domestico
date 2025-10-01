@@ -638,6 +638,7 @@ export default function LoginBiometric() {
               onFocus={() => setFocusedField('cpf')}
               onBlur={() => setFocusedField(null)}
               placeholder='000.000.000-00'
+              autoComplete='username'
               $hasError={!!errors.cpf}
             />
             {errors.cpf && (

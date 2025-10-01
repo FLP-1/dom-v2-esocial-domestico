@@ -523,6 +523,7 @@ const Register: React.FC = () => {
                 onChange={e =>
                   handleInputChange('cpf', formatCPF(e.target.value))
                 }
+                autoComplete='username'
                 placeholder='000.000.000-00'
                 maxLength={14}
                 $theme={theme}

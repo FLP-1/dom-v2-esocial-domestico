@@ -290,19 +290,23 @@ const ESocialDomesticoCompleto: React.FC = () => {
   // Carregar dados iniciais
   const loadInitialData = useCallback(async () => {
     try {
-      // Carregar funcionários
-      const employeesResponse = await fetch(
-        '/api/consultar-esocial-domestico',
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cpf: '59876913700', ambiente: 'producao' }),
-        }
-      );
-
-      const employeesData = await employeesResponse.json();
-      if (employeesData.success && employeesData.data.trabalhadores.dados) {
-        setEmployees(employeesData.data.trabalhadores.dados);
+      // Usar serviço centralizado de dados
+      const { dataService } = await import('../data/centralized/services/dataService');
+      
+      // Carregar funcionários do serviço centralizado
+      const employeesResult = await dataService.getEmpregadosData();
+      if (employeesResult.success && employeesResult.data) {
+        // Mapear dados centralizados para o formato esperado
+        const mappedEmployees = employeesResult.data.map((emp: any) => ({
+          id: emp.cpf,
+          nome: emp.nome,
+          cpf: emp.cpf,
+          cargo: emp.cargo,
+          dataAdmissao: emp.dataAdmissao,
+          salario: emp.salario,
+          status: emp.situacao === 'ATIVO' ? 'ATIVO' : 'INATIVO',
+        }));
+        setEmployees(mappedEmployees);
       }
 
       // Carregar dados de folha (simulado)

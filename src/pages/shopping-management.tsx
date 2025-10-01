@@ -1,7 +1,7 @@
 import AccessibleEmoji from '../components/AccessibleEmoji';
 // src/pages/shopping-management.tsx
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
@@ -360,95 +360,10 @@ export default function ShoppingManagement() {
   const { currentProfile } = useUserProfile();
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
 
-  const categories: ShoppingCategory[] = [
-    {
-      id: '1',
-      name: 'Supermercado',
-      color: '#3498db',
-      icon: <AccessibleEmoji emoji='🛍' label='Carrinho' />,
-    },
-    {
-      id: '2',
-      name: 'Farmácia',
-      color: '#e74c3c',
-      icon: <AccessibleEmoji emoji='💉' label='Medicamento' />,
-    },
-    { id: '3', name: 'Limpeza', color: '#2ecc71', icon: '🧽' },
-    { id: '4', name: 'Padaria', color: '#f39c12', icon: '🥖' },
-    {
-      id: '5',
-      name: 'Outros',
-      color: '#95a5a6',
-      icon: <AccessibleEmoji emoji='📦' label='Pacote' />,
-    },
-  ];
+  // Usar dados centralizados
+  const [categories, setCategories] = useState<ShoppingCategory[]>([]);
 
-  const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([
-    {
-      id: '1',
-      name: 'Compras da Semana',
-      category: 'Supermercado',
-      items: [
-        {
-          id: '1',
-          name: 'Arroz',
-          quantity: '2kg',
-          price: '8.50',
-          category: 'Alimentos',
-          isBought: false,
-        },
-        {
-          id: '2',
-          name: 'Feijão',
-          quantity: '1kg',
-          price: '6.00',
-          category: 'Alimentos',
-          isBought: true,
-        },
-        {
-          id: '3',
-          name: 'Leite',
-          quantity: '4L',
-          price: '12.00',
-          category: 'Laticínios',
-          isBought: false,
-        },
-      ],
-      createdAt: '2024-01-15',
-      lastModified: '2024-01-20',
-      totalItems: 3,
-      boughtItems: 1,
-      estimatedTotal: '26.50',
-    },
-    {
-      id: '2',
-      name: 'Farmácia',
-      category: 'Farmácia',
-      items: [
-        {
-          id: '4',
-          name: 'Paracetamol',
-          quantity: '1 cx',
-          price: '15.00',
-          category: 'Medicamentos',
-          isBought: false,
-        },
-        {
-          id: '5',
-          name: 'Vitamina C',
-          quantity: '1 fr',
-          price: '25.00',
-          category: 'Suplementos',
-          isBought: false,
-        },
-      ],
-      createdAt: '2024-01-18',
-      lastModified: '2024-01-18',
-      totalItems: 2,
-      boughtItems: 0,
-      estimatedTotal: '40.00',
-    },
-  ]);
+  const [shoppingLists, setShoppingLists] = useState<ShoppingList[]>([]);
 
   const [newList, setNewList] = useState({
     name: '',
@@ -460,6 +375,39 @@ export default function ShoppingManagement() {
     category: '',
     showCompleted: false,
   });
+
+  // Carregar dados centralizados
+  useEffect(() => {
+    const loadCentralizedData = async () => {
+      try {
+        const { dataService } = await import('../data/centralized/services/dataService');
+        
+        // Carregar categorias
+        const categoriesResult = await dataService.getShoppingCategories();
+        if (categoriesResult.success) {
+          // Mapear para incluir componentes AccessibleEmoji
+          const mappedCategories = categoriesResult.data.map((cat: any) => ({
+            ...cat,
+            icon: cat.icon === '🛍' ? <AccessibleEmoji emoji='🛍' label='Carrinho' /> :
+                  cat.icon === '💉' ? <AccessibleEmoji emoji='💉' label='Medicamento' /> :
+                  cat.icon === '📦' ? <AccessibleEmoji emoji='📦' label='Pacote' /> :
+                  cat.icon,
+          }));
+          setCategories(mappedCategories);
+        }
+
+        // Carregar listas de compras
+        const listsResult = await dataService.getShoppingLists();
+        if (listsResult.success) {
+          setShoppingLists(listsResult.data);
+        }
+      } catch (error) {
+        // console.error('Erro ao carregar dados centralizados:', error);
+      }
+    };
+
+    loadCentralizedData();
+  }, []);
 
   const handleCreateList = (e: React.FormEvent) => {
     e.preventDefault();
@@ -660,7 +608,7 @@ export default function ShoppingManagement() {
                 <option value=''>Selecionar categoria</option>
                 {categories.map(category => (
                   <option key={category.id} value={category.name}>
-                    {category.icon} {category.name}
+                    {category.name}
                   </option>
                 ))}
               </Select>
@@ -705,7 +653,7 @@ export default function ShoppingManagement() {
               <option value=''>Todas as categorias</option>
               {categories.map(category => (
                 <option key={category.id} value={category.name}>
-                  {category.icon} {category.name}
+                  {category.name}
                 </option>
               ))}
             </Select>

@@ -1,5 +1,9 @@
 ﻿module.exports = {
   reactStrictMode: true,
+  // Configuração para styled-components (SSR)
+  compiler: {
+    styledComponents: true,
+  },
   // Configurações para melhorar a navegação
   experimental: {
     // Forçar re-renderização em mudanças de rota
