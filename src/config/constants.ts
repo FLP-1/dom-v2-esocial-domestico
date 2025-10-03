@@ -210,8 +210,8 @@ export const LOG_CONSTANTS = {
 
 // 📊 Dados Simulados para eSocial - Centralizados
 export const ESOCIAL_SIMULATED_DATA = {
-  EMPREGADOS: MOCK_EMPREGADOS,
-  EVENTOS: MOCK_EVENTOS_ESOCIAL,
+  EMPREGADOS: [],
+  EVENTOS: [],
 } as const;
 
 // 🎯 Configurações de Diagnóstico

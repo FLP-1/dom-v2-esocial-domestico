@@ -57,7 +57,7 @@ class NotificationService {
     // Simular notificações periódicas
     setInterval(() => {
       if (this.isConnected) {
-        this.generateMockNotifications();
+        // this.generateMockNotifications(); // Método não implementado
       }
     }, 30000); // A cada 30 segundos
   }

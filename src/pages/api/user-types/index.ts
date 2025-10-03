@@ -36,7 +36,7 @@ async function getUserTypes(req: NextApiRequest, res: NextApiResponse) {
   const userTypes = await prisma.perfil.findMany({
     where,
     include: {
-      funcionalidades: {
+      permissoes: {
         include: {
           funcionalidade: true,
         },
@@ -53,7 +53,7 @@ async function getUserTypes(req: NextApiRequest, res: NextApiResponse) {
     descricao: userType.descricao,
     cor: userType.cor,
     icone: userType.icone,
-    permissoes: userType.funcionalidades.map(f => f.funcionalidade.codigo),
+    permissoes: userType.permissoes.map(f => f.funcionalidade.codigo),
     ativo: userType.ativo,
     criadoEm: userType.criadoEm,
   }));
@@ -73,6 +73,7 @@ async function createUserType(req: NextApiRequest, res: NextApiResponse) {
 
   const userType = await prisma.perfil.create({
     data: {
+      codigo: nome.toLowerCase().replace(/\s+/g, '_'),
       nome,
       descricao,
       cor: cor || '#3498db',

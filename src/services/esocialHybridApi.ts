@@ -3,7 +3,7 @@
 import { ESocialEvent, ESocialResponse } from './esocialApi';
 import type { ESocialRealApiService } from './esocialRealApi';
 import { getESocialRealApiService } from './esocialRealApi';
-import { MOCK_EMPREGADOS } from '../data/centralized';
+import { ESOCIAL_SIMULATED_DATA } from '../config/constants';
 
 // Helper para verificar se estamos no cliente
 const isClient = typeof window !== 'undefined';
@@ -328,7 +328,7 @@ class ESocialHybridApiService {
   /**
    * Consulta dados dos empregados
    */
-  async consultarDadosEmpregados(): Promise<any[]> {
+  async consultarDadosEmpregados(): Promise<readonly any[]> {
     if (this.useRealApi) {
       try {
         const realService = this.initializeRealService();
@@ -346,7 +346,7 @@ class ESocialHybridApiService {
    * Dados simulados dos empregados - Centralizados
    */
   private getSimulatedEmpregadosData() {
-    return MOCK_EMPREGADOS;
+    return ESOCIAL_SIMULATED_DATA.EMPREGADOS;
   }
 
   /**

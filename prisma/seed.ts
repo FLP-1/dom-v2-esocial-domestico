@@ -1021,7 +1021,8 @@ async function main() {
   if (francisco) {
     // Cônjuge
     await prisma.membroFamilia.create({
-      usuarioId: francisco.id,
+      data: {
+        usuarioId: francisco.id,
       nome: 'Maria Silva Lima',
       parentesco: 'CONJUGE',
       cpf: CPF_MARIA,
@@ -1039,11 +1040,13 @@ async function main() {
       },
       contatoEmergencia: true,
       responsavelFinanceiro: false,
+      }
     })
 
     // Filho
     await prisma.membroFamilia.create({
-      usuarioId: francisco.id,
+      data: {
+        usuarioId: francisco.id,
       nome: 'João Pedro Lima',
       parentesco: 'FILHO',
       dataNascimento: new Date('2010-07-20'),
@@ -1060,6 +1063,7 @@ async function main() {
       },
       contatoEmergencia: false,
       responsavelFinanceiro: false,
+      }
     })
   }
 

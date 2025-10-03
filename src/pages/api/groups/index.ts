@@ -38,7 +38,7 @@ async function getGroups(req: NextApiRequest, res: NextApiResponse) {
     include: {
       _count: {
         select: {
-          usuarios: true,
+          membros: true,
         },
       },
     },
@@ -53,7 +53,7 @@ async function getGroups(req: NextApiRequest, res: NextApiResponse) {
     descricao: group.descricao,
     cor: group.cor,
     icone: group.icone,
-    totalMembros: group._count.usuarios,
+    totalMembros: group._count.membros,
     permissoes: [], // TODO: Implementar sistema de permissões
     ativo: group.ativo,
     criadoEm: group.criadoEm,
@@ -78,6 +78,7 @@ async function createGroup(req: NextApiRequest, res: NextApiResponse) {
       descricao,
       cor: cor || '#3498db',
       icone: icone || '👥',
+      tipo: 'GERAL',
       ativo: true,
     },
   });

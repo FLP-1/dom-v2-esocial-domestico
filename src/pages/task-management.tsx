@@ -400,7 +400,7 @@ interface TaskData {
   title: string;
   description: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'pending' | 'in_progress' | 'completed';
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   assignee: string;
   assigneeId: string;
   dueDate: string;
@@ -412,6 +412,7 @@ interface TaskData {
     author: string;
     text: string;
     timestamp: string;
+    avatar: string;
   }>;
   checklist: Array<{
     id: string;
@@ -495,11 +496,11 @@ const TaskManagement: React.FC = () => {
         },
         body: JSON.stringify({
           titulo: newTask.title,
-          descricao: newTask.description || '',
+          descricao: '',
           prioridade: newTask.priority.toUpperCase(),
-          atribuidoPara: newTask.assigneeId || currentProfile?.id,
+          atribuidoPara: newTask.assignee || currentProfile?.id,
           dataVencimento: newTask.dueDate || new Date().toISOString().split('T')[0],
-          tags: newTask.tags || [],
+          tags: [],
         }),
       });
 
@@ -514,10 +515,7 @@ const TaskManagement: React.FC = () => {
           title: '', 
           priority: 'medium', 
           assignee: '', 
-          assigneeId: '',
-          dueDate: '',
-          description: '',
-          tags: []
+          dueDate: ''
         });
         
         toast.success('Tarefa criada com sucesso!');

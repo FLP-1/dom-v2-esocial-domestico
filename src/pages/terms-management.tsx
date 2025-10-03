@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
@@ -316,14 +316,6 @@ const AdminTitle = styled.h4`
 // StatsGrid e StatCard removidos - agora usando WidgetGrid padrão
 
 // Interfaces
-interface DocumentVersion {
-  id: string;
-  version: string;
-  effectiveDate: string;
-  content: string;
-  isActive: boolean;
-  changes: string[];
-}
 
 interface TermsData {
   termsOfUse: DocumentVersion[];
@@ -348,7 +340,7 @@ const TermsManagement: React.FC = () => {
   const [statistics, setStatistics] = useState<Statistics>({ totalUsers: 0, acceptanceRate: 0 });
 
   // Função para carregar dados da API
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Carregar termos e políticas
@@ -384,17 +376,16 @@ const TermsManagement: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
       toast.error('Erro ao carregar dados');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedVersion]);
 
   // Carregar dados ao montar o componente
   React.useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const currentDocument =
     activeTab === 'terms'
@@ -403,7 +394,7 @@ const TermsManagement: React.FC = () => {
 
   const currentVersions =
     activeTab === 'terms' ? documents.termsOfUse : documents.privacyPolicy;
-  const activeVersion = currentVersions.find(v => v.isActive);
+  const activeVersion = currentVersions.find(v => v.ativo);
 
   const handleEditDocument = () => {
     if (currentDocument) {
@@ -418,11 +409,11 @@ const TermsManagement: React.FC = () => {
     const newVersion: DocumentVersion = {
       ...editingDocument,
       id: Date.now().toString(),
-      version: `v${parseFloat(editingDocument.version.substring(1)) + 0.1}`,
-      effectiveDate: new Date().toISOString().split('T')[0]!,
-      content: updatedContent,
-      isActive: true,
-      changes: ['Atualização de conteúdo'],
+      versao: `v${parseFloat(editingDocument.versao.substring(1)) + 0.1}`,
+      dataVigencia: new Date().toISOString().split('T')[0]!,
+      conteudo: updatedContent,
+      ativo: true,
+      mudancas: ['Atualização de conteúdo'],
     };
 
     // Desativar versão anterior
@@ -572,12 +563,12 @@ const TermsManagement: React.FC = () => {
                   {activeVersion && (
                     <VersionInfo>
                       <VersionBadge $theme={theme}>
-                        {activeVersion.version} - Atual
+                        {activeVersion.versao} - Atual
                       </VersionBadge>
                       <EffectiveDate>
                         Vigente desde:{' '}
                         {new Date(
-                          activeVersion.effectiveDate
+                          activeVersion.dataVigencia
                         ).toLocaleDateString('pt-BR')}
                       </EffectiveDate>
                     </VersionInfo>
@@ -587,7 +578,7 @@ const TermsManagement: React.FC = () => {
 
               <DocumentContent
                 dangerouslySetInnerHTML={{
-                  __html: currentDocument?.content || '',
+                  __html: currentDocument?.conteudo || '',
                 }}
               />
 
@@ -629,13 +620,13 @@ const TermsManagement: React.FC = () => {
                     $theme={theme}
                     onClick={() => setSelectedVersion(version.id)}
                   >
-                    <VersionNumber>{version.version}</VersionNumber>
+                    <VersionNumber>{version.versao}</VersionNumber>
                     <VersionDate>
-                      {new Date(version.effectiveDate).toLocaleDateString(
+                      {new Date(version.dataVigencia).toLocaleDateString(
                         'pt-BR'
                       )}
                     </VersionDate>
-                    {version.isActive && (
+                    {version.ativo && (
                       <VersionStatus $theme={theme}>Atual</VersionStatus>
                     )}
                   </VersionItem>
@@ -651,11 +642,13 @@ const TermsManagement: React.FC = () => {
                     onClick={() => {
                       const newDoc: DocumentVersion = {
                         id: Date.now().toString(),
-                        version: `v${parseFloat(activeVersion?.version.substring(1) || '1') + 0.1}`,
-                        effectiveDate: new Date().toISOString().split('T')[0]!,
-                        content: '',
-                        isActive: false,
-                        changes: [],
+                        versao: `v${parseFloat(activeVersion?.versao.substring(1) || '1') + 0.1}`,
+                        tipo: activeTab === 'terms' ? 'TERMOS_USO' : 'POLITICA_PRIVACIDADE',
+                        titulo: activeTab === 'terms' ? 'Termos de Uso' : 'Política de Privacidade',
+                        conteudo: '',
+                        ativo: false,
+                        dataVigencia: new Date().toISOString().split('T')[0]!,
+                        mudancas: [],
                       };
                       setEditingDocument(newDoc);
                       setIsEditUnifiedModalOpen(true);
@@ -684,7 +677,7 @@ const TermsManagement: React.FC = () => {
                     <Input
                       id='document-version'
                       $theme={theme}
-                      value={editingDocument?.version || ''}
+                      value={editingDocument?.versao || ''}
                       readOnly
                     />
                   </FormGroup>
@@ -696,7 +689,7 @@ const TermsManagement: React.FC = () => {
                       id='document-effective-date'
                       $theme={theme}
                       type='date'
-                      value={editingDocument?.effectiveDate || ''}
+                      value={editingDocument?.dataVigencia || ''}
                       readOnly
                     />
                   </FormGroup>
@@ -706,10 +699,10 @@ const TermsManagement: React.FC = () => {
                     </label>
                     <DocumentTextarea
                       id='document-content'
-                      value={editingDocument?.content || ''}
+                      value={editingDocument?.conteudo || ''}
                       onChange={e =>
                         setEditingDocument(prev =>
-                          prev ? { ...prev, content: e.target.value } : null
+                          prev ? { ...prev, conteudo: e.target.value } : null
                         )
                       }
                       placeholder='Digite o conteúdo do documento...'
@@ -729,7 +722,7 @@ const TermsManagement: React.FC = () => {
                   $variant='success'
                   $theme={theme}
                   onClick={() =>
-                    handleSaveDocument(editingDocument?.content || '')
+                    handleSaveDocument(editingDocument?.conteudo || '')
                   }
                 >
                   Salvar Documento
