@@ -441,97 +441,49 @@ export default function LoginBiometric() {
 
     setIsLoading(true);
 
-    // Simula uma requisição de login
-    setTimeout(() => {
-      setIsLoading(false);
-      alertManager.showSuccess('Login realizado com sucesso!');
+    // Valida login (CPF + senha) e busca perfis
+    fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cpf: cpf,
+        senha: password
+      })
+    })
+      .then(response => response.json())
+      .then(result => {
+        setIsLoading(false);
+        
+        if (result.success && result.data) {
+          alertManager.showSuccess('Login realizado com sucesso!');
+          
+          const userProfiles: UserProfile[] = result.data;
+          
+          // Define os perfis disponíveis no contexto
+          setAvailableProfiles(userProfiles);
 
-      // Simula busca de perfis do usuário
-      const userProfiles: UserProfile[] = [
-        {
-          id: '1',
-          name: 'João Silva',
-          role: 'Empregado',
-          avatar: 'JS',
-          color: '#29ABE2',
-          cpf: cpf,
-          dataNascimento: '1985-03-15',
-          endereco: {
-            logradouro: 'Rua das Flores',
-            numero: '123',
-            complemento: 'Apto 45',
-            bairro: 'Centro',
-            cidade: 'São Paulo',
-            uf: 'SP',
-            cep: '01234-567',
-          },
-          contato: {
-            telefone: '(11) 99999-9999',
-            email: 'joao.silva@email.com',
-          },
-        },
-        {
-          id: '2',
-          name: 'João Silva',
-          role: 'Empregador',
-          avatar: 'JS',
-          color: '#E74C3C',
-          cpf: cpf,
-          dataNascimento: '1980-05-20',
-          endereco: {
-            logradouro: 'Av. Paulista',
-            numero: '1000',
-            complemento: 'Sala 501',
-            bairro: 'Bela Vista',
-            cidade: 'São Paulo',
-            uf: 'SP',
-            cep: '01310-100',
-          },
-          contato: {
-            telefone: '(11) 3333-4444',
-            email: 'empregador@empresa.com',
-          },
-        },
-        {
-          id: '3',
-          name: 'Família Silva',
-          role: 'Família',
-          avatar: 'FS',
-          color: '#9B59B6',
-          cpf: cpf,
-          dataNascimento: '1990-12-10',
-          endereco: {
-            logradouro: 'Rua da Família',
-            numero: '456',
-            complemento: '',
-            bairro: 'Vila Madalena',
-            cidade: 'São Paulo',
-            uf: 'SP',
-            cep: '05433-000',
-          },
-          contato: {
-            telefone: '(11) 5555-6666',
-            email: 'familia@silva.com',
-          },
-        },
-      ];
-
-      // Define os perfis disponíveis no contexto
-      setAvailableProfiles(userProfiles);
-
-      // Se há apenas um perfil, seleciona automaticamente
-      if (userProfiles.length === 1) {
-        const profile = userProfiles[0];
-        if (profile) {
-          handleProfileSelection(profile);
-          router.push('/dashboard');
+          // Se há apenas um perfil, seleciona automaticamente
+          if (userProfiles.length === 1) {
+            const profile = userProfiles[0];
+            if (profile) {
+              handleProfileSelection(profile);
+              router.push('/dashboard');
+            }
+          } else {
+            // Se há múltiplos perfis, mostra o modal de seleção
+            setShowProfileModal(true);
+          }
+        } else {
+          alertManager.showError(result.error || 'Erro ao fazer login');
         }
-      } else {
-        // Se há múltiplos perfis, mostra o modal de seleção
-        //
-        // setShowProfileUnifiedModal removido
-      }
-    }, 1500);
+      })
+      .catch(error => {
+        setIsLoading(false);
+        console.error('Erro ao fazer login:', error);
+        alertManager.showError('Erro ao conectar com o servidor');
+      });
   };
 
   const handleBiometricLogin = (type: 'face' | 'fingerprint' | 'password') => {
@@ -543,54 +495,49 @@ export default function LoginBiometric() {
 
       setIsLoading(true);
 
-      // Simula uma requisição de login
-      setTimeout(() => {
-        setIsLoading(false);
-        alertManager.showSuccess('Login realizado com sucesso!');
+      // Valida login (CPF + senha) e busca perfis
+      fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cpf: cpf,
+          senha: password
+        })
+      })
+        .then(response => response.json())
+        .then(result => {
+          setIsLoading(false);
+          
+          if (result.success && result.data) {
+            alertManager.showSuccess('Login realizado com sucesso!');
+            
+            const userProfiles: UserProfile[] = result.data;
+            
+            // Define os perfis disponíveis no contexto
+            setAvailableProfiles(userProfiles);
 
-        // Simula busca de perfis do usuário
-        const userProfiles: UserProfile[] = [
-          {
-            id: '1',
-            name: 'João Silva',
-            role: 'Empregado',
-            avatar: 'JS',
-            color: '#29ABE2',
-            cpf: cpf,
-          },
-          {
-            id: '2',
-            name: 'João Silva',
-            role: 'Empregador',
-            avatar: 'JS',
-            color: '#E74C3C',
-            cpf: cpf,
-          },
-          {
-            id: '3',
-            name: 'Família Silva',
-            role: 'Família',
-            avatar: 'FS',
-            color: '#9B59B6',
-            cpf: cpf,
-          },
-        ];
-
-        // Define os perfis disponíveis no contexto
-        setAvailableProfiles(userProfiles);
-
-        // Se há apenas um perfil, seleciona automaticamente
-        if (userProfiles.length === 1) {
-          const profile = userProfiles[0];
-          if (profile) {
-            handleProfileSelection(profile);
-            router.push('/dashboard');
+            // Se há apenas um perfil, seleciona automaticamente
+            if (userProfiles.length === 1) {
+              const profile = userProfiles[0];
+              if (profile) {
+                handleProfileSelection(profile);
+                router.push('/dashboard');
+              }
+            } else {
+              // Se há múltiplos perfis, mostra o modal de seleção
+              setShowProfileModal(true);
+            }
+          } else {
+            alertManager.showError(result.error || 'Erro ao fazer login');
           }
-        } else {
-          // Se há múltiplos perfis, mostra o modal de seleção
-          setShowProfileModal(true);
-        }
-      }, 1500);
+        })
+        .catch(error => {
+          setIsLoading(false);
+          console.error('Erro ao fazer login:', error);
+          alertManager.showError('Erro ao conectar com o servidor');
+        });
       return;
     }
 

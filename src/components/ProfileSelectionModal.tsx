@@ -60,7 +60,7 @@ const ProfileModalContent = styled.div`
 
   .header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 2rem;
     border-bottom: 2px solid #f1f3f4;
@@ -75,6 +75,14 @@ const ProfileModalContent = styled.div`
       display: flex;
       align-items: center;
       gap: 0.75rem;
+    }
+
+    .user-name {
+      font-family: 'Roboto', sans-serif;
+      font-size: 1rem;
+      color: #6c757d;
+      margin: 0.5rem 0 0 0;
+      font-weight: 500;
     }
 
     .close-button {
@@ -180,21 +188,12 @@ const ProfileItem = styled.div<{ $isSelected: boolean; $color: string }>`
     position: relative;
     z-index: 1;
 
-    .profile-name {
+    .profile-role {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.125rem;
       font-weight: 700;
       color: #2c3e50;
-      margin: 0 0 0.375rem 0;
-      transition: color 0.3s ease;
-    }
-
-    .profile-role {
-      font-family: 'Roboto', sans-serif;
-      font-size: 0.9rem;
-      color: #6c757d;
       margin: 0;
-      font-weight: 500;
       transition: color 0.3s ease;
     }
   }
@@ -231,14 +230,20 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   onProfileSelect,
   currentProfile,
 }) => {
+  // Pega o nome do usuário do primeiro perfil (todos têm o mesmo nome)
+  const userName = profiles.length > 0 ? profiles[0].name : 'Usuário';
+
   return (
     <ProfileModal $isOpen={isOpen}>
       <ProfileModalContent>
         <div className='header'>
-          <h2 className='title'>
-            {Icons.profile}
-            Selecionar Perfil
-          </h2>
+          <div>
+            <h2 className='title'>
+              {Icons.profile}
+              Selecionar Perfil
+            </h2>
+            <p className='user-name'>{userName}</p>
+          </div>
           <button
             className='close-button'
             onClick={onClose}
@@ -249,7 +254,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
         </div>
 
         <ModalSubtitle>
-          Escolha o perfil que deseja usar para acessar o sistema
+          Escolha o tipo de perfil que deseja usar para acessar o sistema
         </ModalSubtitle>
 
         <ProfileList>
@@ -262,7 +267,6 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
             >
               <div className='profile-avatar'>{profile.avatar}</div>
               <div className='profile-info'>
-                <div className='profile-name'>{profile.name}</div>
                 <div className='profile-role'>{profile.role}</div>
               </div>
               <div className='selection-indicator' />

@@ -2,7 +2,7 @@ module.exports = {
   ci: {
     collect: {
       numberOfRuns: 3,
-      url: ['http://localhost:3000'],
+      url: [process.env.TEST_BASE_URL || 'http://localhost:3000'],
     },
     assert: {
       assertions: {

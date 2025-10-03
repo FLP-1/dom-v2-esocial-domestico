@@ -78,8 +78,12 @@ export const sendSMS = async (telefone: string, codigo: string) => {
     const client = createSMSClient();
     const message = createValidationSMSTemplate(codigo);
 
-    // Número do Twilio com fallback
-    const fromNumber = process.env.TWILIO_PHONE_NUMBER || '+12183668060';
+    // Número do Twilio (obrigatório via env)
+    const fromNumber = process.env.TWILIO_PHONE_NUMBER;
+    
+    if (!fromNumber) {
+      throw new Error('TWILIO_PHONE_NUMBER não configurado nas variáveis de ambiente');
+    }
 
     // Validar formato do telefone (deve estar no formato internacional)
     const phoneRegex = /^\+[1-9]\d{1,14}$/;

@@ -20,6 +20,37 @@ import {
   OptimizedStatusIndicator,
 } from '../components/shared/optimized-styles';
 
+// Funções auxiliares
+const getActivityIcon = (tipo: string) => {
+  switch (tipo) {
+    case 'success':
+      return <AccessibleEmoji emoji='✅' label='Sucesso' />;
+    case 'warning':
+      return <AccessibleEmoji emoji='⚠' label='Aviso' />;
+    case 'error':
+      return <AccessibleEmoji emoji='❌' label='Erro' />;
+    case 'info':
+      return <AccessibleEmoji emoji='ℹ️' label='Informação' />;
+    default:
+      return <AccessibleEmoji emoji='📋' label='Atividade' />;
+  }
+};
+
+const formatTimeAgo = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+  
+  if (diffInMinutes < 1) return 'Agora mesmo';
+  if (diffInMinutes < 60) return `${diffInMinutes} minuto${diffInMinutes > 1 ? 's' : ''} atrás`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} hora${diffInHours > 1 ? 's' : ''} atrás`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays} dia${diffInDays > 1 ? 's' : ''} atrás`;
+};
+
 // Animações
 const fadeIn = keyframes`
   from { opacity: 0; transform: translateY(20px); }
@@ -325,79 +356,37 @@ const MonitoringDashboard: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simular carregamento de métricas
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Carregar métricas da API
+      const metricsResponse = await fetch('/api/monitoring/metrics');
+      const metricsResult = await metricsResponse.json();
+      
+      if (metricsResult.success && metricsResult.data) {
+        const metricsData = metricsResult.data;
+        setMetrics({
+          eventosEnviados: metricsData.esocial?.find((m: any) => m.chave === 'eventos_enviados')?.valor || 0,
+          eventosProcessados: metricsData.esocial?.find((m: any) => m.chave === 'eventos_processados')?.valor || 0,
+          eventosComErro: metricsData.esocial?.find((m: any) => m.chave === 'eventos_com_erro')?.valor || 0,
+          webhooksAtivos: metricsData.webhook?.find((m: any) => m.chave === 'webhooks_ativos')?.valor || 0,
+          backupsRealizados: metricsData.backup?.find((m: any) => m.chave === 'backups_realizados')?.valor || 0,
+          logsAuditoria: metricsData.auditoria?.find((m: any) => m.chave === 'logs_auditoria')?.valor || 0,
+        });
+      }
 
-      const webhookService = getWebhookService();
-      const backupService = getBackupService();
-      const auditService = getAuditService();
-
-      const webhookStats = webhookService.getWebhookStats();
-      const backupStats = backupService.getBackupStats();
-      const auditStats = auditService.getStats(30);
-
-      setMetrics({
-        eventosEnviados: Math.floor(Math.random() * 1000) + 500,
-        eventosProcessados: Math.floor(Math.random() * 800) + 400,
-        eventosComErro: Math.floor(Math.random() * 50) + 10,
-        webhooksAtivos: webhookStats.ativos,
-        backupsRealizados: backupStats.sucesso,
-        logsAuditoria: auditStats.total,
-      });
-
-      // Simular atividade recente
-      const mockActivity = [
-        {
-          id: '1',
-          type: 'success',
-          icon: <AccessibleEmoji emoji='✅' label='Sucesso' />,
-          title: 'Evento S-2200 processado',
-          description: 'Protocolo ESOCIAL-123456789',
-          time: '2 minutos atrás',
-        },
-        {
-          id: '2',
-          type: 'warning',
-          icon: <AccessibleEmoji emoji='⚠' label='Aviso' />,
-          title: 'Webhook com falha',
-          description: '3 tentativas falharam',
-          time: '15 minutos atrás',
-        },
-        {
-          id: '3',
-          type: 'success',
-          icon: <AccessibleEmoji emoji='💾' label='Armazenar' />,
-          title: 'Backup realizado',
-          description: 'Backup completo - 2.5MB',
-          time: '1 hora atrás',
-        },
-        {
-          id: '4',
-          type: 'error',
-          icon: <AccessibleEmoji emoji='❌' label='Erro' />,
-          title: 'Erro no certificado',
-          description: 'Certificado expirado',
-          time: '2 horas atrás',
-        },
-      ];
-
-      setRecentActivity(mockActivity);
-
-      // Simular alertas
-      const mockAlerts = [
-        {
-          type: 'warning',
-          icon: <AccessibleEmoji emoji='⚠' label='Aviso' />,
-          text: '3 webhooks com falha nas últimas 24 horas',
-        },
-        {
-          type: 'info',
-          icon: 'ℹ️',
-          text: 'Próximo backup agendado para 02:00',
-        },
-      ];
-
-      setAlerts(mockAlerts);
+      // Carregar atividade recente da API
+      const activityResponse = await fetch('/api/monitoring/activity?limit=10');
+      const activityResult = await activityResponse.json();
+      
+      if (activityResult.success && activityResult.data) {
+        const mappedActivity = activityResult.data.map((item: any) => ({
+          id: item.id,
+          type: item.tipo,
+          icon: getActivityIcon(item.tipo),
+          title: item.titulo,
+          description: item.descricao,
+          time: formatTimeAgo(item.criadoEm),
+        }));
+        setRecentActivity(mappedActivity);
+      }
 
       // Determinar status do sistema
       if (metrics.eventosComErro > 50) {

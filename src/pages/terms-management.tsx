@@ -4,23 +4,37 @@ import { toast } from 'react-toastify';
 import styled, { keyframes } from 'styled-components';
 import AccessibleEmoji from '../components/AccessibleEmoji';
 import { Form, FormGroup, Input } from '../components/FormComponents';
-import { 
-  UnifiedModal, 
-  // UnifiedModalContent, // Não existe
-  // UnifiedModalHeader, // Não existe
-  // UnifiedModalBody, // Não existe
-  // UnifiedModalFooter // Não existe
-} from '../components/unified';
+import PageContainer from '../components/PageContainer';
+import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
+import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import { WidgetGrid } from '../components/WidgetGrid';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 import {
   UnifiedButton,
-  UnifiedModal as UnifiedModalComponent,
+  UnifiedModal,
   UnifiedCard,
 } from '../components/unified';
-import { MOCK_TERMOS } from '../data/centralized';
+// Interfaces para dados de termos e políticas
+interface DocumentVersion {
+  id: string;
+  versao: string;
+  tipo: string;
+  titulo: string;
+  subtitulo?: string;
+  conteudo: string;
+  ativo: boolean;
+  dataVigencia: string;
+  dataExpiracao?: string;
+  mudancas?: string[];
+}
+
+interface Statistics {
+  totalUsers: number;
+  acceptanceRate: number;
+}
 
 // Animações
 const fadeIn = keyframes`
@@ -65,49 +79,7 @@ const DocumentTextarea = styled.textarea`
   }
 `;
 
-// Styled Components
-const Container = styled.div`
-  display: flex;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  animation: ${fadeIn} 0.6s ease-out;
-`;
-
-const MainContent = styled.div`
-  flex: 1;
-  padding: 2rem;
-  margin-left: 280px;
-  max-width: calc(100vw - 280px);
-  overflow-x: auto;
-`;
-
-const Header = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-`;
-
-const Title = styled.h1`
-  font-family: 'Montserrat', sans-serif;
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: ${props => props.theme?.colors?.primary || '#29ABE2'};
-  margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-`;
-
-const Subtitle = styled.p`
-  font-size: 1.1rem;
-  color: ${props => props.theme?.colors?.text || '#666'};
-  margin: 0.5rem 0 0 0;
-  opacity: 0.8;
-`;
+// Styled Components (mantendo apenas os específicos da página)
 
 const ContentGrid = styled.div`
   display: grid;
@@ -271,6 +243,13 @@ const SidebarTitle = styled.h3`
   margin: 0 0 1.5rem 0;
 `;
 
+const LoadingContainer = styled.div`
+  text-align: center;
+  padding: 2rem;
+  color: ${props => props.theme?.colors?.text || '#2c3e50'};
+  font-size: 1.1rem;
+`;
+
 const VersionList = styled.div`
   display: flex;
   flex-direction: column;
@@ -334,35 +313,7 @@ const AdminTitle = styled.h4`
   margin: 0 0 1rem 0;
 `;
 
-const StatsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-`;
-
-const StatCard = styled.div<{ $theme: any }>`
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 1.5rem;
-  text-align: center;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(10px);
-  border-left: 4px solid ${props => props.$theme?.colors?.primary || '#29ABE2'};
-`;
-
-const StatNumber = styled.div<{ $theme: any }>`
-  font-size: 2rem;
-  font-weight: 700;
-  color: ${props => props.$theme?.colors?.primary || '#29ABE2'};
-  margin-bottom: 0.5rem;
-`;
-
-const StatLabel = styled.div`
-  color: ${props => props.theme?.colors?.text || '#666'};
-  font-size: 0.9rem;
-  font-weight: 500;
-`;
+// StatsGrid e StatCard removidos - agora usando WidgetGrid padrão
 
 // Interfaces
 interface DocumentVersion {
@@ -379,12 +330,6 @@ interface TermsData {
   privacyPolicy: DocumentVersion[];
 }
 
-// Usar dados centralizados
-const mockTermsData: TermsData = {
-  termsOfUse: MOCK_TERMOS,
-  privacyPolicy: MOCK_TERMOS,
-};
-
 const TermsManagement: React.FC = () => {
   const router = useRouter();
 
@@ -398,7 +343,58 @@ const TermsManagement: React.FC = () => {
   const [isEditUnifiedModalOpen, setIsEditUnifiedModalOpen] = useState(false);
   const [editingDocument, setEditingDocument] =
     useState<DocumentVersion | null>(null);
-  const [documents, setDocuments] = useState<TermsData>(mockTermsData);
+  const [documents, setDocuments] = useState<TermsData>({ termsOfUse: [], privacyPolicy: [] });
+  const [isLoading, setIsLoading] = useState(true);
+  const [statistics, setStatistics] = useState<Statistics>({ totalUsers: 0, acceptanceRate: 0 });
+
+  // Função para carregar dados da API
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      // Carregar termos e políticas
+      const termsResponse = await fetch('/api/terms');
+      const termsResult = await termsResponse.json();
+      
+      if (termsResult.success && termsResult.data) {
+        const terms = termsResult.data.filter((t: any) => t.tipo === 'TERMOS_USO');
+        const policies = termsResult.data.filter((t: any) => t.tipo === 'POLITICA_PRIVACIDADE');
+        
+        setDocuments({
+          termsOfUse: terms,
+          privacyPolicy: policies
+        });
+        
+        // Definir primeira versão como selecionada
+        if (terms.length > 0 && !selectedVersion) {
+          setSelectedVersion(terms[0].id);
+        }
+      }
+
+      // Carregar estatísticas
+      const statsResponse = await fetch('/api/statistics');
+      const statsResult = await statsResponse.json();
+      
+      if (statsResult.success && statsResult.data) {
+        const usuarios = statsResult.data.usuarios?.find((s: any) => s.chave === 'total_usuarios')?.valor || '0';
+        const aceite = statsResult.data.compliance?.find((s: any) => s.chave === 'taxa_aceite_termos')?.valor || '0';
+        
+        setStatistics({
+          totalUsers: parseInt(usuarios),
+          acceptanceRate: parseInt(aceite)
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      toast.error('Erro ao carregar dados');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Carregar dados ao montar o componente
+  React.useEffect(() => {
+    loadData();
+  }, []);
 
   const currentDocument =
     activeTab === 'terms'
@@ -468,52 +464,83 @@ const TermsManagement: React.FC = () => {
   return (
     <>
       <GlobalStyle />
-      <Container>
+      <PageContainer $theme={theme} sidebarCollapsed={collapsed}>
         <Sidebar
           collapsed={collapsed}
           onToggle={() => setCollapsed(!collapsed)}
           currentPath={router.pathname}
         />
-        <MainContent>
-        <WelcomeSection $theme={theme}
+        
+        <TopBar $theme={theme}>
+          <WelcomeSection 
+            $theme={theme}
             userAvatar={currentProfile?.avatar || 'U'}
             userName={currentProfile?.name || 'Usuário'}
             userRole={currentProfile?.role || 'Usuário'}
             notificationCount={0}
-            onNotificationClick={() => {}}
+            onNotificationClick={() => toast.info('Notificações em desenvolvimento')}
           />
-          <Header>
-            <div>
-              <Title>Gestão de Termos e Políticas</Title>
-              <Subtitle>
-                Gerencie os Termos de Uso e Políticas de Privacidade do Sistema
-                DOM
-              </Subtitle>
-            </div>
-          </Header>
+        </TopBar>
 
-          <StatsGrid>
-            <StatCard $theme={theme}>
-              <StatNumber $theme={theme}>
-                {documents.termsOfUse.length}
-              </StatNumber>
-              <StatLabel>Versões dos Termos</StatLabel>
-            </StatCard>
-            <StatCard $theme={theme}>
-              <StatNumber $theme={theme}>
-                {documents.privacyPolicy.length}
-              </StatNumber>
-              <StatLabel>Versões da Política</StatLabel>
-            </StatCard>
-            <StatCard $theme={theme}>
-              <StatNumber $theme={theme}>1,247</StatNumber>
-              <StatLabel>Usuários Ativos</StatLabel>
-            </StatCard>
-            <StatCard $theme={theme}>
-              <StatNumber $theme={theme}>98.5%</StatNumber>
-              <StatLabel>Taxa de Aceite</StatLabel>
-            </StatCard>
-          </StatsGrid>
+        <PageHeader
+          $theme={theme}
+          title="Gestão de Termos e Políticas"
+          subtitle="Gerencie os Termos de Uso e Políticas de Privacidade do Sistema DOM"
+        />
+
+        {isLoading ? (
+          <LoadingContainer>
+            <p>Carregando dados...</p>
+          </LoadingContainer>
+        ) : (
+          <WidgetGrid 
+            widgets={[
+              {
+                id: 'terms-versions',
+                title: 'Versões dos Termos',
+                icon: '📋',
+                type: 'primary',
+                theme,
+                metric: documents.termsOfUse.length,
+                description: 'versões disponíveis',
+                content: 'Histórico completo de todas as versões dos Termos de Uso.'
+              },
+              {
+                id: 'privacy-versions',
+                title: 'Versões da Política',
+                icon: '🔒',
+                type: 'secondary',
+                theme,
+                metric: documents.privacyPolicy.length,
+                description: 'versões disponíveis',
+                content: 'Histórico completo de todas as versões das Políticas de Privacidade.'
+              },
+              {
+                id: 'active-users',
+                title: 'Usuários Ativos',
+                icon: '👥',
+                type: 'success',
+                theme,
+                metric: statistics.totalUsers,
+                description: 'usuários ativos',
+                content: 'Total de usuários ativos no sistema DOM.'
+              },
+              {
+                id: 'acceptance-rate',
+                title: 'Taxa de Aceite',
+                icon: '✅',
+                type: 'warning',
+                theme,
+                metric: `${statistics.acceptanceRate}%`,
+                description: 'taxa de aceite',
+                content: 'Percentual de aceite dos termos pelos usuários.'
+              }
+            ]} 
+            onWidgetClick={(widgetId) => {
+              toast.info(`Detalhes do widget ${widgetId} em desenvolvimento`);
+            }}
+          />
+        )}
 
           <ContentGrid>
             <DocumentSection>
@@ -710,8 +737,7 @@ const TermsManagement: React.FC = () => {
               </div>
             </div>
           </UnifiedModal>
-        </MainContent>
-      </Container>
+      </PageContainer>
     </>
   );
 };

@@ -30,9 +30,8 @@ export class CertificateService {
         // Usar arquivo fornecido pelo usuário
         pfxData = await certificateFile.arrayBuffer();
       } else {
-        // Para demonstração, usar dados simulados
-        // Em produção, o arquivo seria carregado via upload
-        throw new Error('Certificado não fornecido. Use o upload de arquivo.');
+        // Certificado deve ser fornecido via upload ou configuração
+        throw new Error('Certificado não fornecido. Use o upload de arquivo ou configure o caminho no ambiente.');
       }
       const pfxBuffer = forge.util.createBuffer(pfxData);
       // Converter para base64 e decodificar

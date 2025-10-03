@@ -361,33 +361,17 @@ export default function DocumentManagement() {
     expiring: false,
   });
 
-  // Carregar dados centralizados
+  // Carregar dados da API
   useEffect(() => {
-    const loadCentralizedData = async () => {
+    const loadData = async () => {
       try {
-        const { dataService } = await import('../data/centralized/services/dataService');
+        // Carregar documentos da API
+        const response = await fetch('/api/documents');
+        const result = await response.json();
         
-        // Carregar categorias de documentos
-        const categoriesResult = await dataService.getDocumentCategories();
-        if (categoriesResult.success) {
-          // Mapear para incluir componentes AccessibleEmoji
-          const mappedCategories = categoriesResult.data.map((cat: any) => ({
-            ...cat,
-            icon: cat.icon === '📄' ? <AccessibleEmoji emoji='📄' label='Documento' /> :
-                  cat.icon === '🧾' ? <AccessibleEmoji emoji='🧾' label='Recibo' /> :
-                  cat.icon === '📜' ? <AccessibleEmoji emoji='📜' label='Certidão' /> :
-                  cat.icon === '🏆' ? <AccessibleEmoji emoji='🏆' label='Certificado' /> :
-                  cat.icon === '📁' ? <AccessibleEmoji emoji='📁' label='Pasta' /> :
-                  cat.icon,
-          }));
-          setCategories(mappedCategories);
-        }
-
-        // Carregar documentos
-        const documentsResult = await dataService.getDocumentos();
-        if (documentsResult.success) {
-          // Mapear dados centralizados para o formato da página
-          const mappedDocuments = documentsResult.data.map((doc: any) => ({
+        if (result.success && result.data) {
+          // Mapear dados da API para o formato da página
+          const mappedDocuments = result.data.map((doc: any) => ({
             id: doc.id,
             name: doc.name,
             category: doc.category,
@@ -401,12 +385,23 @@ export default function DocumentManagement() {
           }));
           setDocuments(mappedDocuments);
         }
+        
+        // Carregar categorias (usar categorias padrão por enquanto)
+        const defaultCategories = [
+          { id: '1', name: 'Documentos Pessoais', icon: <AccessibleEmoji emoji='📄' label='Documento' />, color: '#3498db' },
+          { id: '2', name: 'Recibos', icon: <AccessibleEmoji emoji='🧾' label='Recibo' />, color: '#e74c3c' },
+          { id: '3', name: 'Certidões', icon: <AccessibleEmoji emoji='📜' label='Certidão' />, color: '#f39c12' },
+          { id: '4', name: 'Certificados', icon: <AccessibleEmoji emoji='🏆' label='Certificado' />, color: '#27ae60' },
+          { id: '5', name: 'Outros', icon: <AccessibleEmoji emoji='📁' label='Pasta' />, color: '#9b59b6' },
+        ];
+        setCategories(defaultCategories);
       } catch (error) {
-        // console.error('Erro ao carregar dados centralizados:', error);
+        console.error('Erro ao carregar dados:', error);
+        toast.error('Erro ao carregar documentos');
       }
     };
 
-    loadCentralizedData();
+    loadData();
   }, []);
 
   const handleDragOver = (e: React.DragEvent) => {

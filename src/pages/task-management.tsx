@@ -394,24 +394,76 @@ const CommentAuthor = styled.div<{ $theme: any }>`
   color: ${props => props.$theme.colors.text};
 `;
 
-// Importar dados centralizados
-import { MOCK_TAREFAS, TaskData } from '../data/centralized';
-
-// Usar dados centralizados
-const mockTasks: TaskData[] = MOCK_TAREFAS;
+// Interface para dados de tarefas
+interface TaskData {
+  id: string;
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'pending' | 'in_progress' | 'completed';
+  assignee: string;
+  assigneeId: string;
+  dueDate: string;
+  createdAt: string;
+  createdBy: string;
+  tags: string[];
+  comments: Array<{
+    id: string;
+    author: string;
+    text: string;
+    timestamp: string;
+  }>;
+  checklist: Array<{
+    id: string;
+    text: string;
+    completed: boolean;
+  }>;
+  attachments: Array<{
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+    url: string;
+  }>;
+}
 
 const TaskManagement: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [tasks, setTasks] = useState<TaskData[]>(mockTasks);
+  const [tasks, setTasks] = useState<TaskData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [modalOpen, setUnifiedModalOpen] = useState(false);
   const [modalType, setUnifiedModalType] = useState<'comments' | 'checklist'>(
     'comments'
   );
 
-  // Mock data para perfis de usuário
   // Hook do contexto de perfil
   const { currentProfile } = useUserProfile();
   const { theme } = useTheme(currentProfile?.role.toLowerCase());
+
+  // Função para carregar tarefas da API
+  const loadTasks = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/tasks');
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setTasks(result.data);
+      } else {
+        toast.error(result.error || 'Erro ao carregar tarefas');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar tarefas:', error);
+      toast.error('Erro ao conectar com o servidor');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Carregar tarefas ao montar o componente
+  React.useEffect(() => {
+    loadTasks();
+  }, []);
   const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -427,7 +479,7 @@ const TaskManagement: React.FC = () => {
     assignee: 'all',
   });
 
-  const handleCreateTask = (e: React.FormEvent) => {
+  const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!newTask.title.trim()) {
@@ -435,22 +487,47 @@ const TaskManagement: React.FC = () => {
       return;
     }
 
-    const task: TaskData = {
-      id: Date.now().toString(),
-      title: newTask.title,
-      description: '',
-      priority: newTask.priority,
-      status: 'pending',
-      assignee: newTask.assignee,
-      dueDate: newTask.dueDate,
-      createdAt: new Date().toISOString(),
-      comments: [],
-      checklist: [],
-    };
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          titulo: newTask.title,
+          descricao: newTask.description || '',
+          prioridade: newTask.priority.toUpperCase(),
+          atribuidoPara: newTask.assigneeId || currentProfile?.id,
+          dataVencimento: newTask.dueDate || new Date().toISOString().split('T')[0],
+          tags: newTask.tags || [],
+        }),
+      });
 
-    setTasks(prev => [...prev, task]);
-    setNewTask({ title: '', priority: 'medium', assignee: '', dueDate: '' });
-    toast.success('Tarefa criada com sucesso!');
+      const result = await response.json();
+      
+      if (result.success) {
+        // Recarregar a lista de tarefas
+        await loadTasks();
+        
+        // Limpar formulário
+        setNewTask({ 
+          title: '', 
+          priority: 'medium', 
+          assignee: '', 
+          assigneeId: '',
+          dueDate: '',
+          description: '',
+          tags: []
+        });
+        
+        toast.success('Tarefa criada com sucesso!');
+      } else {
+        toast.error(result.error || 'Erro ao criar tarefa');
+      }
+    } catch (error) {
+      console.error('Erro ao criar tarefa:', error);
+      toast.error('Erro ao conectar com o servidor');
+    }
   };
 
   const handleTaskStatusChange = (

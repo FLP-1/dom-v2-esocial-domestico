@@ -11,39 +11,34 @@ export interface GovBrConfig {
 
 export const GOV_BR_CONFIG: GovBrConfig = {
   // Configurações do gov.br
-  clientId: process.env.GOV_BR_CLIENT_ID || 'SEU_CLIENT_ID_AQUI',
-  clientSecret: process.env.GOV_BR_CLIENT_SECRET || 'SEU_CLIENT_SECRET_AQUI',
-  redirectUri:
-    process.env.GOV_BR_REDIRECT_URI ||
-    'http://localhost:3000/api/esocial-real-govbr/callback',
+  clientId: process.env.GOV_BR_CLIENT_ID || '',
+  clientSecret: process.env.GOV_BR_CLIENT_SECRET || '',
+  redirectUri: process.env.GOV_BR_REDIRECT_URI || 
+    (process.env.NODE_ENV === 'production' 
+      ? 'https://seu-dominio.com/api/esocial-real-govbr/callback'
+      : 'http://localhost:3000/api/esocial-real-govbr/callback'),
   scope: 'openid profile email esocial:read',
 
-  // URLs do gov.br
-  authUrl: 'https://sso.acesso.gov.br/authorize',
-  tokenUrl: 'https://sso.acesso.gov.br/token',
+  // URLs do gov.br (configuráveis via env)
+  authUrl: process.env.GOV_BR_AUTH_URL || 'https://sso.acesso.gov.br/authorize',
+  tokenUrl: process.env.GOV_BR_TOKEN_URL || 'https://sso.acesso.gov.br/token',
 
   // URL da API do eSocial (via gov.br)
-  apiUrl:
-    process.env.NODE_ENV === 'production'
+  apiUrl: process.env.GOV_BR_API_URL || 
+    (process.env.NODE_ENV === 'production'
       ? 'https://api.esocial.gov.br'
-      : 'https://api-hom.esocial.gov.br',
+      : 'https://api-hom.esocial.gov.br'),
 };
 
 // Verificar se a configuração está completa
 export function validateGovBrConfig(): { isValid: boolean; errors: string[] } {
   const errors: string[] = [];
 
-  if (
-    !GOV_BR_CONFIG.clientId ||
-    GOV_BR_CONFIG.clientId === 'SEU_CLIENT_ID_AQUI'
-  ) {
+  if (!GOV_BR_CONFIG.clientId) {
     errors.push('GOV_BR_CLIENT_ID não configurado');
   }
 
-  if (
-    !GOV_BR_CONFIG.clientSecret ||
-    GOV_BR_CONFIG.clientSecret === 'SEU_CLIENT_SECRET_AQUI'
-  ) {
+  if (!GOV_BR_CONFIG.clientSecret) {
     errors.push('GOV_BR_CLIENT_SECRET não configurado');
   }
 

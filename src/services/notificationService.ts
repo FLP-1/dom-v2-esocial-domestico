@@ -201,47 +201,32 @@ class NotificationService {
     this.listeners.forEach(callback => callback([...this.notifications]));
   }
 
-  // Gerar notificações mock para demonstração
-  private generateMockNotifications(): void {
-    const mockNotifications = [
-      {
-        tipo: 'success' as const,
-        titulo: 'Evento eSocial Processado',
-        mensagem: 'Evento S-2200 foi processado com sucesso',
-        categoria: 'esocial' as const,
-        prioridade: 'media' as const,
-      },
-      {
-        tipo: 'warning' as const,
-        titulo: 'Webhook com Falha',
-        mensagem: 'Webhook falhou após 3 tentativas',
-        categoria: 'webhook' as const,
-        prioridade: 'alta' as const,
-      },
-      {
-        tipo: 'info' as const,
-        titulo: 'Backup Realizado',
-        mensagem: 'Backup automático executado com sucesso',
-        categoria: 'backup' as const,
-        prioridade: 'baixa' as const,
-      },
-      {
-        tipo: 'error' as const,
-        titulo: 'Certificado Expirado',
-        mensagem: 'Certificado digital expirará em 7 dias',
-        categoria: 'esocial' as const,
-        prioridade: 'alta' as const,
-      },
-    ];
-
-    // Gerar notificação aleatória ocasionalmente
-    if (Math.random() < 0.1) {
-      // 10% de chance
-      const randomIndex = Math.floor(Math.random() * mockNotifications.length);
-      const randomNotification = mockNotifications[randomIndex];
-      if (randomNotification) {
-        this.sendNotification(randomNotification);
+  // Carregar notificações da API
+  private async loadNotificationsFromAPI(): Promise<void> {
+    try {
+      const response = await fetch('/api/notifications');
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        const apiNotifications = result.data.map((item: any) => ({
+          id: item.id,
+          tipo: item.tipo,
+          titulo: item.titulo,
+          mensagem: item.mensagem,
+          categoria: item.categoria,
+          prioridade: item.prioridade,
+          lida: item.lida,
+          enviada: item.enviada,
+          dataEnvio: item.dataEnvio,
+          dataLeitura: item.dataLeitura,
+          dataExpiracao: item.dataExpiracao,
+        }));
+        
+        this.notifications = apiNotifications;
+        this.notifyListeners();
       }
+    } catch (error) {
+      console.error('Erro ao carregar notificações da API:', error);
     }
   }
 
@@ -338,10 +323,16 @@ class NotificationService {
     );
   }
 
-  private loadNotifications(): void {
-    const stored = localStorage.getItem('notifications');
-    if (stored) {
-      this.notifications = JSON.parse(stored);
+  private async loadNotifications(): Promise<void> {
+    // Primeiro tenta carregar da API
+    await this.loadNotificationsFromAPI();
+    
+    // Se não conseguir da API, carrega do localStorage como fallback
+    if (this.notifications.length === 0) {
+      const stored = localStorage.getItem('notifications');
+      if (stored) {
+        this.notifications = JSON.parse(stored);
+      }
     }
   }
 

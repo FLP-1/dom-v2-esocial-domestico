@@ -149,7 +149,7 @@ converter-*.js
 gerar-*.js
 
 # Arquivos de credenciais e configurações sensíveis
-.env.*
+# .env.* - REMOVIDO para permitir criação do .env.local
 config.json
 secrets.json
 credentials.json

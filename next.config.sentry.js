@@ -16,8 +16,8 @@ const nextConfig = {
 };
 
 const sentryWebpackPluginOptions = {
-  org: 'your-org',
-  project: 'dom-v2',
+  org: process.env.SENTRY_ORG || 'your-org',
+  project: process.env.SENTRY_PROJECT || 'dom-v2',
   silent: true,
   widenClientFileUpload: true,
   hideSourceMaps: true,

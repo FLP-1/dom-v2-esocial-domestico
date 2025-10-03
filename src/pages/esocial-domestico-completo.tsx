@@ -309,46 +309,53 @@ const ESocialDomesticoCompleto: React.FC = () => {
         setEmployees(mappedEmployees);
       }
 
-      // Carregar dados de folha (simulado)
-      setPayrollData([
-        {
-          id: '1',
-          employeeId: '1',
-          mes: '01',
-          ano: '2024',
-          salarioBase: 1500.0,
-          horasTrabalhadas: 220,
-          horasExtras: 0,
-          faltas: 0,
-          atestados: 0,
-          descontos: 150.0,
-          adicionais: 0,
-          salarioLiquido: 1350.0,
-          status: 'PROCESSADO',
-        },
-      ]);
+      // Carregar dados de folha da API
+      try {
+        const payrollResponse = await fetch('/api/payroll');
+        const payrollResult = await payrollResponse.json();
+        
+        if (payrollResult.success && payrollResult.data) {
+          const mappedPayroll = payrollResult.data.map((item: any) => ({
+            id: item.id,
+            employeeId: item.empregadoId,
+            mes: item.mes.toString().padStart(2, '0'),
+            ano: item.ano.toString(),
+            salarioBase: parseFloat(item.salarioBase),
+            horasTrabalhadas: item.horasTrabalhadas,
+            horasExtras: item.horasExtras || 0,
+            faltas: item.faltas || 0,
+            atestados: item.atestados || 0,
+            descontos: parseFloat(item.descontos || 0),
+            adicionais: parseFloat(item.adicionais || 0),
+            salarioLiquido: parseFloat(item.salarioLiquido),
+            status: item.status,
+          }));
+          setPayrollData(mappedPayroll);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar folha de pagamento:', error);
+      }
 
-      // Carregar guias de impostos (simulado)
-      setTaxGuides([
-        {
-          id: '1',
-          tipo: 'INSS',
-          mes: '01',
-          ano: '2024',
-          valor: 150.0,
-          vencimento: '2024-02-15',
-          status: 'PAGO',
-        },
-        {
-          id: '2',
-          tipo: 'FGTS',
-          mes: '01',
-          ano: '2024',
-          valor: 120.0,
-          vencimento: '2024-02-07',
-          status: 'PAGO',
-        },
-      ]);
+      // Carregar guias de impostos da API
+      try {
+        const taxGuidesResponse = await fetch('/api/tax-guides');
+        const taxGuidesResult = await taxGuidesResponse.json();
+        
+        if (taxGuidesResult.success && taxGuidesResult.data) {
+          const mappedTaxGuides = taxGuidesResult.data.map((item: any) => ({
+            id: item.id,
+            tipo: item.tipo,
+            mes: item.mes.toString().padStart(2, '0'),
+            ano: item.ano.toString(),
+            valor: parseFloat(item.valor),
+            vencimento: item.vencimento.split('T')[0],
+            status: item.status,
+          }));
+          setTaxGuides(mappedTaxGuides);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar guias de impostos:', error);
+      }
     } catch (error) {
       alertManager.showError('Erro ao carregar dados iniciais');
     }
@@ -453,7 +460,7 @@ const ESocialDomesticoCompleto: React.FC = () => {
         const newPayrolls = payrollData.employeeId.map(empId => ({
           ...payrollData,
           employeeId: empId,
-          id: Date.now().toString() + Math.random(),
+          id: `payroll_${Date.now()}_${empId}`,
           salarioLiquido,
           status: 'PROCESSADO' as const,
         }));
@@ -500,8 +507,8 @@ const ESocialDomesticoCompleto: React.FC = () => {
     try {
       const newGuides = guides.map(guide => ({
         ...guide,
-        id: Date.now().toString() + Math.random(),
-        valor: Math.random() * 1000 + 100, // Valor simulado
+        id: `guide_${Date.now()}_${guide.tipo}`,
+        valor: guide.valor || 0, // Usar valor fornecido ou 0
         vencimento: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000)
           .toISOString()
           .split('T')[0], // 15 dias

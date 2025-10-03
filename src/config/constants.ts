@@ -4,16 +4,23 @@
  * Este arquivo centraliza todas as constantes do sistema.
  */
 
-// Importar dados centralizados
-import { MOCK_EMPREGADOS, MOCK_EVENTOS_ESOCIAL } from '../data/centralized';
+// Configurações dinâmicas de certificados
+export const getCertificateConfig = () => ({
+  ECPF: {
+    FILE_NAME: process.env.CERTIFICATE_FILE_NAME || '',
+    PASSWORD: process.env.CERTIFICATE_PASSWORD || '',
+    CPF: process.env.CERTIFICATE_CPF || '',
+    TYPE: process.env.CERTIFICATE_TYPE || 'A1',
+  },
+});
 
-// 🔐 Certificados
+// Configurações padrão (apenas para desenvolvimento)
 export const CERTIFICATE_CONSTANTS = {
   ECPF: {
-    FILE_NAME: 'eCPF A1 24940271 (senha 456587).pfx',
-    PASSWORD: '456587',
-    CPF: '24940271',
-    TYPE: 'A1',
+    FILE_NAME: process.env.CERTIFICATE_FILE_NAME || '',
+    PASSWORD: process.env.CERTIFICATE_PASSWORD || '',
+    CPF: process.env.CERTIFICATE_CPF || '',
+    TYPE: process.env.CERTIFICATE_TYPE || 'A1',
   },
 } as const;
 

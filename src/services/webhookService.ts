@@ -184,24 +184,35 @@ class WebhookService {
     }
   }
 
-  // Simular recebimento de evento do eSocial
-  async simulateIncomingEvent(
-    eventType: string,
-    protocolo: string
-  ): Promise<void> {
-    const mockEvent: WebhookEvent = {
-      id: this.generateId(),
-      tipo: eventType,
-      protocolo,
-      status: Math.random() > 0.1 ? 'processed' : 'error',
-      dataProcessamento: new Date().toISOString(),
-      mensagem: 'Evento processado com sucesso',
-      ...(Math.random() > 0.9 && { erro: 'Erro simulado' }),
-      empresaId: '12345678000199',
-      timestamp: new Date().toISOString(),
+  // Carregar eventos webhook da API
+  async loadWebhookEvents(): Promise<void> {
+    try {
+      const response = await fetch('/api/webhooks/events');
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        this.eventQueue = result.data;
+      }
+    } catch (error) {
+      console.error('Erro ao carregar eventos webhook da API:', error);
+    }
+  }
+
+  // Processar evento webhook real
+  async processWebhookEvent(eventData: any): Promise<void> {
+    const webhookEvent: WebhookEvent = {
+      id: eventData.id || this.generateId(),
+      tipo: eventData.tipo,
+      protocolo: eventData.protocolo,
+      status: eventData.status,
+      dataProcessamento: eventData.dataProcessamento || new Date().toISOString(),
+      mensagem: eventData.mensagem,
+      erro: eventData.erro,
+      empresaId: eventData.empresaId,
+      timestamp: eventData.timestamp || new Date().toISOString(),
     };
 
-    await this.processIncomingEvent(mockEvent);
+    await this.processIncomingEvent(webhookEvent);
   }
 
   // Obter estatísticas dos webhooks
@@ -269,7 +280,7 @@ class WebhookService {
   }
 
   private generateId(): string {
-    return `webhook_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `webhook_${Date.now()}_${crypto.randomUUID().substring(0, 8)}`;
   }
 
   private startEventProcessor(): void {
