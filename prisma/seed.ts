@@ -69,7 +69,7 @@ async function main() {
       codigo: 'EMPREGADOR',
       nome: 'Empregador',
       descricao: 'Empregador com acesso a gestão completa',
-      cor: '#E74C3C',
+      cor: '#2E8B57',
       icone: 'business',
       ativo: true,
     },
@@ -93,10 +93,49 @@ async function main() {
     update: {},
     create: {
       codigo: 'ADMIN',
-      nome: 'Administrador',
-      descricao: 'Administrador do sistema com acesso total',
-      cor: '#34495E',
+      nome: 'Administrador Técnico',
+      descricao: 'Administrador técnico do sistema',
+      cor: '#6B7280',
       icone: 'admin',
+      ativo: true,
+    },
+  })
+
+  const perfilFuncionario = await prisma.perfil.upsert({
+    where: { codigo: 'FUNCIONARIO' },
+    update: {},
+    create: {
+      codigo: 'FUNCIONARIO',
+      nome: 'Funcionário',
+      descricao: 'Colaborador da empresa',
+      cor: '#4682B4',
+      icone: 'worker',
+      ativo: true,
+    },
+  })
+
+  const perfilFinanceiro = await prisma.perfil.upsert({
+    where: { codigo: 'FINANCEIRO' },
+    update: {},
+    create: {
+      codigo: 'FINANCEIRO',
+      nome: 'Responsável Financeiro',
+      descricao: 'Responsável pelas questões financeiras',
+      cor: '#FF6347',
+      icone: 'money',
+      ativo: true,
+    },
+  })
+
+  const perfilAdministrador = await prisma.perfil.upsert({
+    where: { codigo: 'ADMINISTRADOR' },
+    update: {},
+    create: {
+      codigo: 'ADMINISTRADOR',
+      nome: 'Administrador (Dono)',
+      descricao: 'Dono e idealizador do projeto',
+      cor: '#8B008B',
+      icone: 'owner',
       ativo: true,
     },
   })
