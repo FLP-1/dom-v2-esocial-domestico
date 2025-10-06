@@ -740,7 +740,7 @@ export default function AlertManagement() {
       />
 
       <TopBar $theme={theme}>
-        <WelcomeSection    
+        <WelcomeSection
           $theme={theme}
           userAvatar={currentProfile?.avatar || 'U'}
           userName={currentProfile?.name || 'Usuário'}

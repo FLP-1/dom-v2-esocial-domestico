@@ -134,7 +134,7 @@ async function main() {
       codigo: 'ADMINISTRADOR',
       nome: 'Administrador (Dono)',
       descricao: 'Dono e idealizador do projeto',
-      cor: '#8B008B',
+      cor: '#000000',
       icone: 'owner',
       ativo: true,
     },

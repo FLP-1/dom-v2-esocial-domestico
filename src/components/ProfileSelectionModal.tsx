@@ -77,11 +77,24 @@ const ProfileModalContent = styled.div`
       gap: 0.75rem;
     }
 
+    .user-nickname {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #29abe2;
+      margin: 0.5rem 0 0.25rem 0;
+      background: linear-gradient(135deg, #29abe2, #90ee90);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 2px 4px rgba(41, 171, 226, 0.1);
+    }
+
     .user-name {
       font-family: 'Roboto', sans-serif;
       font-size: 1rem;
       color: #6c757d;
-      margin: 0.5rem 0 0 0;
+      margin: 0;
       font-weight: 500;
     }
 
@@ -230,8 +243,9 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   onProfileSelect,
   currentProfile,
 }) => {
-  // Pega o nome do usuário do primeiro perfil (todos têm o mesmo nome)
+  // Pega o nome e apelido do usuário do primeiro perfil (todos têm o mesmo nome)
   const userName = profiles.length > 0 ? profiles[0].name : 'Usuário';
+  const userNickname = profiles.length > 0 ? profiles[0].nickname || 'Usuário' : 'Usuário';
 
   return (
     <ProfileModal $isOpen={isOpen}>
@@ -242,6 +256,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
               {Icons.profile}
               Selecionar Perfil
             </h2>
+            <h3 className='user-nickname'>{userNickname}</h3>
             <p className='user-name'>{userName}</p>
           </div>
           <button

@@ -10,6 +10,7 @@ import styled, { keyframes } from 'styled-components';
 import { UserProfile, useUserProfile } from '../contexts/UserProfileContext';
 import { useAlertManager } from '../hooks/useAlertManager';
 import { validateCpf } from '../utils/cpfValidator';
+import { applyCpfMask, removeCpfMask } from '../utils/cpfMask';
 import {
   OptimizedErrorMessage,
   OptimizedCheckboxContainer,
@@ -202,6 +203,13 @@ const RememberMeContainer = styled.div`
   margin: 0;
 `;
 
+const CheckboxRow = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+`;
+
 const Checkbox = styled.input`
   width: 18px;
   height: 18px;
@@ -220,6 +228,8 @@ const CheckboxLabel = styled.label`
   color: #5a6c7d;
   cursor: pointer;
   user-select: none;
+  line-height: 1.4;
+  flex: 1;
 `;
 
 // LinksContainer removed - not used
@@ -407,12 +417,67 @@ export default function LoginBiometric() {
     }
   }, [acceptedTerms, errors.terms]);
 
+  // Função para lidar com a mudança do CPF com máscara
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const maskedValue = applyCpfMask(e.target.value);
+    setCpf(maskedValue);
+    
+    // Validação em tempo real do CPF
+    const cleanCpf = removeCpfMask(maskedValue);
+    
+    // Limpar erro anterior
+    if (errors.cpf) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.cpf;
+        return newErrors;
+      });
+    }
+    
+    // Validar CPF apenas se tiver 11 dígitos (CPF completo)
+    if (cleanCpf.length === 11) {
+      if (!validateCpf(cleanCpf)) {
+        setErrors(prev => ({
+          ...prev,
+          cpf: 'CPF inválido'
+        }));
+      }
+    } else if (cleanCpf.length > 0 && cleanCpf.length < 11) {
+      // Mostrar erro apenas se o usuário começou a digitar mas não completou
+      setErrors(prev => ({
+        ...prev,
+        cpf: 'CPF incompleto'
+      }));
+    }
+  };
+
+  // Função para validar CPF quando o campo perde o foco
+  const handleCpfBlur = () => {
+    const cleanCpf = removeCpfMask(cpf);
+    
+    if (cleanCpf.length === 11) {
+      if (!validateCpf(cleanCpf)) {
+        setErrors(prev => ({
+          ...prev,
+          cpf: 'CPF inválido'
+        }));
+      }
+    } else if (cleanCpf.length > 0 && cleanCpf.length < 11) {
+      setErrors(prev => ({
+        ...prev,
+        cpf: 'CPF incompleto'
+      }));
+    }
+    
+    setFocusedField(null);
+  };
+
   const validateForm = () => {
     const newErrors: { cpf?: string; password?: string; terms?: string } = {};
 
     if (!cpf.trim()) {
       newErrors.cpf = 'CPF é obrigatório';
-    } else if (!validateCpf(cpf)) {
+    } else if (!validateCpf(removeCpfMask(cpf))) {
       newErrors.cpf = 'CPF inválido';
     }
 
@@ -448,7 +513,7 @@ export default function LoginBiometric() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        cpf: cpf,
+        cpf: removeCpfMask(cpf),
         senha: password
       })
     })
@@ -502,7 +567,7 @@ export default function LoginBiometric() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          cpf: cpf,
+          cpf: removeCpfMask(cpf),
           senha: password
         })
       })
@@ -581,9 +646,9 @@ export default function LoginBiometric() {
               id='cpf'
               type='text'
               value={cpf}
-              onChange={e => setCpf(e.target.value)}
+              onChange={handleCpfChange}
               onFocus={() => setFocusedField('cpf')}
-              onBlur={() => setFocusedField(null)}
+              onBlur={handleCpfBlur}
               placeholder='000.000.000-00'
               autoComplete='username'
               $hasError={!!errors.cpf}
@@ -628,40 +693,38 @@ export default function LoginBiometric() {
           </InputGroup>
 
           <RememberMeContainer>
-            <OptimizedCheckboxContainer>
+            <CheckboxRow>
               <Checkbox
                 id='remember'
                 type='checkbox'
                 checked={rememberMe}
                 onChange={e => setRememberMe(e.target.checked)}
               />
-              <label htmlFor='remember'>
+              <CheckboxLabel htmlFor='remember'>
                 Lembrar de mim
-              </label>
-            </OptimizedCheckboxContainer>
+              </CheckboxLabel>
+            </CheckboxRow>
             <Link href='/forgot-password'>Esqueci minha senha</Link>
           </RememberMeContainer>
 
-          <RememberMeContainer>
-            <OptimizedCheckboxContainer>
-              <Checkbox
-                id='terms'
-                type='checkbox'
-                checked={acceptedTerms}
-                onChange={e => setAcceptedTerms(e.target.checked)}
-              />
-              <label htmlFor='terms'>
-                Li e aceito os{' '}
-                <Link href='/terms' onClick={e => e.stopPropagation()}>
-                  Termos de Uso
-                </Link>{' '}
-                e as{' '}
-                <Link href='/privacy' onClick={e => e.stopPropagation()}>
-                  Políticas de Privacidade
-                </Link>
-              </label>
-            </OptimizedCheckboxContainer>
-          </RememberMeContainer>
+          <CheckboxRow>
+            <Checkbox
+              id='terms'
+              type='checkbox'
+              checked={acceptedTerms}
+              onChange={e => setAcceptedTerms(e.target.checked)}
+            />
+            <CheckboxLabel htmlFor='terms'>
+              Li e aceito os{' '}
+              <Link href='/terms' onClick={e => e.stopPropagation()}>
+                Termos de Uso
+              </Link>{' '}
+              e as{' '}
+              <Link href='/privacy' onClick={e => e.stopPropagation()}>
+                Políticas de Privacidade
+              </Link>
+            </CheckboxLabel>
+          </CheckboxRow>
           {errors.terms && (
             <OptimizedErrorMessage>{errors.terms}</OptimizedErrorMessage>
           )}

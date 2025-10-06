@@ -23,6 +23,7 @@ import {
   OptimizedFormRow,
   OptimizedLabel,
 } from '../components/shared/optimized-styles';
+import DataList, { DataListColumn, DataListAction, DataListItem } from '../components/DataList';
 
 // Interfaces
 interface Document {
@@ -103,66 +104,9 @@ const FilterRow = styled.div`
   flex-wrap: wrap;
 `;
 
-const DocumentGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
+// Container para a lista de documentos
+const DocumentsListContainer = styled.div`
   margin-bottom: 2rem;
-`;
-
-const DocumentCard = styled.div<{ $theme: any; $isExpiring: boolean }>`
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 16px ${props => props.$theme.colors.shadow};
-  border: 1px solid
-    ${props => (props.$isExpiring ? '#e74c3c' : props.$theme.colors.primary)}20;
-  transition: all 0.3s ease;
-  cursor: pointer;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px ${props => props.$theme.colors.shadow};
-  }
-
-  .document-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
-  .document-meta {
-    font-size: 0.8rem;
-    color: #7f8c8d;
-    margin-bottom: 0.5rem;
-  }
-
-  .document-due-date {
-    color: #e74c3c;
-    font-weight: 600;
-  }
-
-  .document-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-  }
-
-  .action-button {
-    background: none;
-    border: none;
-    padding: 0.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 1.2rem;
-
-    &:hover {
-      background: ${props => props.$theme.colors.primary}20;
-    }
-  }
 `;
 
 const DocumentForm = styled.form`
@@ -236,45 +180,46 @@ const DocumentInfoText = styled.p`
   color: #7f8c8d;
 `;
 
-const DocumentMeta = styled.div`
-  font-size: 0.8rem;
-  color: #7f8c8d;
-  margin-bottom: 0.5rem;
-`;
-
-const DocumentDescription = styled.p`
-  font-size: 0.9rem;
-  color: #2c3e50;
-  margin: 0.5rem 0;
-`;
-
-const DocumentHeader = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const DocumentIconSmall = styled.span`
+// Styled components auxiliares para renderização customizada
+const DocumentIconWrapper = styled.span<{ $color: string }>`
+  color: ${props => props.$color};
   font-size: 1.5rem;
+  margin-right: 0.5rem;
 `;
 
 const CategoryBadge = styled.span<{ $color: string }>`
   color: ${props => props.$color};
   font-weight: 600;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  background: ${props => props.$color}15;
+  font-size: 0.8rem;
 `;
 
-const DeleteButton = styled.button`
+const DueDateBadge = styled.span`
   color: #e74c3c;
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.2rem;
-  padding: 0.25rem;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
+  font-weight: 600;
+  font-size: 0.8rem;
+`;
 
-  &:hover {
-    background-color: rgba(231, 76, 60, 0.1);
+const MetaInfo = styled.div`
+  font-size: 0.8rem;
+  color: #7f8c8d;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const DocumentNameWrapper = styled.div`
+  .document-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+  
+  .document-description {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    max-width: 280px;
   }
 `;
 
@@ -360,6 +305,121 @@ export default function DocumentManagement() {
     category: '',
     expiring: false,
   });
+
+  // Configuração das colunas para o DataList
+  const documentColumns: DataListColumn[] = [
+    {
+      key: 'icon',
+      label: '',
+      width: '60px',
+      align: 'center',
+      render: (item: DataListItem) => {
+        const categoryInfo = getCategoryInfo(item.category);
+        return (
+          <DocumentIconWrapper $color={categoryInfo.color}>
+            {categoryInfo.icon}
+          </DocumentIconWrapper>
+        );
+      },
+    },
+    {
+      key: 'name',
+      label: 'Nome do Documento',
+      width: '300px',
+      render: (item: DataListItem) => (
+        <DocumentNameWrapper>
+          <div className="document-name">
+            {item.name}
+          </div>
+          {item.description && (
+            <div className="document-description">
+              {item.description.length > 50 
+                ? `${item.description.substring(0, 50)}...` 
+                : item.description
+              }
+            </div>
+          )}
+        </DocumentNameWrapper>
+      ),
+    },
+    {
+      key: 'category',
+      label: 'Categoria',
+      width: '150px',
+      render: (item: DataListItem) => {
+        const categoryInfo = getCategoryInfo(item.category);
+        return (
+          <CategoryBadge $color={categoryInfo.color}>
+            {item.category}
+          </CategoryBadge>
+        );
+      },
+    },
+    {
+      key: 'meta',
+      label: 'Informações',
+      width: '200px',
+      render: (item: DataListItem) => (
+        <MetaInfo>
+          <AccessibleEmoji emoji="📊" label="Tamanho" />
+          {item.fileSize}
+          <br />
+          <AccessibleEmoji emoji="📅" label="Data" />
+          {new Date(item.uploadDate).toLocaleDateString('pt-BR')}
+        </MetaInfo>
+      ),
+    },
+    {
+      key: 'dueDate',
+      label: 'Vencimento',
+      width: '150px',
+      render: (item: DataListItem) => {
+        if (!item.dueDate) return '-';
+        return (
+          <DueDateBadge>
+            <AccessibleEmoji emoji="📅" label="Vencimento" />
+            {new Date(item.dueDate).toLocaleDateString('pt-BR')}
+          </DueDateBadge>
+        );
+      },
+    },
+    {
+      key: 'permissions',
+      label: 'Permissões',
+      width: '120px',
+      render: (item: DataListItem) => (
+        <PermissionBadge $permission={item.permissions}>
+          {item.permissions === 'public'
+            ? 'Público'
+            : item.permissions === 'private'
+              ? 'Privado'
+              : 'Compartilhado'}
+        </PermissionBadge>
+      ),
+    },
+  ];
+
+  // Configuração das ações para o DataList
+  const documentActions: DataListAction[] = [
+    {
+      icon: '✏️',
+      label: 'Editar documento',
+      variant: 'primary',
+      onClick: (item: DataListItem) => openUnifiedModal('edit', item as Document),
+    },
+    {
+      icon: '🔗',
+      label: 'Compartilhar documento',
+      variant: 'secondary',
+      onClick: (item: DataListItem) => openUnifiedModal('view', item as Document),
+    },
+    {
+      icon: '❌',
+      label: 'Excluir documento',
+      variant: 'danger',
+      onClick: (item: DataListItem) => handleDeleteDocument(item.id),
+    },
+  ];
 
   // Carregar dados da API
   useEffect(() => {
@@ -645,87 +705,20 @@ export default function DocumentManagement() {
         </FilterRow>
       </FilterSection>
 
-      <DocumentGrid>
-        {getFilteredDocuments().map(document => {
-          const categoryInfo = getCategoryInfo(document.category);
-          return (
-            <DocumentCard
-              key={document.id}
-              $theme={theme}
-              $isExpiring={document.isExpiring}
-              onClick={() => openUnifiedModal('view', document)}
-            >
-              <div className='document-header'>
-                <DocumentHeader>
-                  <DocumentIconSmall>{categoryInfo.icon}</DocumentIconSmall>
-                  <DocumentTitle>{document.name}</DocumentTitle>
-                </DocumentHeader>
-                <PermissionBadge $permission={document.permissions}>
-                  {document.permissions === 'public'
-                    ? 'Público'
-                    : document.permissions === 'private'
-                      ? 'Privado'
-                      : 'Compartilhado'}
-                </PermissionBadge>
-              </div>
-
-              <div className='document-meta'>
-                <CategoryBadge $color={categoryInfo.color}>
-                  {document.category}
-                </CategoryBadge>
-                {document.dueDate && (
-                  <div className='document-due-date'>
-                    <AccessibleEmoji emoji='📅' label='Calendário' /> Vence em:{' '}
-                    {new Date(document.dueDate).toLocaleDateString('pt-BR')}
-                  </div>
-                )}
-              </div>
-
-              <DocumentMeta>
-                <AccessibleEmoji emoji='📊' label='Dashboard' />{' '}
-                {document.fileSize} •{' '}
-                <AccessibleEmoji emoji='📅' label='Calendário' />{' '}
-                {new Date(document.uploadDate).toLocaleDateString('pt-BR')}
-              </DocumentMeta>
-
-              <DocumentDescription>{document.description}</DocumentDescription>
-
-              <div className='document-actions'>
-                <DeleteButton
-                  className='action-button'
-                  onClick={e => {
-                    e.stopPropagation();
-                    openUnifiedModal('edit', document);
-                  }}
-                  title='Editar documento'
-                >
-                  <AccessibleEmoji emoji='✏' label='Editar' />
-                </DeleteButton>
-                <DeleteButton
-                  className='action-button'
-                  onClick={e => {
-                    e.stopPropagation();
-                    openUnifiedModal('view', document);
-                  }}
-                  title='Compartilhar documento'
-                >
-                  <AccessibleEmoji emoji='🔗' label='Compartilhar' />
-                </DeleteButton>
-                <DeleteButton
-                  className='action-button'
-                  onClick={e => {
-                    e.stopPropagation();
-                    handleDeleteDocument(document.id);
-                  }}
-                  title='Excluir documento'
-                >
-                  <AccessibleEmoji emoji='❌' label='Excluir' />
-                </DeleteButton>
-              </div>
-            </DocumentCard>
-          );
-        })}
-      </DocumentGrid>
+      <DocumentsListContainer>
+        <DataList
+          theme={theme}
+          items={getFilteredDocuments()}
+          columns={documentColumns}
+          actions={documentActions}
+          onItemClick={(item) => openUnifiedModal('view', item as Document)}
+          emptyMessage="Nenhum documento encontrado. Clique no botão acima para fazer upload do seu primeiro documento."
+          variant="detailed"
+          showHeader={true}
+          striped={true}
+          hoverable={true}
+        />
+      </DocumentsListContainer>
 
       <UnifiedModal
         isOpen={modalOpen}

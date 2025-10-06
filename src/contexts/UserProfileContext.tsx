@@ -9,6 +9,7 @@ import React, {
 export interface UserProfile {
   id: string;
   name: string;
+  nickname?: string;
   role: string;
   avatar: string;
   color: string;

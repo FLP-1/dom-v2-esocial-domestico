@@ -1,8 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
-
-const prisma = new PrismaClient()
+import prisma from '../../../lib/prisma'
 
 /**
  * API para validar login (CPF + Senha)
@@ -85,6 +83,7 @@ export default async function handler(
         return {
           id: up.id,
           name: usuario.nomeCompleto,
+          nickname: usuario.apelido || null,
           role: up.perfil.nome,
           avatar: iniciais,
           color: up.perfil.cor,

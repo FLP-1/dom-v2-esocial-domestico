@@ -53,19 +53,24 @@ model Usuario {
   aceitesTermos            AceiteTermo[]
   alertas                  Alerta[]
   assinaturas              Assinatura[]
+  atividadeRecente         AtividadeRecente[]
   conversasParticipante    ConversaParticipante[]
   convites                 Convite[]
   dispositivos             Dispositivo[]
   documentos               Documento[]
   documentosCompartilhados DocumentoCompartilhamento[]
   emprestimos              Emprestimo[]
+  folhaPagamento           FolhaPagamento[]
+  guiasImpostos            GuiaImposto[]
   historicosLogin          HistoricoLogin[]
   listasCompras            ListaCompras[]
   listasCompartilhadas     ListaComprasCompartilhamento[]
   logs                     LogAuditoria[]
+  membrosFamilia           MembroFamilia[]
   mensagens                Mensagem[]
   mensagensLidas           MensagemLeitura[]
   mensagensReacoes         MensagemReacao[]
+  notificacoes             Notificacao[]
   onboarding               Onboarding?
   pontosRegistrados        RegistroPonto[]
   sessoes                  Sessao[]
@@ -75,11 +80,6 @@ model Usuario {
   gruposUsuario            UsuarioGrupo[]
   perfis                   UsuarioPerfil[]
   validacoesContato        ValidacaoContato[]
-  membrosFamilia           MembroFamilia[]
-  notificacoes             Notificacao[]
-  folhaPagamento          FolhaPagamento[]
-  guiasImpostos           GuiaImposto[]
-  atividadeRecente        AtividadeRecente[]
 
   @@index([cpf])
   @@index([email])
@@ -649,25 +649,25 @@ model EventoESocial {
 }
 
 model Empregador {
-  id               String                @id @default(uuid())
-  cpfCnpj          String                @unique @db.VarChar(14)
-  tipoInscricao    String                @default("CPF") @db.VarChar(4)
-  nome             String                @db.VarChar(255)
-  razaoSocial      String?               @db.VarChar(255)
-  email            String                @db.VarChar(255)
-  telefone         String                @db.VarChar(11)
-  logradouro       String                @db.VarChar(255)
-  numero           String                @db.VarChar(20)
-  complemento      String?               @db.VarChar(100)
-  bairro           String                @db.VarChar(100)
-  cidade           String                @db.VarChar(100)
-  uf               String                @db.VarChar(2)
-  cep              String                @db.VarChar(8)
-  ambienteESocial  String                @default("HOMOLOGACAO") @db.VarChar(20)
-  ativo            Boolean               @default(true)
-  criadoEm         DateTime              @default(now())
-  atualizadoEm     DateTime              @updatedAt
-  certificados     CertificadoDigital[]
+  id              String               @id @default(uuid())
+  cpfCnpj         String               @unique @db.VarChar(14)
+  tipoInscricao   String               @default("CPF") @db.VarChar(4)
+  nome            String               @db.VarChar(255)
+  razaoSocial     String?              @db.VarChar(255)
+  email           String               @db.VarChar(255)
+  telefone        String               @db.VarChar(11)
+  logradouro      String               @db.VarChar(255)
+  numero          String               @db.VarChar(20)
+  complemento     String?              @db.VarChar(100)
+  bairro          String               @db.VarChar(100)
+  cidade          String               @db.VarChar(100)
+  uf              String               @db.VarChar(2)
+  cep             String               @db.VarChar(8)
+  ambienteESocial String               @default("HOMOLOGACAO") @db.VarChar(20)
+  ativo           Boolean              @default(true)
+  criadoEm        DateTime             @default(now())
+  atualizadoEm    DateTime             @updatedAt
+  certificados    CertificadoDigital[]
 
   @@index([cpfCnpj])
   @@index([ativo])
@@ -676,51 +676,51 @@ model Empregador {
 
 /// @description Certificados Digitais (e-CPF, e-CNPJ) com segurança LGPD
 model CertificadoDigital {
-  id                       String    @id @default(uuid())
-  empregadorId             String?
-  usuarioId                String?
-  nome                     String    @db.VarChar(255)
-  descricao                String?
-  tipo                     String    @db.VarChar(50)
-  tipoDocumento            String    @db.VarChar(100)
-  cpfCnpjTitular           String    @db.VarChar(14)
-  nomeTitular              String    @db.VarChar(255)
-  numeroSerial             String    @unique @db.VarChar(255)
-  emissor                  String    @db.VarChar(255)
-  dataEmissao              DateTime  @db.Date
-  dataValidade             DateTime  @db.Date
-  algoritmo                String    @db.VarChar(50)
-  tamanhoChave             Int
-  thumbprint               String    @db.VarChar(255)
-  caminhoArquivo           String    @db.VarChar(500)
-  nomeArquivoOriginal      String    @db.VarChar(255)
-  tamanhoArquivo           Int
-  hashArquivo              String    @db.VarChar(255)
-  senhaHash                String    @db.VarChar(255)
-  senhaSalt                String    @db.VarChar(255)
-  senhaAlgoritmo           String    @default("AES-256-GCM") @db.VarChar(50)
-  criptografiaIV           String    @db.VarChar(255)
-  ativo                    Boolean   @default(true)
-  revogado                 Boolean   @default(false)
-  dataRevogacao            DateTime?
-  motivoRevogacao          String?
-  alertaVencimento         Boolean   @default(true)
-  diasAntesAlerta          Int       @default(30)
-  ultimoUso                DateTime?
-  contagemUso              Int       @default(0)
-  finalidadeUso            String?
-  consentimentoLGPD        Boolean   @default(false)
-  dataConsentimentoLGPD    DateTime?
-  ipCadastro               String?   @db.VarChar(45)
-  ipUltimaAlteracao        String?   @db.VarChar(45)
-  usuarioCadastro          String?   @db.VarChar(255)
-  usuarioUltimaAlteracao   String?   @db.VarChar(255)
-  observacoes              String?
-  metadata                 Json?
-  criadoEm                 DateTime  @default(now())
-  atualizadoEm             DateTime  @updatedAt
-  empregador               Empregador? @relation(fields: [empregadorId], references: [id], onDelete: SetNull)
-  historicoAcessos         CertificadoHistorico[]
+  id                     String                 @id @default(uuid())
+  empregadorId           String?
+  usuarioId              String?
+  nome                   String                 @db.VarChar(255)
+  descricao              String?
+  tipo                   String                 @db.VarChar(50)
+  tipoDocumento          String                 @db.VarChar(100)
+  cpfCnpjTitular         String                 @db.VarChar(14)
+  nomeTitular            String                 @db.VarChar(255)
+  numeroSerial           String                 @unique @db.VarChar(255)
+  emissor                String                 @db.VarChar(255)
+  dataEmissao            DateTime               @db.Date
+  dataValidade           DateTime               @db.Date
+  algoritmo              String                 @db.VarChar(50)
+  tamanhoChave           Int
+  thumbprint             String                 @db.VarChar(255)
+  caminhoArquivo         String                 @db.VarChar(500)
+  nomeArquivoOriginal    String                 @db.VarChar(255)
+  tamanhoArquivo         Int
+  hashArquivo            String                 @db.VarChar(255)
+  senhaHash              String                 @db.VarChar(255)
+  senhaSalt              String                 @db.VarChar(255)
+  senhaAlgoritmo         String                 @default("AES-256-GCM") @db.VarChar(50)
+  criptografiaIV         String                 @db.VarChar(255)
+  ativo                  Boolean                @default(true)
+  revogado               Boolean                @default(false)
+  dataRevogacao          DateTime?
+  motivoRevogacao        String?
+  alertaVencimento       Boolean                @default(true)
+  diasAntesAlerta        Int                    @default(30)
+  ultimoUso              DateTime?
+  contagemUso            Int                    @default(0)
+  finalidadeUso          String?
+  consentimentoLGPD      Boolean                @default(false)
+  dataConsentimentoLGPD  DateTime?
+  ipCadastro             String?                @db.VarChar(45)
+  ipUltimaAlteracao      String?                @db.VarChar(45)
+  usuarioCadastro        String?                @db.VarChar(255)
+  usuarioUltimaAlteracao String?                @db.VarChar(255)
+  observacoes            String?
+  metadata               Json?
+  criadoEm               DateTime               @default(now())
+  atualizadoEm           DateTime               @updatedAt
+  empregador             Empregador?            @relation(fields: [empregadorId], references: [id])
+  historicoAcessos       CertificadoHistorico[]
 
   @@index([empregadorId])
   @@index([usuarioId])
@@ -733,22 +733,22 @@ model CertificadoDigital {
 
 /// @description Histórico de Acesso a Certificados (Auditoria LGPD)
 model CertificadoHistorico {
-  id                String             @id @default(uuid())
-  certificadoId     String
-  usuarioId         String?
-  acao              String             @db.VarChar(50)
-  descricao         String?
-  enderecoIP        String             @db.VarChar(45)
-  userAgent         String?
-  localizacao       String?            @db.VarChar(255)
-  sucesso           Boolean            @default(true)
-  mensagemErro      String?
-  dadosAntes        Json?
-  dadosDepois       Json?
-  motivoAcesso      String?
-  autorizadoPor     String?            @db.VarChar(255)
-  criadoEm          DateTime           @default(now())
-  certificado       CertificadoDigital @relation(fields: [certificadoId], references: [id], onDelete: Cascade)
+  id            String             @id @default(uuid())
+  certificadoId String
+  usuarioId     String?
+  acao          String             @db.VarChar(50)
+  descricao     String?
+  enderecoIP    String             @db.VarChar(45)
+  userAgent     String?
+  localizacao   String?            @db.VarChar(255)
+  sucesso       Boolean            @default(true)
+  mensagemErro  String?
+  dadosAntes    Json?
+  dadosDepois   Json?
+  motivoAcesso  String?
+  autorizadoPor String?            @db.VarChar(255)
+  criadoEm      DateTime           @default(now())
+  certificado   CertificadoDigital @relation(fields: [certificadoId], references: [id], onDelete: Cascade)
 
   @@index([certificadoId])
   @@index([usuarioId])
@@ -1034,14 +1034,14 @@ model Configuracao {
 
 /// @description Novo: Estatísticas do Sistema
 model EstatisticaSistema {
-  id              String   @id @default(uuid())
-  chave           String   @unique @db.VarChar(100)
-  valor           String   @db.VarChar(255)
-  descricao       String?
-  categoria       String   @db.VarChar(100)
-  tipoDado        String   @db.VarChar(50)
-  atualizadaEm    DateTime @default(now())
-  criadoEm        DateTime @default(now())
+  id           String   @id @default(uuid())
+  chave        String   @unique @db.VarChar(100)
+  valor        String   @db.VarChar(255)
+  descricao    String?
+  categoria    String   @db.VarChar(100)
+  tipoDado     String   @db.VarChar(50)
+  atualizadaEm DateTime @default(now())
+  criadoEm     DateTime @default(now())
 
   @@index([chave])
   @@index([categoria])
@@ -1050,21 +1050,21 @@ model EstatisticaSistema {
 
 /// @description Novo: Membros da Família
 model MembroFamilia {
-  id              String   @id @default(uuid())
-  usuarioId       String
-  nome            String   @db.VarChar(255)
-  parentesco      String   @db.VarChar(100)
-  cpf             String?  @db.VarChar(11)
-  dataNascimento  DateTime? @db.Date
-  telefone        String?  @db.VarChar(11)
-  email           String?  @db.VarChar(255)
-  endereco        Json?
-  contatoEmergencia Boolean @default(false)
-  responsavelFinanceiro Boolean @default(false)
-  ativo           Boolean  @default(true)
-  criadoEm        DateTime @default(now())
-  atualizadoEm    DateTime @updatedAt
-  usuario         Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  id                    String    @id @default(uuid())
+  usuarioId             String
+  nome                  String    @db.VarChar(255)
+  parentesco            String    @db.VarChar(100)
+  cpf                   String?   @db.VarChar(11)
+  dataNascimento        DateTime? @db.Date
+  telefone              String?   @db.VarChar(11)
+  email                 String?   @db.VarChar(255)
+  endereco              Json?
+  contatoEmergencia     Boolean   @default(false)
+  responsavelFinanceiro Boolean   @default(false)
+  ativo                 Boolean   @default(true)
+  criadoEm              DateTime  @default(now())
+  atualizadoEm          DateTime  @updatedAt
+  usuario               Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@index([usuarioId])
   @@index([parentesco])
@@ -1073,20 +1073,20 @@ model MembroFamilia {
 
 /// @description Novo: Dados de Páginas
 model DadosPagina {
-  id              String   @id @default(uuid())
-  slug            String   @unique @db.VarChar(100)
-  titulo          String   @db.VarChar(255)
-  conteudo        String
-  tipoPagina      String   @db.VarChar(50)
-  categoria       String   @db.VarChar(100)
-  tags            String[]
-  ativa           Boolean  @default(true)
-  publica         Boolean  @default(false)
+  id                String   @id @default(uuid())
+  slug              String   @unique @db.VarChar(100)
+  titulo            String   @db.VarChar(255)
+  conteudo          String
+  tipoPagina        String   @db.VarChar(50)
+  categoria         String   @db.VarChar(100)
+  tags              String[]
+  ativa             Boolean  @default(true)
+  publica           Boolean  @default(false)
   ultimaModificacao DateTime @default(now())
-  modificadoPor   String?  @db.VarChar(255)
-  versao          String   @db.VarChar(20)
-  criadoEm        DateTime @default(now())
-  atualizadoEm    DateTime @updatedAt
+  modificadoPor     String?  @db.VarChar(255)
+  versao            String   @db.VarChar(20)
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
 
   @@index([slug])
   @@index([tipoPagina])
@@ -1096,22 +1096,22 @@ model DadosPagina {
 
 /// @description Novo: Notificações
 model Notificacao {
-  id              String   @id @default(uuid())
-  usuarioId       String?
-  tipo            String   @db.VarChar(50)
-  titulo          String   @db.VarChar(255)
-  mensagem        String
-  categoria       String   @db.VarChar(100)
-  prioridade      String   @db.VarChar(20)
-  lida            Boolean  @default(false)
-  enviada         Boolean  @default(false)
-  dadosAcao       Json?
-  dataEnvio       DateTime?
-  dataLeitura     DateTime?
-  dataExpiracao   DateTime?
-  criadoEm        DateTime @default(now())
-  atualizadoEm    DateTime @updatedAt
-  usuario         Usuario? @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  id            String    @id @default(uuid())
+  usuarioId     String?
+  tipo          String    @db.VarChar(50)
+  titulo        String    @db.VarChar(255)
+  mensagem      String
+  categoria     String    @db.VarChar(100)
+  prioridade    String    @db.VarChar(20)
+  lida          Boolean   @default(false)
+  enviada       Boolean   @default(false)
+  dadosAcao     Json?
+  dataEnvio     DateTime?
+  dataLeitura   DateTime?
+  dataExpiracao DateTime?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+  usuario       Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@index([usuarioId])
   @@index([tipo])
@@ -1151,18 +1151,18 @@ model FolhaPagamento {
 
 /// @description Nova: Guias de Impostos
 model GuiaImposto {
-  id          String   @id @default(uuid())
-  usuarioId   String
-  tipo        String   @db.VarChar(50)
-  mes         Int
-  ano         Int
-  valor       Decimal  @db.Decimal(10, 2)
-  vencimento  DateTime @db.Date
-  status      String   @db.VarChar(50)
-  observacoes String?
-  criadoEm    DateTime @default(now())
+  id           String   @id @default(uuid())
+  usuarioId    String
+  tipo         String   @db.VarChar(50)
+  mes          Int
+  ano          Int
+  valor        Decimal  @db.Decimal(10, 2)
+  vencimento   DateTime @db.Date
+  status       String   @db.VarChar(50)
+  observacoes  String?
+  criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
-  usuario     Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@index([usuarioId])
   @@index([tipo])
@@ -1173,14 +1173,14 @@ model GuiaImposto {
 
 /// @description Nova: Métricas de Sistema
 model MetricaSistema {
-  id          String   @id @default(uuid())
-  chave       String   @unique @db.VarChar(100)
-  valor       Int
-  descricao   String?
-  categoria   String   @db.VarChar(100)
-  dadosExtras Json?
+  id           String   @id @default(uuid())
+  chave        String   @unique @db.VarChar(100)
+  valor        Int
+  descricao    String?
+  categoria    String   @db.VarChar(100)
+  dadosExtras  Json?
   atualizadaEm DateTime @default(now())
-  criadoEm    DateTime @default(now())
+  criadoEm     DateTime @default(now())
 
   @@index([chave])
   @@index([categoria])
@@ -1189,14 +1189,14 @@ model MetricaSistema {
 
 /// @description Nova: Atividade Recente
 model AtividadeRecente {
-  id          String   @id @default(uuid())
-  tipo        String   @db.VarChar(50)
-  titulo      String   @db.VarChar(255)
-  descricao   String?
-  usuarioId   String?
-  dados       Json?
-  criadoEm    DateTime @default(now())
-  usuario     Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  id        String   @id @default(uuid())
+  tipo      String   @db.VarChar(50)
+  titulo    String   @db.VarChar(255)
+  descricao String?
+  usuarioId String?
+  dados     Json?
+  criadoEm  DateTime @default(now())
+  usuario   Usuario? @relation(fields: [usuarioId], references: [id])
 
   @@index([usuarioId])
   @@index([tipo])
@@ -1204,16 +1204,15 @@ model AtividadeRecente {
   @@map("atividade_recente")
 }
 
-// Configurações do Sistema
 model ConfiguracaoSistema {
-  id          String   @id @default(uuid())
-  chave       String   @unique @db.VarChar(100)
-  valor       String   @db.Text
-  tipo        String   @db.VarChar(50) // 'string', 'number', 'boolean', 'json'
-  descricao   String?  @db.VarChar(255)
-  categoria   String   @db.VarChar(100)
-  editavel    Boolean  @default(true)
-  criadoEm    DateTime @default(now())
+  id           String   @id @default(uuid())
+  chave        String   @unique @db.VarChar(100)
+  valor        String
+  tipo         String   @db.VarChar(50)
+  descricao    String?  @db.VarChar(255)
+  categoria    String   @db.VarChar(100)
+  editavel     Boolean  @default(true)
+  criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
   @@index([chave])
@@ -1221,30 +1220,28 @@ model ConfiguracaoSistema {
   @@map("configuracao_sistema")
 }
 
-// Configurações de Teste
 model ConfiguracaoTeste {
-  id          String   @id @default(uuid())
-  nome        String   @unique @db.VarChar(255)
-  descricao   String?  @db.VarChar(500)
-  dados       Json
-  ativo       Boolean  @default(true)
-  criadoEm    DateTime @default(now())
+  id           String   @id @default(uuid())
+  nome         String   @unique @db.VarChar(255)
+  descricao    String?  @db.VarChar(500)
+  dados        Json
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
   @@index([ativo])
   @@map("configuracao_teste")
 }
 
-// Templates de Email/SMS
 model TemplateComunicacao {
-  id          String   @id @default(uuid())
-  nome        String   @db.VarChar(255)
-  tipo        String   @db.VarChar(50) // 'email', 'sms', 'push'
-  assunto     String?  @db.VarChar(255)
-  conteudo    String   @db.Text
-  variaveis   Json?
-  ativo       Boolean  @default(true)
-  criadoEm    DateTime @default(now())
+  id           String   @id @default(uuid())
+  nome         String   @db.VarChar(255)
+  tipo         String   @db.VarChar(50)
+  assunto      String?  @db.VarChar(255)
+  conteudo     String
+  variaveis    Json?
+  ativo        Boolean  @default(true)
+  criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
   @@index([nome])
