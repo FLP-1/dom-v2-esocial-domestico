@@ -150,14 +150,14 @@ export default function WelcomeSection({
     return () => clearInterval(timer);
   }, []);
 
-  // Inicializar geolocalização no WelcomeSection (usuário já fez login = já deu consentimento)
+  // Geolocalização será solicitada apenas quando necessário (não automaticamente)
+  // A permissão está implícita no aceite das políticas de uso
   useEffect(() => {
-    // Só inicializar se há um perfil ativo (usuário logado)
     if (currentProfile) {
-      console.log('📍 Inicializando geolocalização no WelcomeSection (usuário logado)');
-      refreshLocation();
+      console.log('📍 Usuário logado - geolocalização disponível quando necessário');
+      // Não inicializar automaticamente para evitar popup de permissão
     }
-  }, [currentProfile, refreshLocation]);
+  }, [currentProfile]);
 
 
   // Usar nickname do contexto se disponível, senão usar o nome passado como prop
@@ -190,7 +190,7 @@ export default function WelcomeSection({
             <LocationInfo>
               {isLoading ? 'Carregando localização...' : 
                error ? 'Localização indisponível' : 
-               location || 'Localização não disponível'}
+               location || 'Localização será obtida quando necessário'}
             </LocationInfo>
           </InfoRow>
           <InfoRow>

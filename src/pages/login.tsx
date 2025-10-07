@@ -510,16 +510,10 @@ export default function LoginBiometric() {
 
     setIsLoading(true);
 
-    // Capturar geolocalização no momento do login (com gesto do usuário)
+    // Geolocalização será capturada apenas quando necessário
+    // A permissão está implícita no aceite das políticas de uso
     let locationData = null;
-    try {
-      console.log('📍 Capturando geolocalização no login...');
-      locationData = await captureRealTimeLocation();
-      console.log('✅ Geolocalização capturada no login:', locationData);
-    } catch (error) {
-      console.log('⚠️ Erro ao capturar geolocalização no login:', error);
-      // Continuar com login mesmo se geolocalização falhar
-    }
+    console.log('📍 Geolocalização disponível quando necessário (permissão implícita nas políticas)');
 
     // Valida login (CPF + senha) e busca perfis
     fetch('/api/auth/login', {
