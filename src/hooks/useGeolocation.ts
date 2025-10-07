@@ -35,9 +35,9 @@ interface GeolocationHookResult {
 }
 
 export const useGeolocation = (): GeolocationHookResult => {
-  const [location, setLocation] = useState<string>('Carregando...');
-  const [wifiName, setWifiName] = useState<string>('Carregando...');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [location, setLocation] = useState<string>('Localização será obtida quando necessário');
+  const [wifiName, setWifiName] = useState<string>('WiFi não detectado');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPosition, setCurrentPosition] = useState<GeolocationData | null>(null);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
