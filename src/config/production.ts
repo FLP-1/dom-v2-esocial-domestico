@@ -5,9 +5,9 @@ export const PRODUCTION_CONFIG = {
 
   // Dados do Empregador em Produção
   empregador: {
-    cpf: '59876913700',
-    nome: 'FLP Business Strategy',
-    razaoSocial: 'FLP Business Strategy',
+    cpf: process.env.EMPRESA_CPF || '',
+    nome: process.env.EMPRESA_NOME || 'Empresa',
+    razaoSocial: process.env.EMPRESA_RAZAO_SOCIAL || 'Empresa',
     endereco: {
       logradouro: 'Rua das Flores, 123',
       numero: '123',

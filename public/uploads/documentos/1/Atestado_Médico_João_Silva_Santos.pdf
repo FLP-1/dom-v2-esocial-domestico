@@ -1,0 +1,78 @@
+%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+
+4 0 obj
+<<
+/Length 385
+>>
+stream
+BT
+/F1 12 Tf
+72 720 Td
+(Atestado Médico
+
+Paciente: João Silva Santos
+CPF: 12345678901
+
+Atesto que o paciente esteve sob meus cuidados médicos e apresenta quadro que o impede de exercer suas atividades laborais normais.
+
+Período: 01/01/2024 a 31/12/2024
+
+Dr. José Médico Silva
+CRM: 123456
+São Paulo, 07/10/2025) Tj
+ET
+endstream
+endobj
+
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+
+xref
+0 6
+0000000000 65535 f 
+0000000010 00000 n 
+0000000079 00000 n 
+0000000136 00000 n 
+0000000301 00000 n 
+0000000510 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+885
+%%EOF

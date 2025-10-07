@@ -324,7 +324,7 @@ class AuditService {
 
   private getClientIP(): string {
     // Em produção, obter IP real
-    return '127.0.0.1';
+    return req.headers['x-forwarded-for'] as string || req.connection.remoteAddress || 'IP não detectado';
   }
 
   private getUserAgent(): string {

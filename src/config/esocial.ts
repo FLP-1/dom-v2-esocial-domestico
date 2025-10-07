@@ -5,8 +5,8 @@ export const ESOCIAL_CONFIG = {
 
   // Dados do empregador
   empregador: {
-    cpf: '59876913700',
-    nome: 'FLP Business Strategy',
+    cpf: process.env.EMPRESA_CPF || '',
+    nome: process.env.EMPRESA_NOME || 'Empresa',
   },
 
   // Certificado digital
@@ -67,9 +67,9 @@ export const ESOCIAL_CONFIG = {
 
   // Software House
   softwareHouse: {
-    cnpj: '59876913700', // Usando CPF como CNPJ para pessoa física
-    nome: 'FLP Business Strategy',
-    contato: 'FLP Business Strategy',
+    cnpj: process.env.EMPRESA_CPF || '', // Usando CPF como CNPJ para pessoa física
+    nome: process.env.EMPRESA_NOME || 'Empresa',
+    contato: process.env.EMPRESA_NOME || 'Empresa',
     telefone: '11999999999',
     email: 'contato@flpbusiness.com',
   },

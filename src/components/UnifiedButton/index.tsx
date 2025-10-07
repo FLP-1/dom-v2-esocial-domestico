@@ -1,6 +1,7 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useCallback } from 'react';
 import styled from 'styled-components';
 import { componentShadows, createThemedStyles } from '../../design-system';
+import { useGeolocationCapture } from '../../hooks/useGeolocationCapture';
 
 // Styled Components
 const ButtonContainer = styled.button<{
@@ -294,6 +295,9 @@ export interface UnifiedButtonProps {
   type?: 'button' | 'submit' | 'reset';
   'aria-label'?: string;
   $fullWidth?: boolean;
+  // Novas propriedades para captura automática de geolocalização
+  $criticalAction?: boolean; // Se true, captura geolocalização automaticamente
+  $actionName?: string; // Nome da ação para logs e auditoria
 }
 
 export const UnifiedButton: React.FC<UnifiedButtonProps> = ({
@@ -308,7 +312,21 @@ export const UnifiedButton: React.FC<UnifiedButtonProps> = ({
   type = 'button',
   'aria-label': ariaLabel,
   $fullWidth = false,
+  $criticalAction = false,
+  $actionName = 'Ação do botão',
 }) => {
+  const { createCriticalButtonHandler } = useGeolocationCapture();
+
+  // Handler que captura geolocalização automaticamente para ações críticas
+  const handleClick = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
+    if ($criticalAction && onClick) {
+      console.log(`🎯 Botão crítico clicado: ${$actionName}`);
+      const criticalHandler = createCriticalButtonHandler(onClick, $actionName);
+      await criticalHandler(event);
+    } else if (onClick) {
+      onClick(event);
+    }
+  }, [onClick, $criticalAction, $actionName, createCriticalButtonHandler]);
   return (
     <ButtonContainer
       $variant={$variant}
@@ -316,7 +334,7 @@ export const UnifiedButton: React.FC<UnifiedButtonProps> = ({
       $size={$size}
       $fullWidth={$fullWidth}
       $loading={$loading}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={$disabled || $loading}
       type={type}
       aria-label={ariaLabel}

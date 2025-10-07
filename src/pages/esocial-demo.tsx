@@ -18,7 +18,7 @@ export default function ESocialDemo({ initialData }: ESocialDemoProps) {
   const theme = useTheme();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<DemoResult | null>(initialData || null);
-  const [cpf, setCpf] = useState('59876913700');
+  const [cpf, setCpf] = useState('');
   const [ambiente, setAmbiente] = useState<'homologacao' | 'producao'>(
     'producao'
   );
@@ -145,7 +145,7 @@ export default function ESocialDemo({ initialData }: ESocialDemoProps) {
                 value={cpf}
                 onChange={e => setCpf(e.target.value)}
                 $theme={theme}
-                placeholder='59876913700'
+                placeholder='Digite o CPF da empresa'
               />
             </div>
             <div>

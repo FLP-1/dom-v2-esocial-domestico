@@ -42,7 +42,8 @@ export class DadosReaisService {
       }
 
       // MÉTODO 2: Dados confirmados do portal eSocial
-      if (cpf === '59876913700') {
+      const empresaConfig = await import('../lib/configService').then(m => m.getEmpresaConfig());
+      if (cpf === empresaConfig.cpf) {
         const dadosPortal: DadosReaisEmpregador = {
           cpf: cpf,
           nome: 'FRANCISCO JOSE LATTARI PAPALEO',
@@ -162,9 +163,10 @@ export class DadosReaisService {
       // Importar serviço eSocial
       const { ESocialSoapClientService } = await import('./esocialSoapClient');
 
+      const empresaConfig = await import('../lib/configService').then(m => m.getEmpresaConfig());
       const soapService = new ESocialSoapClientService({
         environment: 'producao',
-        companyId: '59876913700', // CPF do empregador
+        companyId: empresaConfig.cpf, // CPF do empregador dinâmico
       });
 
       // Carregar certificado

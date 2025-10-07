@@ -6,7 +6,7 @@ export default async function handler(
   res: NextApiResponse
 ) {
   try {
-    console.log('DATABASE_URL:', process.env.DATABASE_URL)
+    // console.log('DATABASE_URL:', process.env.DATABASE_URL)
     
     // Teste simples de conexão
     const result = await prisma.$queryRaw`SELECT 1 as test`

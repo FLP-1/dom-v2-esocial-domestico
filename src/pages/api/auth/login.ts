@@ -1,128 +1,112 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import bcrypt from 'bcryptjs'
-import prisma from '../../../lib/prisma'
+import prisma from '../../../lib/prisma';
+import { generateToken } from '../../../lib/auth';
+import bcrypt from 'bcryptjs';
 
-/**
- * API para validar login (CPF + Senha)
- * POST /api/auth/login
- */
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Método não permitido' })
-  }
+export default async function handler(req, res) {
+  if (req.method === 'POST') {
+    try {
+      const { cpf, senha, locationData } = req.body;
 
-  try {
-    const { cpf, senha } = req.body
-
-    if (!cpf || !senha) {
-      return res.status(400).json({
-        success: false,
-        error: 'CPF e senha são obrigatórios'
-      })
-    }
-
-    // Remove máscara do CPF
-    const cpfLimpo = cpf.replace(/[.\-\s]/g, '')
-
-    // Valida se o CPF tem 11 dígitos
-    if (!/^\d{11}$/.test(cpfLimpo)) {
-      return res.status(400).json({
-        success: false,
-        error: 'CPF inválido'
-      })
-    }
-
-    // Busca o usuário pelo CPF
-    const usuario = await prisma.usuario.findUnique({
-      where: { cpf: cpfLimpo },
-      include: {
-        perfis: {
-          include: {
-            perfil: true
-          }
-        }
+      if (!cpf || !senha) {
+        return res.status(400).json({ message: 'CPF e senha são obrigatórios' });
       }
-    })
 
-    if (!usuario) {
-      return res.status(401).json({
-        success: false,
-        error: 'Usuário não encontrado'
-      })
-    }
+      // Log da geolocalização recebida no login
+      if (locationData) {
+        console.log('📍 Geolocalização recebida no login:', {
+          latitude: locationData.latitude,
+          longitude: locationData.longitude,
+          accuracy: locationData.accuracy,
+          address: locationData.address,
+          wifiName: locationData.wifiName,
+          timestamp: locationData.timestamp
+        });
+      }
 
-    if (!usuario.ativo) {
-      return res.status(401).json({
-        success: false,
-        error: 'Usuário inativo'
-      })
-    }
-
-    // Valida a senha
-    const senhaValida = await bcrypt.compare(senha, usuario.senhaHash)
-    
-    if (!senhaValida) {
-      return res.status(401).json({
-        success: false,
-        error: 'Senha incorreta'
-      })
-    }
-
-    // Mapeia os perfis do usuário para o formato do frontend
-    const userProfiles = usuario.perfis
-      .filter(up => up.ativo) // Apenas perfis ativos
-      .map((up) => {
-        const nomePartes = usuario.nomeCompleto.split(' ')
-        const iniciais = nomePartes.length > 1
-          ? `${nomePartes[0][0]}${nomePartes[nomePartes.length - 1][0]}`.toUpperCase()
-          : nomePartes[0].substring(0, 2).toUpperCase()
-
-        return {
-          id: up.id,
-          name: usuario.nomeCompleto,
-          nickname: usuario.apelido || null,
-          role: up.perfil.nome,
-          avatar: iniciais,
-          color: up.perfil.cor,
-          cpf: usuario.cpf,
-          dataNascimento: usuario.dataNascimento.toISOString().split('T')[0],
-          endereco: {
-            logradouro: usuario.logradouro || undefined,
-            numero: usuario.numero || undefined,
-            complemento: usuario.complemento || undefined,
-            bairro: usuario.bairro || undefined,
-            cidade: usuario.cidade || undefined,
-            uf: usuario.uf || undefined,
-            cep: usuario.cep || undefined
+      // Buscar usuário pelo CPF
+      const user = await prisma.usuario.findUnique({
+        where: { cpf },
+        include: {
+          perfis: {
+            include: {
+              perfil: true,
+            },
           },
-          contato: {
-            telefone: usuario.telefone,
-            email: usuario.email
-          }
+        },
+      });
+
+      if (!user) {
+        return res.status(401).json({ message: 'Credenciais inválidas' });
+      }
+
+      // Verificar senha (está hasheada no banco com bcrypt)
+      const isValidPassword = await bcrypt.compare(senha, user.senhaHash || '');
+
+      if (!isValidPassword) {
+        return res.status(401).json({ message: 'Credenciais inválidas' });
+      }
+
+      // Determinar o perfil principal
+      const primaryProfile = user.perfis?.find(p => p.principal)?.perfil || user.perfis?.[0]?.perfil;
+
+      // Gerar token JWT
+      const token = generateToken({
+        userId: user.id,
+        email: user.email,
+        role: primaryProfile?.codigo || 'USER',
+      });
+
+      // Definir cookie seguro
+      res.setHeader('Set-Cookie', [
+        `token=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict; ${process.env.NODE_ENV === 'production' ? 'Secure' : ''}`,
+      ]);
+
+      // Preparar dados do usuário com perfis no formato esperado pelo frontend
+      const userProfiles = user.perfis?.map(up => ({
+        id: up.id,
+        usuarioId: up.usuarioId,
+        perfilId: up.perfilId,
+        avatar: up.avatar || user.apelido?.substring(0, 2).toUpperCase() || user.nomeCompleto?.substring(0, 2).toUpperCase() || 'U',
+        apelido: up.apelido || user.apelido,
+        ativo: up.ativo,
+        principal: up.principal,
+        // Mapear para estrutura esperada pelo frontend
+        name: user.nomeCompleto,
+        nickname: up.apelido || user.apelido,
+        role: up.perfil.codigo,
+        color: up.perfil.cor,
+        // Manter estrutura original também
+        perfil: {
+          id: up.perfil.id,
+          codigo: up.perfil.codigo,
+          nome: up.perfil.nome,
+          descricao: up.perfil.descricao,
+          cor: up.perfil.cor,
+          icone: up.perfil.icone,
+          ativo: up.perfil.ativo
         }
-      })
+      })) || [];
 
-    if (userProfiles.length === 0) {
-      return res.status(403).json({
-        success: false,
-        error: 'Usuário não possui perfis ativos'
-      })
+      res.status(200).json({
+        success: true,
+        message: 'Login realizado com sucesso',
+        data: userProfiles,
+        user: {
+          id: user.id,
+          email: user.email,
+          nomeCompleto: user.nomeCompleto,
+          apelido: user.apelido,
+          role: primaryProfile?.codigo || 'USER',
+          avatar: primaryProfile?.avatar || user.apelido?.substring(0, 2).toUpperCase() || user.nomeCompleto?.substring(0, 2).toUpperCase() || 'U',
+        },
+        token,
+      });
+    } catch (error) {
+      console.error('Erro no login:', error);
+      res.status(500).json({ message: 'Erro interno do servidor' });
     }
-
-    return res.status(200).json({
-      success: true,
-      data: userProfiles,
-      timestamp: new Date().toISOString()
-    })
-  } catch (error) {
-    console.error('❌ Erro ao validar login:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Erro interno do servidor',
-      timestamp: new Date().toISOString()
-    })
+  } else {
+    res.setHeader('Allow', ['POST']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

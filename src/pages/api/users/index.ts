@@ -10,9 +10,6 @@ export default async function handler(
   if (req.method === 'GET') {
     try {
       const usuarios = await prisma.usuario.findMany({
-        where: {
-          ativo: true,
-        },
         select: {
           id: true,
           cpf: true,

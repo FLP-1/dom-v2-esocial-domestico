@@ -1215,8 +1215,8 @@ model ConfiguracaoSistema {
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 
-  @@index([chave])
   @@index([categoria])
+  @@index([chave])
   @@map("configuracao_sistema")
 }
 

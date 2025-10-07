@@ -11,6 +11,7 @@ import { UserProfile, useUserProfile } from '../contexts/UserProfileContext';
 import { useAlertManager } from '../hooks/useAlertManager';
 import { validateCpf } from '../utils/cpfValidator';
 import { applyCpfMask, removeCpfMask } from '../utils/cpfMask';
+import { useGeolocation } from '../hooks/useGeolocation';
 import {
   OptimizedErrorMessage,
   OptimizedCheckboxContainer,
@@ -398,6 +399,9 @@ export default function LoginBiometric() {
     setShowProfileModal,
   } = useUserProfile();
 
+  // Hook de geolocalização para capturar localização no login
+  const { captureRealTimeLocation } = useGeolocation();
+
   const motivationalPhrases = [
     'Transforme sua casa em um lar organizado e acolhedor',
     'Simplifique sua rotina doméstica com inteligência',
@@ -506,6 +510,17 @@ export default function LoginBiometric() {
 
     setIsLoading(true);
 
+    // Capturar geolocalização no momento do login (com gesto do usuário)
+    let locationData = null;
+    try {
+      console.log('📍 Capturando geolocalização no login...');
+      locationData = await captureRealTimeLocation();
+      console.log('✅ Geolocalização capturada no login:', locationData);
+    } catch (error) {
+      console.log('⚠️ Erro ao capturar geolocalização no login:', error);
+      // Continuar com login mesmo se geolocalização falhar
+    }
+
     // Valida login (CPF + senha) e busca perfis
     fetch('/api/auth/login', {
       method: 'POST',
@@ -514,7 +529,16 @@ export default function LoginBiometric() {
       },
       body: JSON.stringify({
         cpf: removeCpfMask(cpf),
-        senha: password
+        senha: password,
+        // Incluir dados de geolocalização no login
+        locationData: locationData ? {
+          latitude: locationData.latitude,
+          longitude: locationData.longitude,
+          accuracy: locationData.accuracy,
+          address: locationData.address,
+          wifiName: locationData.wifiName,
+          timestamp: new Date().toISOString()
+        } : null
       })
     })
       .then(response => response.json())

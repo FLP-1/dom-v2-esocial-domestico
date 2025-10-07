@@ -45,6 +45,130 @@ async function main() {
   console.log('🌱 Iniciando seed do banco de dados...')
 
   // ==========================================
+  // 0️⃣ CONFIGURAÇÕES DO SISTEMA
+  // ==========================================
+  console.log('⚙️ Criando configurações do sistema...')
+  
+  // Configurações básicas do sistema
+  const configuracoesSistema = [
+    {
+      chave: 'empresa_cpf_principal',
+      valor: CPF_FRANCISCO,
+      descricao: 'CPF principal da empresa',
+      categoria: 'empresa',
+      tipo: 'string',
+      obrigatorio: true,
+      validacao: '^[0-9]{11}$'
+    },
+    {
+      chave: 'empresa_nome',
+      valor: 'FLP Business Strategy',
+      descricao: 'Nome da empresa',
+      categoria: 'empresa',
+      tipo: 'string',
+      obrigatorio: true
+    },
+    {
+      chave: 'empresa_email',
+      valor: 'contato@flpbusiness.com',
+      descricao: 'Email principal da empresa',
+      categoria: 'empresa',
+      tipo: 'string',
+      obrigatorio: true,
+      validacao: '^[^@]+@[^@]+\\.[^@]+$'
+    },
+    {
+      chave: 'empresa_telefone',
+      valor: '11999999999',
+      descricao: 'Telefone principal da empresa',
+      categoria: 'empresa',
+      tipo: 'string',
+      obrigatorio: true
+    },
+    {
+      chave: 'sistema_url_base',
+      valor: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+      descricao: 'URL base do sistema',
+      categoria: 'sistema',
+      tipo: 'string',
+      obrigatorio: true
+    },
+    {
+      chave: 'esocial_ambiente_padrao',
+      valor: 'homologacao',
+      descricao: 'Ambiente padrão do eSocial',
+      categoria: 'integracao',
+      tipo: 'string',
+      obrigatorio: true,
+      valoresPermitidos: JSON.stringify(['homologacao', 'producao'])
+    },
+          {
+            chave: 'geocoding_precisao_casas',
+            valor: '11',
+            descricao: 'Número de casas decimais para precisão de geolocalização',
+            categoria: 'sistema',
+            tipo: 'number',
+            obrigatorio: true
+          },
+          {
+            chave: 'geolocalizacao_precisao_maxima',
+            valor: '10',
+            descricao: 'Precisão máxima aceitável em metros para geolocalização',
+            categoria: 'sistema',
+            tipo: 'number',
+            obrigatorio: true
+          },
+          {
+            chave: 'geolocalizacao_timeout',
+            valor: '30000',
+            descricao: 'Timeout em milissegundos para captura de geolocalização',
+            categoria: 'sistema',
+            tipo: 'number',
+            obrigatorio: true
+          },
+          {
+            chave: 'autenticacao_tempo_sessao',
+            valor: '86400',
+            descricao: 'Tempo de sessão em segundos (24 horas)',
+            categoria: 'sistema',
+            tipo: 'number',
+            obrigatorio: true
+          },
+          {
+            chave: 'sistema_senha_padrao',
+            valor: 'senha123',
+            descricao: 'Senha padrão do sistema para desenvolvimento',
+            categoria: 'sistema',
+            tipo: 'string',
+            obrigatorio: false
+          },
+          {
+            chave: 'empresa_razao_social',
+            valor: 'FLP Business Strategy',
+            descricao: 'Razão social da empresa',
+            categoria: 'empresa',
+            tipo: 'string',
+            obrigatorio: true
+          },
+          {
+            chave: 'empresa_cnpj',
+            valor: '',
+            descricao: 'CNPJ da empresa (vazio para pessoa física)',
+            categoria: 'empresa',
+            tipo: 'string',
+            obrigatorio: false
+          }
+  ];
+
+  for (const config of configuracoesSistema) {
+    await prisma.configuracaoSistema.upsert({
+      where: { chave: config.chave },
+      update: config,
+      create: config
+    });
+  }
+
+  // ==========================================
   // 1️⃣ PERFIS
   // ==========================================
   console.log('📋 Criando perfis...')
@@ -1396,6 +1520,192 @@ async function main() {
   console.log('✅ Atividade recente criada!')
 
   // ==========================================
+  // 🕐 DADOS DE TESTE PARA TIME-CLOCK
+  // ==========================================
+  console.log('🕐 Criando dados de teste para Time-Clock...')
+
+  // Buscar usuários existentes
+  const franciscoTimeClock = await prisma.usuario.findUnique({
+    where: { email: 'francisco@flpbusiness.com' }
+  })
+  const mariaTimeClock = await prisma.usuario.findUnique({
+    where: { email: 'maria@flpbusiness.com' }
+  })
+
+  if (franciscoTimeClock && mariaTimeClock) {
+    // 1. Horários Oficiais
+    const horariosOficiais = [
+      { diaSemana: 1, entrada: '08:00', saida: '17:00', intervaloInicio: '12:00', intervaloFim: '13:00' }, // Segunda
+      { diaSemana: 2, entrada: '08:00', saida: '17:00', intervaloInicio: '12:00', intervaloFim: '13:00' }, // Terça
+      { diaSemana: 3, entrada: '08:00', saida: '17:00', intervaloInicio: '12:00', intervaloFim: '13:00' }, // Quarta
+      { diaSemana: 4, entrada: '08:00', saida: '17:00', intervaloInicio: '12:00', intervaloFim: '13:00' }, // Quinta
+      { diaSemana: 5, entrada: '08:00', saida: '17:00', intervaloInicio: '12:00', intervaloFim: '13:00' }, // Sexta
+    ]
+
+    for (const horario of horariosOficiais) {
+      await prisma.horarioOficial.upsert({
+        where: { 
+          usuarioId_diaSemana: { 
+            usuarioId: franciscoTimeClock.id, 
+            diaSemana: horario.diaSemana 
+          } 
+        },
+        update: horario,
+        create: {
+          ...horario,
+          usuarioId: franciscoTimeClock.id,
+        }
+      })
+    }
+
+    // 2. Registros de Ponto de Exemplo (últimos 7 dias)
+    const hoje = new Date()
+    const registrosExemplo = []
+    
+    for (let i = 0; i < 7; i++) {
+      const data = new Date(hoje)
+      data.setDate(data.getDate() - i)
+      
+      // Pular fins de semana
+      if (data.getDay() === 0 || data.getDay() === 6) continue
+      
+      const diaSemana = data.getDay()
+      const baseTime = new Date(data)
+      baseTime.setHours(8, 0, 0, 0) // 08:00
+      
+      registrosExemplo.push(
+        {
+          usuarioId: franciscoTimeClock.id,
+          dataHora: new Date(baseTime.getTime() + Math.random() * 1800000), // ±15 min
+          tipo: 'entrada',
+          latitude: -23.5505 + (Math.random() - 0.5) * 0.01,
+          longitude: -46.6333 + (Math.random() - 0.5) * 0.01,
+          enderecoCompleto: 'Rua das Flores, 123 - Vila Mariana, São Paulo - SP',
+          nomeRedeWiFi: 'Empresa_WiFi_5G',
+          enderecoIP: '192.168.1.100',
+          aprovado: true,
+          aprovadoPor: 'Sistema',
+          aprovadoEm: new Date(),
+        },
+        {
+          usuarioId: franciscoTimeClock.id,
+          dataHora: new Date(baseTime.getTime() + 4 * 3600000 + Math.random() * 300000), // 12:00 ±5 min
+          tipo: 'saida_almoco',
+          latitude: -23.5505 + (Math.random() - 0.5) * 0.01,
+          longitude: -46.6333 + (Math.random() - 0.5) * 0.01,
+          enderecoCompleto: 'Rua das Flores, 123 - Vila Mariana, São Paulo - SP',
+          nomeRedeWiFi: 'Empresa_WiFi_5G',
+          enderecoIP: '192.168.1.100',
+          aprovado: true,
+          aprovadoPor: 'Sistema',
+          aprovadoEm: new Date(),
+        },
+        {
+          usuarioId: franciscoTimeClock.id,
+          dataHora: new Date(baseTime.getTime() + 5 * 3600000 + Math.random() * 300000), // 13:00 ±5 min
+          tipo: 'retorno_almoco',
+          latitude: -23.5505 + (Math.random() - 0.5) * 0.01,
+          longitude: -46.6333 + (Math.random() - 0.5) * 0.01,
+          enderecoCompleto: 'Rua das Flores, 123 - Vila Mariana, São Paulo - SP',
+          nomeRedeWiFi: 'Empresa_WiFi_5G',
+          enderecoIP: '192.168.1.100',
+          aprovado: true,
+          aprovadoPor: 'Sistema',
+          aprovadoEm: new Date(),
+        },
+        {
+          usuarioId: franciscoTimeClock.id,
+          dataHora: new Date(baseTime.getTime() + 9 * 3600000 + Math.random() * 1800000), // 17:00 ±15 min
+          tipo: 'saida',
+          latitude: -23.5505 + (Math.random() - 0.5) * 0.01,
+          longitude: -46.6333 + (Math.random() - 0.5) * 0.01,
+          enderecoCompleto: 'Rua das Flores, 123 - Vila Mariana, São Paulo - SP',
+          nomeRedeWiFi: 'Empresa_WiFi_5G',
+          enderecoIP: '192.168.1.100',
+          aprovado: true,
+          aprovadoPor: 'Sistema',
+          aprovadoEm: new Date(),
+        }
+      )
+    }
+
+    // Inserir registros de ponto
+    for (const registro of registrosExemplo) {
+      await prisma.registroPontoNovo.create({
+        data: registro
+      })
+    }
+
+    // 3. Solicitações de Hora Extra de Exemplo
+    const solicitacoesHoraExtra = [
+      {
+        usuarioId: francisco.id,
+        dataHoraInicio: new Date(hoje.getTime() - 24 * 3600000), // Ontem
+        dataHoraFim: new Date(hoje.getTime() - 24 * 3600000 + 2 * 3600000), // Ontem + 2h
+        justificativa: 'Preciso finalizar o relatório mensal que está atrasado',
+        status: 'APROVADO',
+        aprovadoPor: 'Supervisor',
+        aprovadoEm: new Date(hoje.getTime() - 20 * 3600000),
+        observacoesAprovacao: 'Aprovado para finalizar as pendências',
+        horasAprovadas: 2.0,
+        valorHoraExtra: 25.50,
+      },
+      {
+        usuarioId: francisco.id,
+        dataHoraInicio: new Date(hoje.getTime() + 2 * 3600000), // Hoje + 2h
+        dataHoraFim: new Date(hoje.getTime() + 4 * 3600000), // Hoje + 4h
+        justificativa: 'Reunião importante com cliente que só pode ser feita após o horário normal',
+        status: 'PENDENTE',
+      },
+    ]
+
+    for (const solicitacao of solicitacoesHoraExtra) {
+      await prisma.solicitacaoHoraExtra.create({
+        data: solicitacao
+      })
+    }
+
+    // 4. Resumos de Horas Trabalhadas (últimos 30 dias)
+    for (let i = 0; i < 30; i++) {
+      const data = new Date(hoje)
+      data.setDate(data.getDate() - i)
+      
+      if (data.getDay() === 0 || data.getDay() === 6) continue // Pular fins de semana
+      
+      await prisma.resumoHorasTrabalhadas.upsert({
+        where: {
+          usuarioId_dataReferencia_periodo: {
+            usuarioId: franciscoTimeClock.id,
+            dataReferencia: data,
+            periodo: 'DIA'
+          }
+        },
+        update: {},
+        create: {
+          usuarioId: franciscoTimeClock.id,
+          dataReferencia: data,
+          periodo: 'DIA',
+          horasTrabalhadas: 8.0 + Math.random() * 2, // 8-10 horas
+          horasOficiais: 8.0,
+          horasExtras: Math.random() * 2, // 0-2 horas extras
+          horasExtrasAprovadas: Math.random() * 1.5,
+          horasExtrasPendentes: Math.random() * 0.5,
+          diferenca: Math.random() * 2,
+          registrosPonto: 4,
+          faltas: Math.random() > 0.95 ? 1 : 0,
+          atrasos: Math.random() > 0.9 ? 1 : 0,
+        }
+      })
+    }
+
+    console.log('✅ Dados de teste para Time-Clock criados com sucesso!')
+    console.log(`   📅 Horários oficiais: ${horariosOficiais.length}`)
+    console.log(`   📝 Registros de ponto: ${registrosExemplo.length}`)
+    console.log(`   ⏰ Solicitações hora extra: ${solicitacoesHoraExtra.length}`)
+    console.log(`   📊 Resumos de horas: 30 dias`)
+  }
+
+  // ==========================================
   // ESTATÍSTICAS FINAIS
   // ==========================================
   const stats = {
@@ -1423,6 +1733,11 @@ async function main() {
     guiasImpostos: await prisma.guiaImposto.count(),
     metricasSistema: await prisma.metricaSistema.count(),
     atividadeRecente: await prisma.atividadeRecente.count(),
+    horariosOficiais: await prisma.horarioOficial.count(),
+    registrosPontoNovos: await prisma.registroPontoNovo.count(),
+    solicitacoesHoraExtra: await prisma.solicitacaoHoraExtra.count(),
+    resumosHorasTrabalhadas: await prisma.resumoHorasTrabalhadas.count(),
+    transferenciasFolha: await prisma.transferenciaFolha.count(),
   }
 
   console.log('\n╔════════════════════════════════════════════════╗')
@@ -1453,7 +1768,12 @@ async function main() {
   console.log(`   💰 Folha de Pagamento: ${stats.folhaPagamento}`)
   console.log(`   📋 Guias de Impostos: ${stats.guiasImpostos}`)
   console.log(`   📊 Métricas do Sistema: ${stats.metricasSistema}`)
-  console.log(`   📈 Atividade Recente: ${stats.atividadeRecente}\n`)
+  console.log(`   📈 Atividade Recente: ${stats.atividadeRecente}`)
+  console.log(`   🕐 Horários Oficiais: ${stats.horariosOficiais}`)
+  console.log(`   📝 Registros de Ponto Novos: ${stats.registrosPontoNovos}`)
+  console.log(`   ⏰ Solicitações Hora Extra: ${stats.solicitacoesHoraExtra}`)
+  console.log(`   📊 Resumos Horas Trabalhadas: ${stats.resumosHorasTrabalhadas}`)
+  console.log(`   💰 Transferências Folha: ${stats.transferenciasFolha}\n`)
   
   console.log('🔑 CREDENCIAIS DE ACESSO:')
   console.log('   📧 Email: francisco@flpbusiness.com')
