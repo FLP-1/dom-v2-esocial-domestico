@@ -16,12 +16,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Usar zoom máximo (18) para maior precisão de endereço
     const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1&accept-language=pt-BR,pt,en&zoom=18&extratags=1`;
     
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
     const response = await fetch(nominatimUrl, {
       headers: {
         'User-Agent': 'DOM-App/1.0'
       },
-      timeout: 10000 // 10 segundos timeout para maior precisão
-    });
+      signal: controller.signal
+    }).finally(() => clearTimeout(timer));
 
     if (response.ok) {
       const data = await response.json();
@@ -88,9 +90,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // Se Nominatim falhou, tentar BigDataCloud
     const bigDataCloudUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=pt`;
     
+    const controller2 = new AbortController();
+    const timer2 = setTimeout(() => controller2.abort(), 5000);
     const bigDataResponse = await fetch(bigDataCloudUrl, {
-      timeout: 5000 // 5 segundos timeout
-    });
+      signal: controller2.signal
+    }).finally(() => clearTimeout(timer2));
     
     if (bigDataResponse.ok) {
       const data = await bigDataResponse.json();

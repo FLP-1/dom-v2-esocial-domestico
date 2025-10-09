@@ -429,7 +429,7 @@ dataService.clearCache();
        ↓
 ┌──────────────┐
 │  PostgreSQL  │
-│  (dom_v2)    │
+│     (dom)    │
 └──────────────┘
        │
        ↓

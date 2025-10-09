@@ -1,0 +1,131 @@
+// 📝 ADIÇÕES NECESSÁRIAS AO SCHEMA EXISTENTE
+// Apenas EXPANDIR 3 tabelas existentes - ZERO tabelas novas!
+
+// ============================================
+// 1. EXPANDIR ConversaParticipante (para funcionalidade de contatos)
+// ============================================
+
+// Adicionar ao model ConversaParticipante existente (linha 383):
+/*
+model ConversaParticipante {
+  // ... campos existentes ...
+  
+  // NOVOS CAMPOS:
+  bloqueado    Boolean  @default(false)  // Bloquear contato
+  favorito     Boolean  @default(false)  // Marcar como favorito
+  apelidoLocal String?  @db.VarChar(100) // Apelido personalizado
+}
+*/
+
+// ============================================
+// 2. EXPANDIR TABELA EMPRESTIMO (Adicionar campos)
+// ============================================
+
+// Adicionar ao model Emprestimo existente (linha 761):
+/*
+model Emprestimo {
+  id                 String   @id @default(uuid())
+  usuarioId          String
+  
+  // NOVOS CAMPOS A ADICIONAR:
+  tipo               String?  @db.VarChar(20)       // 'loan', 'advance'
+  empregadoId        String?                        // Quem solicitou
+  aprovadoPor        String?  @db.VarChar(255)      // Quem aprovou
+  justificativa      String?  @db.Text              // Motivo do empréstimo
+  taxaJuros          Decimal  @default(0) @db.Decimal(5, 2) // Taxa de juros
+  dataSolicitacao    DateTime @default(now())       // Quando foi solicitado
+  dataAprovacao      DateTime?                      // Quando foi aprovado
+  motivoRejeicao     String?  @db.Text              // Se rejeitado, motivo
+  
+  // CAMPOS EXISTENTES (manter):
+  valor              Decimal  @db.Decimal(10, 2)
+  valorParcela       Decimal  @db.Decimal(10, 2)
+  quantidadeParcelas Int
+  parcelasPagas      Int      @default(0)
+  dataConcessao      DateTime @db.Date
+  dataVencimento     DateTime @db.Date
+  status             String   @db.VarChar(50)
+  observacao         String?
+  criadoEm           DateTime @default(now())
+  atualizadoEm       DateTime @updatedAt
+  
+  // RELAÇÕES:
+  usuario            Usuario  @relation("EmprestimosEmpregador", fields: [usuarioId], references: [id], onDelete: Cascade)
+  empregado          Usuario? @relation("EmprestimosEmpregado", fields: [empregadoId], references: [id], onDelete: Cascade) // NOVA
+  
+  @@index([usuarioId])
+  @@index([empregadoId]) // NOVO
+  @@index([status])
+  @@map("emprestimos")
+}
+*/
+
+// ============================================
+// 3. ATUALIZAR MODEL USUARIO (Adicionar relações)
+// ============================================
+
+// Adicionar ao model Usuario existente (linha 11):
+/*
+model Usuario {
+  // ... campos existentes ...
+  
+  // NOVAS RELAÇÕES A ADICIONAR:
+  contatosUsuario       Contato[]  @relation("ContatosUsuario")
+  contatosDeUsuario     Contato[]  @relation("ContatosDeUsuario")
+  emprestimosSolicitados Emprestimo[] @relation("EmprestimosEmpregado") // Nova relação
+  
+  // ... relações existentes ...
+}
+*/
+
+// ============================================
+// 1.5 EXPANDIR MembroFamilia (para contatos externos)
+// ============================================
+
+// Adicionar ao model MembroFamilia existente (linha 1053):
+/*
+model MembroFamilia {
+  // ... campos existentes ...
+  
+  // NOVOS CAMPOS:
+  avatar           String?  @db.VarChar(255)  // Avatar personalizado
+  favorito         Boolean  @default(false)   // Marcar como favorito
+  bloqueado        Boolean  @default(false)   // Bloquear contato
+  usuarioVinculado String?                    // Link para Usuario se cadastrar
+  
+  // NOVA RELAÇÃO:
+  usuarioRef       Usuario? @relation("MembrosFamiliaVinculados", fields: [usuarioVinculado], references: [id], onDelete: SetNull)
+}
+*/
+
+// ============================================
+// RESUMO DAS MUDANÇAS
+// ============================================
+
+/*
+TOTAL DE MUDANÇAS:
+1. ❌ ZERO tabelas novas (removido Contato)
+2. ✅ 3 campos novos em ConversaParticipante
+3. ✅ 4 campos novos em MembroFamilia
+4. ✅ 8 campos novos em Emprestimo
+5. ✅ 1 relação nova em MembroFamilia
+6. ✅ 1 relação nova em Usuario (empréstimos)
+
+TABELAS EXISTENTES A USAR (NÃO CRIAR):
+✅ Conversa (comunicação)
+✅ ConversaParticipante (participantes)
+✅ Mensagem (mensagens)
+✅ MensagemAnexo (anexos de mensagens)
+✅ MensagemLeitura (controle de leitura)
+✅ MensagemReacao (reações com emojis)
+✅ Tarefa (tarefas)
+✅ TarefaAnexo (anexos de tarefas)
+✅ TarefaComentario (comentários de tarefas)
+✅ TarefaDependencia (dependências entre tarefas)
+✅ Emprestimo (empréstimos - expandir)
+✅ MetricaSistema (métricas do dashboard)
+✅ EstatisticaSistema (estatísticas do sistema)
+✅ FolhaPagamento (folha de pagamento)
+✅ Documento (documentos)
+*/
+

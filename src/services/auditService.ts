@@ -323,21 +323,31 @@ class AuditService {
   }
 
   private getClientIP(): string {
-    // Em produção, obter IP real
-    return req.headers['x-forwarded-for'] as string || req.connection.remoteAddress || 'IP não detectado';
+    // Não há acesso a req neste contexto de serviço no cliente
+    return 'IP indisponível';
   }
 
   private getUserAgent(): string {
-    return navigator.userAgent;
+    try {
+      return typeof navigator !== 'undefined' ? navigator.userAgent : 'UserAgent indisponível';
+    } catch {
+      return 'UserAgent indisponível';
+    }
   }
 
   private getSessionId(): string {
-    let sessionId = sessionStorage.getItem('session_id');
-    if (!sessionId) {
-      sessionId = this.generateId();
-      sessionStorage.setItem('session_id', sessionId);
+    try {
+      let sessionId = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('session_id') : null;
+      if (!sessionId) {
+        sessionId = this.generateId();
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem('session_id', sessionId);
+        }
+      }
+      return sessionId;
+    } catch {
+      return this.generateId();
     }
-    return sessionId;
   }
 
   private isCriticalAction(acao: string): boolean {
@@ -360,7 +370,7 @@ class AuditService {
   }
 
   private async saveCriticalLog(log: AuditLog): Promise<void> {
-    const stored = localStorage.getItem('critical_audit_logs');
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('critical_audit_logs') : null;
     const criticalLogs = stored ? JSON.parse(stored) : [];
 
     criticalLogs.unshift(log);
@@ -370,7 +380,9 @@ class AuditService {
       criticalLogs.splice(1000);
     }
 
-    localStorage.setItem('critical_audit_logs', JSON.stringify(criticalLogs));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('critical_audit_logs', JSON.stringify(criticalLogs));
+    }
   }
 
   private exportToCSV(logs: AuditLog[]): string {
@@ -415,17 +427,19 @@ class AuditService {
   }
 
   private loadLogs(): void {
-    const stored = localStorage.getItem('audit_logs');
+    const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('audit_logs') : null;
     if (stored) {
       this.logs = JSON.parse(stored);
     }
 
-    const enabled = localStorage.getItem('audit_enabled');
+    const enabled = typeof localStorage !== 'undefined' ? localStorage.getItem('audit_enabled') : null;
     this.isEnabled = enabled !== 'false';
   }
 
   private saveLogs(): void {
-    localStorage.setItem('audit_logs', JSON.stringify(this.logs));
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('audit_logs', JSON.stringify(this.logs));
+    }
   }
 
   private startCleanupTimer(): void {

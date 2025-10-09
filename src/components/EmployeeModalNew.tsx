@@ -28,6 +28,11 @@ const ButtonContainer = styled.div`
   margin-top: 1.5rem;
 `;
 
+const ErrorText = styled.span`
+  color: red;
+  font-size: 0.875rem;
+`;
+
 interface Employee {
   id: string;
   nome: string;
@@ -187,7 +192,7 @@ export const EmployeeModalNew: React.FC<EmployeeModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.nome}
               />
-              {errors.nome && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.nome}</span>}
+              {errors.nome && <ErrorText>{errors.nome}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
@@ -202,7 +207,7 @@ export const EmployeeModalNew: React.FC<EmployeeModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.cpf}
               />
-              {errors.cpf && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.cpf}</span>}
+              {errors.cpf && <ErrorText>{errors.cpf}</ErrorText>}
             </FormGroup>
           </FormRow>
 
@@ -218,7 +223,7 @@ export const EmployeeModalNew: React.FC<EmployeeModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.email}
               />
-              {errors.email && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.email}</span>}
+              {errors.email && <ErrorText>{errors.email}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
@@ -232,7 +237,7 @@ export const EmployeeModalNew: React.FC<EmployeeModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.telefone}
               />
-              {errors.telefone && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.telefone}</span>}
+              {errors.telefone && <ErrorText>{errors.telefone}</ErrorText>}
             </FormGroup>
           </FormRow>
 
@@ -248,7 +253,7 @@ export const EmployeeModalNew: React.FC<EmployeeModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.cargo}
               />
-              {errors.cargo && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.cargo}</span>}
+              {errors.cargo && <ErrorText>{errors.cargo}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
@@ -264,7 +269,7 @@ export const EmployeeModalNew: React.FC<EmployeeModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.salario}
               />
-              {errors.salario && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.salario}</span>}
+              {errors.salario && <ErrorText>{errors.salario}</ErrorText>}
             </FormGroup>
           </FormRow>
 
@@ -279,7 +284,7 @@ export const EmployeeModalNew: React.FC<EmployeeModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.dataAdmissao}
               />
-              {errors.dataAdmissao && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.dataAdmissao}</span>}
+              {errors.dataAdmissao && <ErrorText>{errors.dataAdmissao}</ErrorText>}
             </FormGroup>
           </FormRow>
 

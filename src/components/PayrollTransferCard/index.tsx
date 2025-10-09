@@ -120,6 +120,10 @@ export interface PayrollData {
   overtimeHours: number;
   period: string;
   lastTransfer?: Date;
+  // Campos opcionais para compatibilidade com API
+  upcomingTransfers?: Array<{ mesReferencia: number; anoReferencia: number }>;
+  totalTransfers?: number;
+  overtimeData?: { totalOvertime?: string };
 }
 
 export interface PayrollTransferCardProps {
@@ -143,7 +147,7 @@ export const PayrollTransferCard: React.FC<PayrollTransferCardProps> = ({
   onViewDetails,
 }) => {
   // Extrair dados reais do payrollData
-  const lastTransfer = payrollData?.lastTransfer;
+  const lastTransfer = payrollData?.lastTransfer as any;
   const upcomingTransfer = payrollData?.upcomingTransfers?.[0];
   const totalTransfers = payrollData?.totalTransfers || 0;
   const [isTransferring, setIsTransferring] = useState(false);
@@ -166,12 +170,8 @@ export const PayrollTransferCard: React.FC<PayrollTransferCardProps> = ({
         theme={theme}
         variant="default"
         size="md"
-        title={
-          <TitleContent>
-            <AccessibleEmoji emoji="💰" label="Folha de Pagamento" />
-            Transferir para Folha de Pagamento
-          </TitleContent>
-        }
+        icon={<AccessibleEmoji emoji="💰" label="Folha de Pagamento" />}
+        title="Transferir para Folha de Pagamento"
       >
         <TransferInfo $theme={theme}>
           <TransferInfoTitle>

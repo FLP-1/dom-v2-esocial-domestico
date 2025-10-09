@@ -28,6 +28,11 @@ const ButtonContainer = styled.div`
   margin-top: 1.5rem;
 `;
 
+const ErrorText = styled.span`
+  color: red;
+  font-size: 0.875rem;
+`;
+
 interface Employer {
   id: string;
   razaoSocial: string;
@@ -241,7 +246,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.razaoSocial}
               />
-              {errors.razaoSocial && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.razaoSocial}</span>}
+              {errors.razaoSocial && <ErrorText>{errors.razaoSocial}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
@@ -256,7 +261,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.cnpj}
               />
-              {errors.cnpj && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.cnpj}</span>}
+              {errors.cnpj && <ErrorText>{errors.cnpj}</ErrorText>}
             </FormGroup>
           </FormRow>
 
@@ -272,7 +277,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.email}
               />
-              {errors.email && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.email}</span>}
+              {errors.email && <ErrorText>{errors.email}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
@@ -286,7 +291,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors.telefone}
               />
-              {errors.telefone && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors.telefone}</span>}
+              {errors.telefone && <ErrorText>{errors.telefone}</ErrorText>}
             </FormGroup>
           </FormRow>
 
@@ -305,7 +310,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors['endereco.cep']}
               />
-              {errors['endereco.cep'] && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors['endereco.cep']}</span>}
+              {errors['endereco.cep'] && <ErrorText>{errors['endereco.cep']}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
@@ -321,7 +326,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                   <option key={uf} value={uf}>{uf}</option>
                 ))}
               </Select>
-              {errors['endereco.uf'] && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors['endereco.uf']}</span>}
+              {errors['endereco.uf'] && <ErrorText>{errors['endereco.uf']}</ErrorText>}
             </FormGroup>
           </FormRow>
 
@@ -337,7 +342,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors['endereco.logradouro']}
               />
-              {errors['endereco.logradouro'] && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors['endereco.logradouro']}</span>}
+              {errors['endereco.logradouro'] && <ErrorText>{errors['endereco.logradouro']}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
@@ -351,7 +356,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors['endereco.numero']}
               />
-              {errors['endereco.numero'] && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors['endereco.numero']}</span>}
+              {errors['endereco.numero'] && <ErrorText>{errors['endereco.numero']}</ErrorText>}
             </FormGroup>
           </FormRow>
 
@@ -367,7 +372,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors['endereco.bairro']}
               />
-              {errors['endereco.bairro'] && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors['endereco.bairro']}</span>}
+              {errors['endereco.bairro'] && <ErrorText>{errors['endereco.bairro']}</ErrorText>}
             </FormGroup>
 
             <FormGroup>
@@ -381,7 +386,7 @@ export const EmployerModalNew: React.FC<EmployerModalNewProps> = ({
                 $theme={$theme}
                 $hasError={!!errors['endereco.cidade']}
               />
-              {errors['endereco.cidade'] && <span style={{ color: 'red', fontSize: '0.875rem' }}>{errors['endereco.cidade']}</span>}
+              {errors['endereco.cidade'] && <ErrorText>{errors['endereco.cidade']}</ErrorText>}
             </FormGroup>
           </FormRow>
 

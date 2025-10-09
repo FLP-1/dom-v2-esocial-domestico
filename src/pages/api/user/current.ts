@@ -29,12 +29,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
       }
 
-      // Buscar horários oficiais do usuário
-      const horariosOficiais = await prisma.horarioOficial.findMany({
-        where: {
-          usuarioId: user.id
-        }
-      });
+      // Modelo HorarioOficial não existe no schema atual
+      const horariosOficiais: any[] = [];
 
       // Buscar dados de folha de pagamento
       const folhaPagamento = await prisma.folhaPagamento.findFirst({
@@ -66,7 +62,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             apelido: user.apelido,
             email: user.email,
             avatar: user.perfis.find(p => p.principal)?.avatar || user.apelido?.substring(0, 2).toUpperCase() || 'U',
-            role: user.perfis.find(p => p.principal)?.perfil?.nome || 'Usuário'
+            role: user.perfis.find(p => p.principal)?.perfil?.nome || null
           },
           horariosOficiais,
           folhaPagamento,

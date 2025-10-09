@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { PrismaClient } from '@prisma/client';
+import { dynamicConfig } from '../../../services/configService';
 
 const prisma = new PrismaClient();
 
@@ -98,7 +99,7 @@ export default async function handler(
           caminhoArquivo,
           usuarioId,
           tags: tags || [],
-          permissao: permissao || 'PRIVADO',
+          permissao: permissao || await dynamicConfig.getConfig('documento.permissao_padrao', 'string', 'PRIVADO'),
           validado: false,
           alertaVencimento: false,
           esocialPronto: false,

@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 import { useGeolocation } from './useGeolocation';
+import { useGeolocationContext } from '../contexts/GeolocationContext';
+import logger from '../utils/logger';
 
 /**
  * Hook para captura automática de geolocalização em ações críticas
@@ -7,6 +9,7 @@ import { useGeolocation } from './useGeolocation';
  */
 export const useGeolocationCapture = () => {
   const { captureRealTimeLocation } = useGeolocation();
+  const { setLastLocation } = useGeolocationContext();
 
   /**
    * Detectar se é dispositivo mobile
@@ -33,50 +36,52 @@ export const useGeolocationCapture = () => {
       locationData?: any;
       error?: string;
     }> => {
-      console.log(`🎯 Executando ação crítica: ${actionName}`);
+      logger.log(`🎯 Executando ação crítica: ${actionName}`);
       
       const isMobile = isMobileDevice();
-      console.log(`📱 Dispositivo: ${isMobile ? 'Mobile' : 'Desktop'}`);
+      logger.log(`📱 Dispositivo: ${isMobile ? 'Mobile' : 'Desktop'}`);
       
       try {
-        // 1. Capturar geolocalização otimizada por dispositivo
-        console.log(`📍 Capturando geolocalização para: ${actionName}`);
+        // 1. Capturar geolocalização
+        logger.geo(`📍 Capturando geolocalização para: ${actionName}`);
         
+        // Usar mesma estratégia para mobile e desktop
+        // O timeout já está configurado no captureRealTimeLocation (via banco de dados)
         let locationData;
-        if (isMobile) {
-          // Mobile: GPS nativo, captura rápida e precisa
+        try {
           locationData = await captureRealTimeLocation();
-        } else {
-          // Desktop: Tentar captura rápida, fallback se demorar
-          try {
-            locationData = await Promise.race([
-              captureRealTimeLocation(),
-              new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Timeout rápido para desktop')), 3000)
-              )
-            ]);
-          } catch (error) {
-            console.log('⚠️ Desktop: Captura rápida falhou, continuando sem geolocalização');
-            locationData = null;
-          }
+        } catch (error) {
+          logger.warn(`⚠️ Captura de geolocalização falhou para ${actionName}, continuando sem localização`);
+          locationData = null;
         }
         
         if (locationData) {
-          console.log(`✅ Geolocalização capturada para ${actionName}:`, {
+          logger.geo(`✅ Geolocalização capturada para ${actionName}:`, {
             address: locationData.address,
             accuracy: `${locationData.accuracy}m`,
             wifiName: locationData.wifiName,
             timestamp: new Date().toISOString()
           });
+          
+          // ✅ Salvar no contexto global para WelcomeSection
+          setLastLocation({
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            accuracy: locationData.accuracy,
+            address: locationData.address,
+            wifiName: locationData.wifiName,
+            networkInfo: locationData.networkInfo,
+            timestamp: new Date()
+          });
         } else {
-          console.log(`⚠️ Geolocalização não disponível para ${actionName} (desktop ou falha)`);
+          logger.warn(`⚠️ Geolocalização não disponível para ${actionName} (desktop ou falha)`);
         }
 
-        // 2. Executar a ação original
-        console.log(`⚡ Executando ação: ${actionName}`);
-        const result = await action(...args);
+        // 2. Executar a ação original COM dados de geolocalização
+        logger.log(`⚡ Executando ação: ${actionName}`);
+        const result = await action(locationData, ...args);
         
-        console.log(`✅ Ação ${actionName} executada com sucesso`);
+        logger.log(`✅ Ação ${actionName} executada com sucesso`);
 
         // 3. Retornar resultado com dados de localização (se disponível)
         return {
@@ -96,11 +101,11 @@ export const useGeolocationCapture = () => {
         };
 
       } catch (error: any) {
-        console.error(`❌ Erro na ação ${actionName}:`, error);
+        logger.error(`❌ Erro na ação ${actionName}:`, error);
         
         // Mesmo com erro de geolocalização, tentar executar a ação
         try {
-          const result = await action(...args);
+          const result = await action(null, ...args); // Passar null para locationData
           return {
             success: true,
             result,
@@ -115,7 +120,7 @@ export const useGeolocationCapture = () => {
         }
       }
     },
-    [captureRealTimeLocation, isMobileDevice]
+    [captureRealTimeLocation, isMobileDevice, setLastLocation]
   );
 
   /**

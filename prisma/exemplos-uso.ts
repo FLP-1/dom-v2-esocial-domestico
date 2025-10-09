@@ -586,7 +586,8 @@ async function exportarDadosUsuario(usuarioId: string) {
         tarefas: true,
         mensagens: true,
         pontosRegistrados: true,
-        emprestimos: true,
+        emprestimosAprovados: true,
+        emprestimosSolicitados: true,
         alertas: true,
       }
     })

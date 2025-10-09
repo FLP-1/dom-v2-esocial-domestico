@@ -138,12 +138,8 @@ export const TimeSummaryCard: React.FC<TimeSummaryCardProps> = ({
           theme={theme}
           variant="default"
           size="md"
-          title={
-            <>
-              <AccessibleEmoji emoji="⏱️" label="Trabalhado" />
-              Horas Trabalhadas
-            </>
-          }
+          icon={<AccessibleEmoji emoji="⏱️" label="Trabalhado" />}
+          title="Horas Trabalhadas"
         >
           <TimeRow>
             <TimeLabel>Hoje:</TimeLabel>
@@ -172,12 +168,8 @@ export const TimeSummaryCard: React.FC<TimeSummaryCardProps> = ({
           theme={theme}
           variant="default"
           size="md"
-          title={
-            <>
-              <AccessibleEmoji emoji="📅" label="Esperado" />
-              Horas Esperadas
-            </>
-          }
+          icon={<AccessibleEmoji emoji="📅" label="Esperado" />}
+          title="Horas Esperadas"
         >
           <TimeRow>
             <TimeLabel>Hoje:</TimeLabel>
@@ -206,12 +198,8 @@ export const TimeSummaryCard: React.FC<TimeSummaryCardProps> = ({
           theme={theme}
           variant="default"
           size="md"
-          title={
-            <>
-              <AccessibleEmoji emoji="📊" label="Diferença" />
-              Diferenças
-            </>
-          }
+          icon={<AccessibleEmoji emoji="📊" label="Diferença" />}
+          title="Diferenças"
         >
           <TimeRow>
             <TimeLabel>Hoje:</TimeLabel>
@@ -259,12 +247,8 @@ export const TimeSummaryCard: React.FC<TimeSummaryCardProps> = ({
             theme={theme}
             variant="default"
             size="md"
-            title={
-              <>
-                <AccessibleEmoji emoji="⏰" label="Horas Extras" />
-                Horas Extras
-              </>
-            }
+            icon={<AccessibleEmoji emoji="⏰" label="Horas Extras" />}
+            title="Horas Extras"
           >
             <TimeRow>
               <TimeLabel>Hoje:</TimeLabel>

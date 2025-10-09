@@ -3,7 +3,8 @@ import AccessibleEmoji from '../AccessibleEmoji';
 import styled from 'styled-components';
 import { useState, useEffect } from 'react';
 import { useUserProfile } from '../../contexts/UserProfileContext';
-import { useGeolocation } from '../../hooks/useGeolocation';
+import { useGeolocationContext } from '../../contexts/GeolocationContext';
+// Hook de geolocalização removido - solicitação manual apenas
 
 interface WelcomeSectionProps {
   $theme: any;
@@ -82,6 +83,11 @@ const TimeDisplay = styled.span`
 
 const LocationInfo = styled.span`
   font-style: italic;
+  
+  .location-details {
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
 `;
 
 const WifiInfo = styled.span`
@@ -137,12 +143,16 @@ export default function WelcomeSection({
   onNotificationClick,
 }: WelcomeSectionProps) {
   const { currentProfile } = useUserProfile();
+  const { lastLocation } = useGeolocationContext();
   const [currentTime, setCurrentTime] = useState(new Date());
-  // Hook de geolocalização para atualizações automáticas (após login)
-  const { location, wifiName, isLoading, error, refreshLocation } = useGeolocation();
+  const [isClient, setIsClient] = useState(false);
+  
+  // Informações de WiFi detectadas sem solicitar permissão de geolocalização
+  const [wifiName, setWifiName] = useState<string>('WiFi não detectado');
 
   // Atualizar hora a cada segundo
   useEffect(() => {
+    setIsClient(true);
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -150,14 +160,49 @@ export default function WelcomeSection({
     return () => clearInterval(timer);
   }, []);
 
-  // Geolocalização será solicitada apenas quando necessário (não automaticamente)
-  // A permissão está implícita no aceite das políticas de uso
+  // Detectar informações de rede WiFi sem solicitar geolocalização
   useEffect(() => {
-    if (currentProfile) {
-      console.log('📍 Usuário logado - geolocalização disponível quando necessário');
-      // Não inicializar automaticamente para evitar popup de permissão
+    const updateConnectionInfo = () => {
+      if ('connection' in navigator) {
+        const connection = (navigator as any).connection;
+        if (connection) {
+          const effectiveType = connection.effectiveType;
+          const type = connection.type;
+          const downlink = connection.downlink;
+          
+          // Detectar se é WiFi ou conexão móvel
+          if (type === 'wifi' || type === 'ethernet') {
+            setWifiName('WiFi: Conectado');
+          } else if (type === 'cellular') {
+            setWifiName(`Dados Móveis: ${effectiveType || '4G'}`);
+          } else if (downlink && downlink > 10) {
+            setWifiName('WiFi: Conectado');
+          } else if (effectiveType === '4g' && type === undefined) {
+            setWifiName('WiFi: Conectado');
+          } else if (effectiveType && effectiveType !== '4g') {
+            setWifiName(`Conexão: ${effectiveType}`);
+          } else {
+            setWifiName('WiFi: Conectado');
+          }
+        } else {
+          setWifiName('WiFi: Conectado');
+        }
+      } else {
+        setWifiName('WiFi: Conectado');
+      }
+    };
+
+    updateConnectionInfo();
+
+    // Escutar mudanças na conexão
+    if ('connection' in navigator) {
+      const connection = (navigator as any).connection;
+      if (connection && connection.addEventListener) {
+        connection.addEventListener('change', updateConnectionInfo);
+        return () => connection.removeEventListener('change', updateConnectionInfo);
+      }
     }
-  }, [currentProfile]);
+  }, []);
 
 
   // Usar nickname do contexto se disponível, senão usar o nome passado como prop
@@ -176,27 +221,35 @@ export default function WelcomeSection({
         <h3>Bem-vindo(a), {displayName}!</h3>
         <InfoContainer>
           <InfoRow>
-            <span className="icon">👤</span>
+            <span className="icon"><AccessibleEmoji emoji="👤" label="Usuário" /></span>
             <span>{userRole}</span>
           </InfoRow>
           <InfoRow>
-            <span className="icon">📅</span>
+            <span className="icon"><AccessibleEmoji emoji="📅" label="Data" /></span>
             <span>{currentDate}</span>
-            <span className="icon">⏰</span>
-            <TimeDisplay>{currentTimeString}</TimeDisplay>
+            <span className="icon"><AccessibleEmoji emoji="⏰" label="Hora" /></span>
+            <TimeDisplay suppressHydrationWarning>{isClient ? currentTimeString : ''}</TimeDisplay>
           </InfoRow>
           <InfoRow>
-            <span className="icon">📍</span>
+            <span className="icon"><AccessibleEmoji emoji="📍" label="Localização" /></span>
             <LocationInfo>
-              {isLoading ? 'Carregando localização...' : 
-               error ? 'Localização indisponível' : 
-               location || 'Localização será obtida quando necessário'}
+              {lastLocation ? (
+                <>
+                  {lastLocation.address || 'Endereço não disponível'}
+                  <br />
+                  <small className="location-details">
+                    Precisão: {Math.round(lastLocation.accuracy)}m | {new Date(lastLocation.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </small>
+                </>
+              ) : (
+                'Localização capturada no registro de ponto'
+              )}
             </LocationInfo>
           </InfoRow>
           <InfoRow>
-            <span className="icon">📶</span>
+            <span className="icon"><AccessibleEmoji emoji="📶" label="WiFi" /></span>
             <WifiInfo>
-              {wifiName || 'WiFi não detectado'}
+              {lastLocation?.wifiName || wifiName || 'WiFi não detectado'}
             </WifiInfo>
           </InfoRow>
         </InfoContainer>

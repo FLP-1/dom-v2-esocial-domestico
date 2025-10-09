@@ -1,3 +1,5 @@
+/* eslint-disable no-alert, jsx-a11y/accessible-emoji, react/no-unescaped-entities */
+import { logger } from '../utils/logger';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useGeolocation } from '../hooks/useGeolocation';
@@ -27,6 +29,11 @@ const Button = styled.button`
   &:hover {
     background: #0056b3;
   }
+  
+  &:disabled {
+    background: #6c757d;
+    cursor: not-allowed;
+  }
 `;
 
 const ResultBox = styled.div`
@@ -37,6 +44,8 @@ const ResultBox = styled.div`
   margin: 10px 0;
   font-family: monospace;
   font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
 `;
 
 const ErrorBox = styled.div`
@@ -57,7 +66,40 @@ const SuccessBox = styled.div`
   color: #155724;
 `;
 
-const WarningBox = styled.div`
+const InfoBox = styled.div`
+  margin-top: 30px;
+  padding: 15px;
+  background-color: #e9ecef;
+  border-radius: 6px;
+`;
+
+const YellowBox = styled.div`
+  margin-top: 15px;
+  padding: 10px;
+  background: #fff3cd;
+  border-radius: 4px;
+`;
+
+const TipList = styled.ol`
+  margin-left: 20px;
+  margin-top: 5px;
+`;
+
+const SmallNote = styled.p`
+  margin-top: 10px;
+  font-size: 12px;
+`;
+
+const SuccessAltBox = styled.div`
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 10px 0;
+  color: #155724;
+`;
+
+const WarnAltBox = styled.div`
   background: #fff3cd;
   border: 1px solid #ffeaa7;
   border-radius: 6px;
@@ -66,333 +108,205 @@ const WarningBox = styled.div`
   color: #856404;
 `;
 
-const InfoBox = styled.div`
-  margin-top: 30px;
-  padding: 15px;
-  background-color: #e9ecef;
-  border-radius: 6px;
+const BlueBox = styled.div`
+  margin-top: 15px;
+  padding: 10px;
+  background: #e3f2fd;
+  border-radius: 4px;
+`;
+
+const LinkStyled = styled.a`
+  color: #1976d2;
+  text-decoration: underline;
+  word-break: break-all;
 `;
 
 export default function TestGeolocation() {
-  const [results, setResults] = useState<any[]>([]);
+  const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const { forceHighAccuracyCapture, validateAccuracy, clearGeolocationCache: clearCacheFromHook } = useGeolocation();
+  const [error, setError] = useState<string | null>(null);
+  
+  const { captureRealTimeLocation } = useGeolocation();
 
-  // Função para calcular distância entre duas coordenadas (em metros)
-  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371e3; // Raio da Terra em metros
-    const φ1 = lat1 * Math.PI/180; // φ, λ em radianos
-    const φ2 = lat2 * Math.PI/180;
-    const Δφ = (lat2-lat1) * Math.PI/180;
-    const Δλ = (lon2-lon1) * Math.PI/180;
-
-    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ/2) * Math.sin(Δλ/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-    return R * c; // em metros
-  };
-
-  // Função para verificar permissão de geolocalização
-  const checkGeolocationPermission = async () => {
-    if (!navigator.geolocation) {
-      return { status: 'unsupported', message: 'Geolocalização não suportada' };
-    }
-
-    if ('permissions' in navigator) {
-      try {
-        const permission = await navigator.permissions.query({ name: 'geolocation' });
-        return { 
-          status: permission.state, 
-          message: `Permissão: ${permission.state}`,
-          permission 
-        };
-      } catch (error) {
-        return { 
-          status: 'unknown', 
-          message: 'Não foi possível verificar permissão' 
-        };
-      }
-    } else {
-      return { 
-        status: 'unknown', 
-        message: 'API de permissões não suportada' 
-      };
-    }
-  };
-
-  // Função para limpar cache de geolocalização
-  const clearGeolocationCache = () => {
-    console.log('🧹 Tentando limpar cache de geolocalização...');
-    // Forçar nova captura sem cache
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        console.log('📍 Nova posição capturada (sem cache):', position);
-      },
-      (error) => {
-        console.log('❌ Erro ao capturar nova posição:', error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0 // Forçar nova captura
-      }
-    );
-  };
-
-  const testCurrentLocation = async () => {
+  const testGeolocation = async () => {
     setLoading(true);
-    setResults([]);
+    setError(null);
+    setResult(null);
 
-    if (!navigator.geolocation) {
-      setResults([{ type: 'error', title: 'Geolocalização não suportada', message: 'Seu navegador não suporta geolocalização' }]);
-      setLoading(false);
-      return;
-    }
-
-    // Verificar permissão primeiro
-    const permissionCheck = await checkGeolocationPermission();
-    console.log('🔍 Status da permissão:', permissionCheck);
-    
-    setResults([{
-      type: 'info',
-      title: 'Status da Permissão',
-      data: permissionCheck
-    }]);
-
-    // Teste 1: Geollocalização simples
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude, accuracy } = position.coords;
-        
-        const result1 = {
-          type: 'info',
-          title: '📍 Coordenadas Capturadas',
-          data: {
-            latitude,
-            longitude,
-            accuracy: `${accuracy}m`,
-            timestamp: new Date().toISOString()
-          }
-        };
-        setResults(prev => [...prev, result1]);
-
-        // Teste 2: Geocoding reverso via API interna
-        try {
-          const response = await fetch(`/api/geocoding?lat=${latitude}&lon=${longitude}`);
-          
-          if (response.ok) {
-            const data = await response.json();
-            
-            const result2 = {
-              type: 'info',
-              title: '🔄 Geocoding Reverso (API Interna)',
-              data: {
-                endereco: data.address,
-                fonte: data.source || 'api_interna',
-                success: data.success
-              }
-            };
-            setResults(prev => [...prev, result2]);
-
-            // Teste 3: Validar precisão das coordenadas
-            const accuracyValidation = validateAccuracy(accuracy);
-            const result3 = {
-              type: accuracyValidation.isValid ? 'success' : 'warning',
-              title: '🎯 Validação de Precisão',
-              data: {
-                precisao: `${accuracy.toFixed(1)}m`,
-                validacao: accuracyValidation.message,
-                status: accuracyValidation.isValid ? 'PRECISÃO ACEITÁVEL' : 'PRECISÃO BAIXA'
-              }
-            };
-            setResults(prev => [...prev, result3]);
-
-            // Teste 4: Informações de rede
-            const result4 = {
-              type: 'info',
-              title: '📡 Informações de Rede',
-              data: {
-                userAgent: navigator.userAgent,
-                online: navigator.onLine,
-                language: navigator.language,
-                platform: navigator.platform
-              }
-            };
-            setResults(prev => [...prev, result4]);
-          } else {
-            setResults(prev => [...prev, { type: 'error', title: 'Erro na API de geocoding', message: 'Resposta não OK' }]);
-          }
-        } catch (error) {
-          setResults(prev => [...prev, { type: 'error', title: 'Erro no geocoding', message: error.message }]);
-        }
-
-        setLoading(false);
-      },
-      (error) => {
-        setResults([{ type: 'error', title: 'Erro de geolocalização', message: error.message }]);
-        setLoading(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 30000,
-        maximumAge: 0
-      }
-    );
-  };
-
-  const testBigDataCloud = async () => {
-    setLoading(true);
-    
     try {
-      const response = await fetch('/api/geocoding?lat=-23.6191744&lon=-46.6419712');
-      const data = await response.json();
+      logger.geo('🎯 Iniciando teste de geolocalização...');
+      logger.geo('📊 DIAGNÓSTICO: Vou testar EXATAMENTE como Google Maps faz');
       
-      setResults([{
-        type: 'info',
-        title: '🌐 Teste da API Interna',
-        data: data
-      }]);
-    } catch (error) {
-      setResults([{ type: 'error', title: 'Erro na API interna', message: error.message }]);
-    }
-    
-    setLoading(false);
-  };
-
-  const formatAddress = (address: any) => {
-    if (!address) return 'N/A';
-    
-    let formatted = '';
-    if (address.road || address.street) {
-      const streetName = address.road || address.street;
-      const houseNumber = address.house_number || address.houseNumber;
-      if (houseNumber) {
-        formatted += `${streetName}, ${houseNumber}, `;
-      } else {
-        formatted += `${streetName}, `;
+      // Teste 1: Verificar permissões
+      if ('permissions' in navigator) {
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        logger.geo('🔐 Permissão:', permission.state);
       }
+      
+      // Teste 2: Verificar se Windows Location está ativo
+      logger.geo('💻 Windows Location Service: Verifique em Configurações → Privacidade → Localização');
+      
+      const locationData = await captureRealTimeLocation();
+      
+      logger.geo('✅ Localização capturada com sucesso:', locationData);
+      logger.geo('📍 Cole as coordenadas no Google Maps para comparar:', 
+        `https://www.google.com/maps?q=${locationData.latitude},${locationData.longitude}`);
+      
+      setResult({
+        timestamp: new Date().toISOString(),
+        ...locationData,
+        googleMapsLink: `https://www.google.com/maps?q=${locationData.latitude},${locationData.longitude}`
+      });
+    } catch (err: any) {
+      logger.error('❌ Erro ao capturar localização:', err);
+      setError(err.message || 'Erro desconhecido');
+    } finally {
+      setLoading(false);
     }
-    
-    if (address.suburb || address.neighbourhood) {
-      formatted += `${address.suburb || address.neighbourhood}, `;
-    }
-    
-    if (address.city || address.town) {
-      formatted += `${address.city || address.town}, `;
-    }
-    
-    if (address.state) {
-      formatted += `${address.state}, `;
-    }
-    
-    if (address.country) {
-      formatted += `${address.country}`;
-    }
-    
-    if (address.postcode) {
-      formatted += ` - CEP: ${address.postcode}`;
-    }
-    
-    return formatted.trim();
   };
 
+  const clearCache = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      let cleared = 0;
+      
+      keys.forEach(key => {
+        if (key.startsWith('geocoding_')) {
+          localStorage.removeItem(key);
+          cleared++;
+        }
+      });
+      
+      alert(`Cache limpo! ${cleared} entrada(s) removida(s).`);
+    } catch (err) {
+      alert('Erro ao limpar cache');
+    }
+  };
 
   return (
     <Container>
-      <Title>🔍 Teste de Geolocalização</Title>
+      <Title>🧪 Teste de Geolocalização</Title>
       
-      <p>Este teste vai verificar se as coordenadas capturadas correspondem ao endereço real.</p>
-      
+      <InfoBox>
+        <h3>ℹ️ Informações - Versão Aprimorada</h3>
+        <p><strong>🎯 Nova abordagem para melhor precisão:</strong></p>
+        <ul>
+          <li><strong>watchPosition</strong>: Recebe múltiplas atualizações GPS até estabilizar</li>
+          <li><strong>Validação IP</strong>: Compara com localização por IP para detectar erros</li>
+          <li><strong>Melhor resultado</strong>: Retorna a posição mais precisa obtida</li>
+          <li><strong>Reverse geocoding</strong>: Converte coordenadas em endereço</li>
+        </ul>
+        <p><strong>Meta de precisão:</strong> ≤ 50 metros (mobile) | ≤ 200 metros (desktop)</p>
+        
+        <YellowBox>
+          <strong>⚠️ Dicas para melhor precisão:</strong>
+          <TipList>
+            <li><strong>Permissão:</strong> Na 1ª vez, clique em "Permitir" quando o navegador pedir</li>
+            <li><strong>Localização:</strong> Aproxime-se de uma janela (melhora sinal)</li>
+            <li><strong>Aguarde:</strong> O teste fará 3 tentativas com intervalo de 2s</li>
+            <li><strong>Mobile:</strong> Ative GPS nas configurações do sistema</li>
+          </TipList>
+          <SmallNote>
+            <strong>🔧 Pedindo permissão sempre?</strong> Chrome → Configurações do site (🔒 ao lado da URL) → Localização → Permitir
+          </SmallNote>
+        </YellowBox>
+      </InfoBox>
+
       <div>
-        <Button onClick={testCurrentLocation} disabled={loading}>
-          {loading ? 'Testando...' : '📍 Testar Geolocalização Atual'}
+        <Button onClick={testGeolocation} disabled={loading}>
+          {loading ? '⏳ Capturando...' : '📍 Testar Geolocalização'}
         </Button>
         
-        <Button onClick={testBigDataCloud} disabled={loading}>
-          {loading ? 'Testando...' : '🌐 Testar API Interna'}
-        </Button>
-
-        <Button onClick={async () => {
-          setLoading(true);
-          setResults([]);
-          try {
-            const result = await forceHighAccuracyCapture();
-            setResults([{
-              type: result.accuracyValidation?.isValid ? 'success' : 'warning',
-              title: 'Captura de Alta Precisão',
-              data: result
-            }]);
-          } catch (error) {
-            setResults([{
-              type: 'error',
-              title: 'Erro na captura de alta precisão',
-              data: error
-            }]);
-          }
-          setLoading(false);
-        }} disabled={loading}>
-          {loading ? 'Capturando...' : '🎯 Captura de Alta Precisão'}
-        </Button>
-
-        <Button onClick={() => {
-          clearCacheFromHook();
-          setResults([]);
-        }} disabled={loading}>
-          🧹 Limpar Cache GPS
+        <Button onClick={clearCache} disabled={loading}>
+          🧹 Limpar Cache
         </Button>
       </div>
 
-      {results.map((result, index) => (
-        <div key={index}>
-          {result.type === 'error' && (
+      {loading && (
+        <InfoBox>
+          <p>⏳ Capturando localização com alta precisão...</p>
+          <p><strong>O que está acontecendo:</strong></p>
+          <ul>
+            <li>Fazendo múltiplas leituras para melhor precisão</li>
+            <li>Aguardando GPS/WiFi estabilizar</li>
+            <li>Pode levar até 10 segundos</li>
+          </ul>
+          <p><strong>ℹ️ Sobre permissão:</strong> Na primeira vez, o navegador pede permissão (é normal e obrigatório por segurança).</p>
+        </InfoBox>
+      )}
+
+      {error && (
+        <ErrorBox>
+          <h4>❌ Erro</h4>
+          <p>{error}</p>
+        </ErrorBox>
+      )}
+
+      {result && (
+        <>
+          {result.accuracy <= 50 ? (
+            <SuccessBox>
+              <h4>✅ Localização Excelente!</h4>
+              <p><strong>Precisão:</strong> {result.accuracy?.toFixed(1)}m ✅</p>
+              <p><strong>Dispositivo:</strong> {result.deviceType === 'desktop' ? '💻 Desktop' : '📱 Mobile'}</p>
+            </SuccessBox>
+          ) : result.accuracy <= 200 ? (
+            <SuccessAltBox>
+              <h4>✅ Localização Boa</h4>
+              <p><strong>Precisão:</strong> {result.accuracy?.toFixed(1)}m</p>
+              <p><strong>Dispositivo:</strong> {result.deviceType === 'desktop' ? '💻 Desktop' : '📱 Mobile'}</p>
+              <p>Precisão aceitável para validação de presença.</p>
+            </SuccessAltBox>
+          ) : result.accuracy <= 1000 ? (
+            <WarnAltBox>
+              <h4>⚠️ Localização com Precisão Baixa</h4>
+              <p><strong>Precisão:</strong> {result.accuracy?.toFixed(1)}m</p>
+              <p><strong>Dispositivo:</strong> {result.deviceType === 'desktop' ? '💻 Desktop' : '📱 Mobile'}</p>
+              <p>Tente: se aproximar de janela, verificar permissões, ou aguardar alguns segundos e tentar novamente.</p>
+            </WarnAltBox>
+          ) : (
             <ErrorBox>
-              <strong>{result.title}</strong>
-              <pre>{JSON.stringify(result.data || result.message, null, 2)}</pre>
+              <h4>❌ Precisão Muito Ruim</h4>
+              <p><strong>Precisão:</strong> {result.accuracy?.toFixed(1)}m</p>
+              <p><strong>Dispositivo:</strong> {result.deviceType === 'desktop' ? '💻 Desktop' : '📱 Mobile'}</p>
+              <p>Verifique permissões de localização no navegador e sistema operacional.</p>
             </ErrorBox>
           )}
-          
-          {result.type === 'success' && (
-            <SuccessBox>
-              <strong>{result.title}</strong>
-              <pre>{JSON.stringify(result.data, null, 2)}</pre>
-            </SuccessBox>
-          )}
-          
-          {result.type === 'warning' && (
-            <WarningBox>
-              <strong>{result.title}</strong>
-              <pre>{JSON.stringify(result.data, null, 2)}</pre>
-            </WarningBox>
-          )}
-          
-          {result.type === 'info' && (
-            <ResultBox>
-              <strong>{result.title}</strong>
-              <pre>{JSON.stringify(result.data, null, 2)}</pre>
-            </ResultBox>
-          )}
-        </div>
-      ))}
 
-      <InfoBox>
-        <h3>📋 Instruções:</h3>
-        <ol>
-          <li>Clique em "Testar Geolocalização Atual"</li>
-          <li>Permita acesso à localização quando solicitado</li>
-          <li>Aguarde até 30 segundos para máxima precisão</li>
-          <li>Compare as coordenadas capturadas com o endereço real</li>
-          <li>Verifique a distância calculada</li>
-        </ol>
-        
-        <h3>🎯 Critérios de Avaliação:</h3>
-        <ul>
-          <li><strong>✅ Distância ≤ 100m:</strong> Geolocalização correta</li>
-          <li><strong>⚠️ Distância 100-1000m:</strong> Precisão aceitável</li>
-          <li><strong>❌ Distância &gt; 1000m:</strong> Problema na geolocalização</li>
-        </ul>
-      </InfoBox>
+          <ResultBox>
+            <h4>📊 Dados Completos:</h4>
+            {JSON.stringify(result, null, 2)}
+          </ResultBox>
+
+          <InfoBox>
+            <h4>📍 Resumo:</h4>
+            <p><strong>Tipo de Dispositivo:</strong> {result.deviceType === 'desktop' ? '💻 Desktop' : '📱 Mobile'}</p>
+            <p><strong>Endereço:</strong> {result.address || 'Não disponível'}</p>
+            <p><strong>Latitude:</strong> {result.latitude?.toFixed(6)}</p>
+            <p><strong>Longitude:</strong> {result.longitude?.toFixed(6)}</p>
+            <p><strong>Precisão:</strong> {result.accuracy?.toFixed(1)} metros</p>
+            <p><strong>WiFi/Rede:</strong> {result.wifiName || 'Não detectado'}</p>
+            <p><strong>Tipo de Conexão:</strong> {result.networkInfo?.connectionType || 'Desconhecido'}</p>
+            <p><strong>Timestamp:</strong> {new Date(result.timestamp).toLocaleString('pt-BR')}</p>
+            
+            {result.googleMapsLink && (
+              <BlueBox>
+                <p><strong>🗺️ Comparar com Google Maps:</strong></p>
+                <LinkStyled 
+                  href={result.googleMapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Abrir coordenadas no Google Maps
+                </LinkStyled>
+                <SmallNote>
+                  ☝️ Clique para ver se a localização está correta no Google Maps
+                </SmallNote>
+              </BlueBox>
+            )}
+          </InfoBox>
+        </>
+      )}
     </Container>
   );
 }

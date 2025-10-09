@@ -18,7 +18,7 @@ Write-Host "📌 Executando seed do banco de dados..." -ForegroundColor Yellow
 Write-Host ""
 
 # Executar o seed
-$env:DATABASE_URL = "postgresql://userdom:FLP*2025@localhost:5433/dom_v2?schema=public"
+$env:DATABASE_URL = "postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public"
 npx tsx prisma/seed.ts
 
 if ($LASTEXITCODE -eq 0) {
@@ -32,10 +32,10 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "📊 VERIFICANDO DADOS INSERIDOS..." -ForegroundColor Cyan
     Write-Host ""
     
-    $usuarios = psql -h localhost -p 5433 -U postgres -d dom_v2 -t -c "SELECT COUNT(*) FROM usuarios;" 2>&1
-    $perfis = psql -h localhost -p 5433 -U postgres -d dom_v2 -t -c "SELECT COUNT(*) FROM perfis;" 2>&1
-    $documentos = psql -h localhost -p 5433 -U postgres -d dom_v2 -t -c "SELECT COUNT(*) FROM documentos;" 2>&1
-    $tarefas = psql -h localhost -p 5433 -U postgres -d dom_v2 -t -c "SELECT COUNT(*) FROM tarefas;" 2>&1
+    $usuarios = psql -h localhost -p 5433 -U postgres -d dom -t -c "SELECT COUNT(*) FROM usuarios;" 2>&1
+    $perfis = psql -h localhost -p 5433 -U postgres -d dom -t -c "SELECT COUNT(*) FROM perfis;" 2>&1
+    $documentos = psql -h localhost -p 5433 -U postgres -d dom -t -c "SELECT COUNT(*) FROM documentos;" 2>&1
+    $tarefas = psql -h localhost -p 5433 -U postgres -d dom -t -c "SELECT COUNT(*) FROM tarefas;" 2>&1
     
     Write-Host "   👤 Usuários: $($usuarios.Trim())" -ForegroundColor White
     Write-Host "   👔 Perfis: $($perfis.Trim())" -ForegroundColor White

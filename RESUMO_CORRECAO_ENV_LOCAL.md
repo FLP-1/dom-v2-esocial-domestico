@@ -10,13 +10,13 @@ Você estava correto! O arquivo `env.local` continha **dados de empregador** que
 
 ```env
 # ❌ Dados de empregador misturados com configurações
-DATABASE_URL="postgresql://userdom:FLP*2025@localhost:5433/dom_v2?schema=public"
+DATABASE_URL="postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public"
 NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-JWT_SECRET=dom_v2_secret_key_32_chars_min_2025
+JWT_SECRET=dom_secret_key_32_chars_min_2025
 JWT_EXPIRES_IN=7d
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=dom_v2_nextauth_secret_key_2025
+NEXTAUTH_SECRET=dom_nextauth_secret_key_2025
 ESOCIAL_EMPREGADOR_CPF=59876913700              ← ❌ NÃO DEVE ESTAR AQUI
 ESOCIAL_EMPREGADOR_NOME=FLP Business Strategy   ← ❌ NÃO DEVE ESTAR AQUI
 ESOCIAL_CERTIFICATE_PATH=./certificados/...     
@@ -41,10 +41,10 @@ NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 # 🔐 Autenticação
-JWT_SECRET=dom_v2_secret_key_32_chars_min_2025
+JWT_SECRET=dom_secret_key_32_chars_min_2025
 JWT_EXPIRES_IN=7d
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=dom_v2_nextauth_secret_key_2025
+NEXTAUTH_SECRET=dom_nextauth_secret_key_2025
 
 # 🔐 Certificados (caminho, não dados)
 ESOCIAL_CERTIFICATE_PATH=./certificados/eCPF A1 24940271 (senha 456587).pfx
@@ -72,7 +72,7 @@ SELECT * FROM empregadores;
 
 | # | Alteração | Status |
 |---|-----------|--------|
-| 1 | Nome do banco alterado de `dom_v2` para `dom` | ✅ |
+| 1 | Nome do banco: `dom` (PostgreSQL 18) | ✅ |
 | 2 | Criada tabela `empregadores` no schema | ✅ |
 | 3 | Dados movidos do `env.local` para o banco | ✅ |
 | 4 | Arquivo `env.local` limpo e corrigido | ✅ |

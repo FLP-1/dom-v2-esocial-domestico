@@ -2,6 +2,7 @@ import React, { ReactNode, useCallback } from 'react';
 import styled from 'styled-components';
 import { componentShadows, createThemedStyles } from '../../design-system';
 import { useGeolocationCapture } from '../../hooks/useGeolocationCapture';
+import { logger } from '../../utils/logger';
 
 // Styled Components
 const ButtonContainer = styled.button<{
@@ -320,7 +321,7 @@ export const UnifiedButton: React.FC<UnifiedButtonProps> = ({
   // Handler que captura geolocalização automaticamente para ações críticas
   const handleClick = useCallback(async (event: React.MouseEvent<HTMLButtonElement>) => {
     if ($criticalAction && onClick) {
-      console.log(`🎯 Botão crítico clicado: ${$actionName}`);
+      logger.geo(`🎯 Botão crítico clicado: ${$actionName}`);
       const criticalHandler = createCriticalButtonHandler(onClick, $actionName);
       await criticalHandler(event);
     } else if (onClick) {

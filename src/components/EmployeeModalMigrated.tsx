@@ -531,7 +531,6 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
                     onChange={e => handleInputChange('email', e.target.value)}
                     $hasError={!!errors.email}
                     placeholder='email@exemplo.com'
-                    style={{ flex: 1 }}
                   />
                   <UnifiedButton
                     $variant='secondary'
@@ -571,7 +570,6 @@ const EmployeeModalMigrated: React.FC<EmployeeModalProps> = ({
                     }
                     $hasError={!!errors.telefone}
                     placeholder='(00) 00000-0000'
-                    style={{ flex: 1 }}
                   />
                   <UnifiedButton
                     $variant='secondary'

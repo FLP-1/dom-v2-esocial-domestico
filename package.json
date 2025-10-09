@@ -41,14 +41,16 @@
     "db:migrate:deploy": "npx prisma migrate deploy",
     "db:generate": "npx prisma generate",
     "db:seed": "npx prisma db seed",
+    "db:seed:incremental": "npx ts-node prisma/seed-novo-empregado.ts",
     "db:reset": "npx prisma migrate reset",
+    "db:reset:full": "npx prisma migrate reset --skip-seed && npm run db:seed",
     "db:studio": "npx prisma studio",
     "db:validate": "npx prisma validate",
     "db:format": "npx prisma format",
     "db:push": "npx prisma db push"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed-completo.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.16.3",

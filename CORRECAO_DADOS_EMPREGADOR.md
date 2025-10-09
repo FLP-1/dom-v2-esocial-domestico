@@ -112,10 +112,10 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # ===========================================
 # 🔐 CONFIGURAÇÕES DE AUTENTICAÇÃO
 # ===========================================
-JWT_SECRET=dom_v2_secret_key_32_chars_min_2025
+JWT_SECRET=dom_secret_key_32_chars_min_2025
 JWT_EXPIRES_IN=7d
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=dom_v2_nextauth_secret_key_2025
+NEXTAUTH_SECRET=dom_nextauth_secret_key_2025
 
 # ===========================================
 # 🔐 CONFIGURAÇÕES DE CERTIFICADOS eSocial

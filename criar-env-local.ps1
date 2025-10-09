@@ -9,7 +9,7 @@ $conteudo = @"
 # 🗄️ BANCO DE DADOS
 # ===========================================
 
-DATABASE_URL="postgresql://userdom:FLP*2025@localhost:5433/dom_v2?schema=public"
+DATABASE_URL="postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public"
 
 # ===========================================
 # 🌐 CONFIGURAÇÕES DE AMBIENTE
@@ -22,11 +22,11 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # 🔑 SEGURANÇA
 # ===========================================
 
-JWT_SECRET=dom_v2_secret_key_32_chars_min_2025
+JWT_SECRET=dom_secret_key_32_chars_min_2025
 JWT_EXPIRES_IN=7d
 
 NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=dom_v2_nextauth_secret_key_2025
+NEXTAUTH_SECRET=dom_nextauth_secret_key_2025
 
 # ===========================================
 # 📧 CONFIGURAÇÕES DE EMAIL
@@ -65,7 +65,7 @@ Write-Host "🔐 Configurações do Banco de Dados:" -ForegroundColor Yellow
 Write-Host "   - Host: localhost" -ForegroundColor White
 Write-Host "   - Porta: 5433" -ForegroundColor White
 Write-Host "   - Usuário: userdom" -ForegroundColor White
-Write-Host "   - Banco: dom_v2" -ForegroundColor White
+Write-Host "   - Banco: dom" -ForegroundColor White
 Write-Host ""
 Write-Host "📝 Próximos passos:" -ForegroundColor Yellow
 Write-Host "   1. Execute: npx prisma generate" -ForegroundColor White

@@ -1,6 +1,6 @@
 // src/pages/dashboard.tsx
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled, { keyframes } from 'styled-components';
@@ -10,7 +10,7 @@ import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { WidgetGrid } from '../components/WidgetGrid';
-import { UnifiedButton, UnifiedModal } from '../components/unified';
+import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
 
@@ -94,11 +94,32 @@ interface Task {
 
 // UserProfile interface removed - using inline types
 
+const PendingCardRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const PendingCardSubtitle = styled.p`
+  margin: 0;
+  color: #7f8c8d;
+`;
+
+const PendingCardCount = styled.div`
+  font-size: 1.8rem;
+  font-weight: 700;
+`;
+
+const PendingCardTitle = styled.h3`
+  margin: 0;
+`;
+
 export default function Dashboard() {
   const router = useRouter();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedWidget, setSelectedWidget] = useState<string | null>(null);
   const [modalOpen, setUnifiedModalOpen] = useState(false);
+  const [pendingPunches, setPendingPunches] = useState<number>(0);
 
   // Perfis disponíveis
   // Hook do contexto de perfil
@@ -194,6 +215,10 @@ export default function Dashboard() {
       router.push('/time-clock');
       return;
     }
+    if (widgetId === 'timeclock-pending') {
+      router.push('/time-clock');
+      return;
+    }
     setSelectedWidget(widgetId);
     setUnifiedModalOpen(true);
   };
@@ -281,6 +306,36 @@ export default function Dashboard() {
     }
   };
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await fetch('/api/time-clock/pending?count=true');
+        if (r.ok) {
+          const j = await r.json();
+          setPendingPunches(j.data?.total ?? 0);
+        }
+      } catch {}
+    })();
+  }, []);
+
+  const pendingCard = (
+    <UnifiedCard
+      theme={theme}
+      variant='default'
+      size='md'
+      onClick={() => handleWidgetClick('timeclock-pending')}
+      aria-label={`Registros de ponto pendentes: ${pendingPunches}`}
+    >
+      <PendingCardRow>
+        <div>
+          <PendingCardTitle>Registros Pendentes</PendingCardTitle>
+          <PendingCardSubtitle>Aprovação necessária</PendingCardSubtitle>
+        </div>
+        <PendingCardCount>{pendingPunches}</PendingCardCount>
+      </PendingCardRow>
+    </UnifiedCard>
+  );
+
   return (
     <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
       <Sidebar
@@ -292,7 +347,7 @@ export default function Dashboard() {
       <TopBar $theme={theme}>
         <WelcomeSection
           $theme={theme}
-          userAvatar={currentProfile?.avatar || 'U'}
+          userAvatar={currentProfile?.avatar || (currentProfile?.name?.substring(0,2).toUpperCase() || 'U')}
           userName={currentProfile?.name || 'Usuário'}
           userRole={currentProfile?.role || 'Usuário'}
           notificationCount={3}
@@ -308,6 +363,7 @@ export default function Dashboard() {
         subtitle='Visão geral do seu sistema de gestão doméstica'
       />
 
+      {pendingCard}
       <WidgetGrid widgets={widgets} onWidgetClick={handleWidgetClick} />
 
       <UnifiedModal

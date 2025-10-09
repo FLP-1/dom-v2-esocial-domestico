@@ -1,6 +1,7 @@
 import prisma from '../../../lib/prisma';
 import { generateToken } from '../../../lib/auth';
 import bcrypt from 'bcryptjs';
+import { logger } from '../../../utils/logger';
 
 export default async function handler(req, res) {
   if (req.method === 'POST') {
@@ -13,7 +14,7 @@ export default async function handler(req, res) {
 
       // Log da geolocalização recebida no login
       if (locationData) {
-        console.log('📍 Geolocalização recebida no login:', {
+        logger.auth('📍 Geolocalização recebida no login:', {
           latitude: locationData.latitude,
           longitude: locationData.longitude,
           accuracy: locationData.accuracy,
@@ -49,11 +50,18 @@ export default async function handler(req, res) {
       // Determinar o perfil principal
       const primaryProfile = user.perfis?.find(p => p.principal)?.perfil || user.perfis?.[0]?.perfil;
 
+      // Validar se o usuário tem perfis
+      if (!primaryProfile) {
+        return res.status(400).json({ 
+          message: 'Usuário sem perfis associados. Entre em contato com o administrador.' 
+        });
+      }
+
       // Gerar token JWT
       const token = generateToken({
         userId: user.id,
         email: user.email,
-        role: primaryProfile?.codigo || 'USER',
+        role: primaryProfile.codigo,
       });
 
       // Definir cookie seguro
@@ -96,8 +104,8 @@ export default async function handler(req, res) {
           email: user.email,
           nomeCompleto: user.nomeCompleto,
           apelido: user.apelido,
-          role: primaryProfile?.codigo || 'USER',
-          avatar: primaryProfile?.avatar || user.apelido?.substring(0, 2).toUpperCase() || user.nomeCompleto?.substring(0, 2).toUpperCase() || 'U',
+          role: primaryProfile.codigo,
+          avatar: user.apelido?.substring(0, 2).toUpperCase() || user.nomeCompleto?.substring(0, 2).toUpperCase() || 'U',
         },
         token,
       });

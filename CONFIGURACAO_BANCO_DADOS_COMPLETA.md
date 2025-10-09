@@ -3,7 +3,7 @@
 ## ✅ O QUE JÁ FOI FEITO AUTOMATICAMENTE
 
 ### 1. Banco de Dados PostgreSQL Criado
-- **Nome do Banco:** `dom_v2`
+- **Nome do Banco:** `dom`
 - **Host:** `localhost`
 - **Porta:** `5433`
 - **Usuário:** `userdom`
@@ -18,7 +18,7 @@
 
 ### 3. Variável de Ambiente Configurada
 - **Nome:** `DATABASE_URL`
-- **Valor:** `postgresql://userdom:FLP*2025@localhost:5433/dom_v2?schema=public`
+- **Valor:** `postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public`
 - **Escopo:** Variável de usuário do Windows
 - **Status:** ✅ CONFIGURADA NO SISTEMA
 
@@ -51,7 +51,7 @@ npx prisma db push
 
 ### Passo 4: Verificar Tabelas Criadas
 ```powershell
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "\dt"
+psql -h localhost -p 5433 -U postgres -d dom -c "\dt"
 ```
 
 ### Passo 5: Iniciar o Servidor
@@ -130,19 +130,19 @@ O schema Prisma contém **46 TABELAS COMPLETAS**:
 
 ### String de Conexão Completa
 ```
-postgresql://userdom:FLP*2025@localhost:5433/dom_v2?schema=public
+postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public
 ```
 
 ### Conexão via psql
 ```bash
-psql -h localhost -p 5433 -U userdom -d dom_v2
+psql -h localhost -p 5433 -U userdom -d dom
 ```
 
 ### Conexão via pgAdmin
 ```
 Host: localhost
 Port: 5433
-Database: dom_v2
+Database: dom
 Username: userdom
 Password: FLP*2025
 ```
@@ -153,12 +153,12 @@ Password: FLP*2025
 
 ### Verificar Tabelas
 ```powershell
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "\dt"
+psql -h localhost -p 5433 -U postgres -d dom -c "\dt"
 ```
 
 ### Contar Tabelas
 ```powershell
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"
 ```
 
 ### Abrir Prisma Studio (Interface Visual)
@@ -193,7 +193,7 @@ npm run db:migrate
 3. Crie um novo arquivo de texto chamado `.env.local`
 4. Cole o conteúdo:
 ```
-DATABASE_URL="postgresql://userdom:FLP*2025@localhost:5433/dom_v2?schema=public"
+DATABASE_URL="postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public"
 NODE_ENV=development
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
@@ -202,7 +202,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ## ✅ CHECKLIST DE VERIFICAÇÃO
 
-- [x] Banco de dados `dom_v2` criado
+- [x] Banco de dados `dom` criado
 - [x] Usuário `userdom` criado com senha `FLP*2025`
 - [x] Variável de ambiente `DATABASE_URL` configurada no Windows
 - [x] Bloqueio de segurança removido do `.gitignore`
@@ -217,13 +217,13 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### Erro: "autenticação do tipo senha falhou"
 **Solução:** Use o usuário `postgres` em vez de `userdom`:
 ```powershell
-psql -h localhost -p 5433 -U postgres -d dom_v2
+psql -h localhost -p 5433 -U postgres -d dom
 ```
 
 ### Erro: "servidor não suporta SSL"
 **Solução:** Adicione `?sslmode=disable` à string de conexão:
 ```
-postgresql://userdom:FLP*2025@localhost:5433/dom_v2?schema=public&sslmode=disable
+postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public&sslmode=disable
 ```
 
 ### Erro: "Prisma não encontrado"

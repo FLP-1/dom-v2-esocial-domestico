@@ -168,12 +168,8 @@ export const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
         theme={theme}
         variant="default"
         size="md"
-        title={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <AccessibleEmoji emoji="📄" label="Documentos" />
-            Atestados e Documentos
-          </div>
-        }
+        icon={<AccessibleEmoji emoji="📄" label="Documentos" />}
+        title="Atestados e Documentos"
       >
         <UploadSection
           $theme={theme}

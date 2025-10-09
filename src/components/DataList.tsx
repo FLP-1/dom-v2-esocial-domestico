@@ -59,12 +59,12 @@ const DataListContainer = styled.div<{ $theme: any; $variant: string }>`
   `}
 `;
 
-const DataListHeader = styled.div<{ $theme: any; $variant: string }>`
+const DataListHeader = styled.div<{ $theme: any; $variant: string; $gridTemplate?: string }>`
   background: ${props => props.$theme.colors.primary}10;
   padding: ${props => props.$variant === 'compact' ? '0.75rem 1rem' : '1rem 1.5rem'};
   border-bottom: 1px solid ${props => props.$theme.colors.primary}20;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: ${props => props.$gridTemplate || 'repeat(auto-fit, minmax(150px, 1fr))'};
   gap: 1rem;
   align-items: center;
   font-weight: 600;
@@ -331,7 +331,7 @@ const DataList: React.FC<DataListProps> = ({
   return (
     <DataListContainer $theme={theme} $variant={variant}>
       {showHeader && (
-        <DataListHeader $theme={theme} $variant={variant} style={{ gridTemplateColumns: gridTemplate }}>
+        <DataListHeader $theme={theme} $variant={variant} $gridTemplate={gridTemplate}>
           {columns.map(column => (
             <DataListCell key={column.key} $align={column.align} $width={column.width}>
               {column.label}
@@ -354,7 +354,6 @@ const DataList: React.FC<DataListProps> = ({
             $variant={variant}
             $clickable={!!onItemClick}
             onClick={() => onItemClick?.(item)}
-            style={{ gridTemplateColumns: gridTemplate }}
           >
             {columns.map(column => (
               <DataListCell key={column.key} $align={column.align} $width={column.width}>

@@ -1,5 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Container = styled.div`
   padding: 20px;
@@ -49,11 +51,9 @@ export default function TestLogin() {
       });
       
       const result = await response.json();
-      console.log('Login result:', result);
-      alert(`Login: ${response.status} - ${result.message || 'OK'}`);
+      toast.info(`Login: ${response.status} - ${result.message || 'OK'}`);
     } catch (error) {
-      console.error('Login error:', error);
-      alert(`Erro: ${error.message}`);
+      toast.error(`Erro: ${(error as any).message}`);
     }
   };
 
@@ -63,6 +63,7 @@ export default function TestLogin() {
       <Button onClick={handleLogin}>
         Testar Login (Francisco)
       </Button>
+      <ToastContainer position='top-center' autoClose={3000} />
     </Container>
   );
 }

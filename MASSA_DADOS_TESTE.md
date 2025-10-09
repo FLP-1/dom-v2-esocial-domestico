@@ -177,13 +177,13 @@ CPFs: Gerados automaticamente (válidos)
 
 ```powershell
 # Contar usuários
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT COUNT(*) FROM usuarios;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT COUNT(*) FROM usuarios;"
 
 # Listar usuários
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT cpf, nome_completo, email FROM usuarios;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT cpf, nome_completo, email FROM usuarios;"
 
 # Ver CPFs válidos
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT cpf, nome_completo FROM usuarios ORDER BY criado_em;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT cpf, nome_completo FROM usuarios ORDER BY criado_em;"
 ```
 
 ### 4. Abrir Prisma Studio (Interface Visual)
@@ -291,7 +291,7 @@ npx tsx prisma/seed.ts
 
 ### Verificar se seed foi executado
 ```powershell
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT COUNT(*) as total FROM usuarios;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT COUNT(*) as total FROM usuarios;"
 ```
 
 Se retornar 0, execute o seed novamente.

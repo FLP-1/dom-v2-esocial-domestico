@@ -9,6 +9,8 @@ import {
   UserProfileProvider,
   useUserProfile,
 } from '../contexts/UserProfileContext';
+import { GeolocationProvider, useGeolocationContext } from '../contexts/GeolocationContext';
+import { useGeolocation } from '../hooks/useGeolocation';
 import { GlobalStyle } from '../styles/GlobalStyle';
 import { theme } from '../styles/theme';
 import {
@@ -21,6 +23,8 @@ import ProfileSelectionModal from '../components/ProfileSelectionModal';
 function AppContent({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [key, setKey] = useState(0);
+  const { captureRealTimeLocation } = useGeolocation();
+  const { setLastLocation } = useGeolocationContext();
   const {
     handleProfileSelection,
     currentProfile,
@@ -33,6 +37,28 @@ function AppContent({ Component, pageProps }: AppProps) {
   useEffect(() => {
     const handleRouteChange = () => {
       setKey(prev => prev + 1);
+      // Disparar captura manual na mudança de página se permissão já concedida
+      try {
+        if (navigator.permissions && navigator.permissions.query) {
+          navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
+            if (result.state === 'granted') {
+              captureRealTimeLocation()
+                .then(data => {
+                  setLastLocation({
+                    latitude: data.latitude,
+                    longitude: data.longitude,
+                    accuracy: data.accuracy,
+                    address: data.address,
+                    wifiName: data.wifiName,
+                    networkInfo: data.networkInfo,
+                    timestamp: new Date()
+                  });
+                })
+                .catch(() => {});
+            }
+          });
+        }
+      } catch {}
     };
 
     router.events.on('routeChangeComplete', handleRouteChange);
@@ -42,7 +68,7 @@ function AppContent({ Component, pageProps }: AppProps) {
       router.events.off('routeChangeComplete', handleRouteChange);
       router.events.off('beforeHistoryChange', handleRouteChange);
     };
-  }, [router.events]);
+  }, [router.events, captureRealTimeLocation, setLastLocation]);
 
   const handleProfileSelect = (profile: any) => {
     handleProfileSelection(profile);
@@ -87,7 +113,9 @@ export default function App(props: AppProps) {
       </Head>
 
       <UserProfileProvider>
-        <AppContent {...props} />
+        <GeolocationProvider>
+          <AppContent {...props} />
+        </GeolocationProvider>
       </UserProfileProvider>
     </>
   );

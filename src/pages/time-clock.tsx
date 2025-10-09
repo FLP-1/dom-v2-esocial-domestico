@@ -171,6 +171,12 @@ const LocationItem = styled.div`
   font-size: 0.8rem;
 `;
 
+const ModalColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+
 // Interfaces
 interface TimeClockHistory extends DataListItem {
   id: string;
@@ -209,6 +215,11 @@ export default function TimeClock() {
   const [timeRecords, setTimeRecords] = useState<TimeRecord[]>([]);
   const [overtimeRequests, setOvertimeRequests] = useState<OvertimeRequest[]>([]);
   const [historyRecords, setHistoryRecords] = useState<TimeClockHistory[]>([]);
+  const [pendingCount, setPendingCount] = useState<number>(0);
+  const [pendingItems, setPendingItems] = useState<any[]>([]);
+  const [overrideModalOpen, setOverrideModalOpen] = useState(false);
+  const [overrideJustification, setOverrideJustification] = useState('');
+  const [overrideDraft, setOverrideDraft] = useState<{ data: any; type: TimeRecord['type'] } | null>(null);
 
   // Filtros
   const [filters, setFilters] = useState({
@@ -244,7 +255,7 @@ export default function TimeClock() {
             token = loginData.data.token;
           }
         } catch (error) {
-          console.log('Login automático falhou, continuando sem autenticação');
+          // login automático falhou, continuar sem autenticação
         }
 
         const headers = token ? {
@@ -320,16 +331,20 @@ export default function TimeClock() {
         const response = await fetch('/api/time-clock/records');
         if (response.ok) {
           const result = await response.json();
-          const formattedRecords: TimeRecord[] = result.data.map((record: any) => ({
+          const now = new Date();
+          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+          const todays = (result.data as any[])
+            .map(r => ({ ...r, dt: new Date(r.dataHora) }))
+            .filter(r => r.dt >= start && r.dt < end)
+            .sort((a, b) => a.dt.getTime() - b.dt.getTime());
+          const formattedRecords: TimeRecord[] = todays.map((record: any) => ({
             id: record.id,
             type: record.tipo,
-            time: new Date(record.dataHora).toLocaleTimeString('pt-BR', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            location: record.enderecoCompleto || 'Local não informado',
+            time: record.dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            location: record.enderecoCompleto || record.endereco || 'Local não informado',
             wifi: record.nomeRedeWiFi || 'WiFi não detectado',
-            timestamp: new Date(record.dataHora),
+            timestamp: record.dt,
           }));
           setTimeRecords(formattedRecords);
         }
@@ -339,6 +354,27 @@ export default function TimeClock() {
     };
 
     loadRecords();
+  }, []);
+
+  // Carregar pendências
+  useEffect(() => {
+    const loadPending = async () => {
+      try {
+        const [cnt, list] = await Promise.all([
+          fetch('/api/time-clock/pending?count=true'),
+          fetch('/api/time-clock/pending')
+        ]);
+        if (cnt.ok) {
+          const cdata = await cnt.json();
+          setPendingCount(cdata.data?.total ?? 0);
+        }
+        if (list.ok) {
+          const ldata = await list.json();
+          setPendingItems(ldata.data ?? []);
+        }
+      } catch {}
+    };
+    loadPending();
   }, []);
 
   // Atualizar relógio a cada segundo
@@ -386,11 +422,12 @@ export default function TimeClock() {
 
 
   // Handler para registrar ponto
-  const handleTimeRecord = async (type: TimeRecord['type']) => {
+  const handleTimeRecord = async (locationData: any, type: TimeRecord['type']) => {
     try {
-      console.log(`🕐 Iniciando registro de ${type}...`);
-      
-      // Geolocalização agora é capturada automaticamente pelo TimeRecordCard
+      // início do registro
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
+
       const response = await fetch('/api/time-clock/records', {
         method: 'POST',
         headers: {
@@ -399,41 +436,93 @@ export default function TimeClock() {
         body: JSON.stringify({
           tipo: type,
           observacao: `Registro via interface web - ${type}`,
-          // Dados de localização serão capturados pelo TimeRecordCard
+          latitude: locationData?.latitude,
+          longitude: locationData?.longitude,
+          precisao: locationData?.accuracy,
+          endereco: locationData?.address,
+          wifiName: locationData?.wifiName,
+          overrideJustification: locationData?.overrideJustification,
+          connectionType: locationData?.networkInfo?.connectionType,
+          effectiveType: locationData?.networkInfo?.effectiveType,
+          downlink: locationData?.networkInfo?.downlink,
+          rtt: locationData?.networkInfo?.rtt,
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+          networkTimestamp: new Date().toISOString()
         }),
+        signal: controller.signal
+      }).finally(() => clearTimeout(timer));
+
+      if (!response.ok) {
+        let message = 'Erro ao registrar ponto';
+        try {
+          const data = await response.json();
+          if (data?.error) message = data.error;
+        } catch {}
+
+        if (response.status === 409) {
+          // Duplicidade do mesmo tipo no dia
+          toast.warning(message, { position: 'top-center', autoClose: 3000 });
+          return;
+        }
+        if (response.status === 422) {
+          // Ordem inválida
+          toast.warning(message, { position: 'top-center', autoClose: 3000 });
+          // Se for precisão insuficiente/idade, oferecer override via modal
+          if (/Precisão|Localização antiga/i.test(message)) {
+            setOverrideDraft({ data: locationData, type });
+            setOverrideJustification('');
+            setOverrideModalOpen(true);
+          }
+          return;
+        }
+        if (response.status === 401) {
+          toast.error('Sessão expirada. Faça login novamente.', { position: 'top-center', autoClose: 3000 });
+          return;
+        }
+        throw new Error(message);
+      }
+
+      const result = await response.json();
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        const now = new Date();
-        
-        const timeString = now.toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-        });
+      const newRecord: TimeRecord = {
+        id: result.data.id,
+        type,
+        time: timeString,
+        location: locationData?.address || 'Localização não disponível',
+        wifi: locationData?.wifiName || 'WiFi não detectado',
+        timestamp: now,
+      };
 
-        // Criar novo registro (localização será capturada pelo TimeRecordCard)
-        const newRecord: TimeRecord = {
-          id: result.data.id,
-          type,
-          time: timeString,
-          location: 'Localização capturada automaticamente',
-          wifi: 'WiFi detectado automaticamente',
-          timestamp: now,
-        };
+      setTimeRecords(prev => [...prev, newRecord]);
+      toast.success(`Ponto registrado com sucesso: ${timeString}`, {
+        position: 'top-center',
+        autoClose: 3000,
+      });
 
-        setTimeRecords(prev => [...prev, newRecord]);
-        
-        toast.success(`Ponto registrado com sucesso: ${timeString}`, {
-          position: 'top-center',
-          autoClose: 3000,
-        });
-      } else {
-        throw new Error('Erro ao registrar ponto');
-      }
-    } catch (error) {
-      console.error('Erro ao registrar ponto:', error);
-      toast.error('Erro ao registrar ponto. Tente novamente.', {
+      // Revalidar registros do servidor após sucesso
+      try {
+        const refresh = await fetch('/api/time-clock/records');
+        if (refresh.ok) {
+          const server = await refresh.json();
+          const formatted: TimeRecord[] = server.data.map((record: any) => ({
+            id: record.id,
+            type: record.tipo,
+            time: new Date(record.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            location: record.enderecoCompleto || record.endereco || 'Local não informado',
+            wifi: record.nomeRedeWiFi || 'WiFi não detectado',
+            timestamp: new Date(record.dataHora),
+          }));
+          setTimeRecords(formatted);
+        }
+      } catch {}
+    } catch (error: any) {
+      const msg = error?.name === 'AbortError' ? 'Tempo esgotado ao registrar ponto' : (error?.message || 'Erro ao registrar ponto. Tente novamente.');
+      toast.error(msg, {
         position: 'top-center',
         autoClose: 3000,
       });
@@ -516,6 +605,14 @@ export default function TimeClock() {
     },
   ];
 
+  // Lista de pendências reutilizando DataList
+  const pendingColumns: DataListColumn[] = [
+    { key: 'dataHora', label: 'Data/Hora', width: '160px', render: (item) => new Date((item as any).dataHora).toLocaleString('pt-BR') },
+    { key: 'tipo', label: 'Tipo', width: '140px' },
+    { key: 'precisao', label: 'Precisão (m)', width: '120px', render: (item) => (item as any).precisao?.toFixed?.(0) ?? '-' },
+    { key: 'wifi', label: 'WiFi', width: '160px', render: (item) => (item as any).nomeRedeWiFi ?? '—' },
+  ];
+
   // Configuração das ações para histórico
   const historyActions: DataListAction[] = [
     {
@@ -590,28 +687,28 @@ export default function TimeClock() {
           <TimeRecordCard
             record={{ id: 'entrada', type: 'entrada', time: timeRecords.find(r => r.type === 'entrada')?.time }}
             theme={theme}
-            onClick={() => handleTimeRecord('entrada')}
+            onClick={(locationData) => handleTimeRecord(locationData, 'entrada')}
             isDisabled={nextAvailableRecord !== 'entrada'}
           />
           
           <TimeRecordCard
             record={{ id: 'saida_almoco', type: 'saida_almoco', time: timeRecords.find(r => r.type === 'saida_almoco')?.time }}
             theme={theme}
-            onClick={() => handleTimeRecord('saida_almoco')}
+            onClick={(locationData) => handleTimeRecord(locationData, 'saida_almoco')}
             isDisabled={nextAvailableRecord !== 'saida_almoco'}
           />
           
           <TimeRecordCard
             record={{ id: 'retorno_almoco', type: 'retorno_almoco', time: timeRecords.find(r => r.type === 'retorno_almoco')?.time }}
             theme={theme}
-            onClick={() => handleTimeRecord('retorno_almoco')}
+            onClick={(locationData) => handleTimeRecord(locationData, 'retorno_almoco')}
             isDisabled={nextAvailableRecord !== 'retorno_almoco'}
           />
           
           <TimeRecordCard
             record={{ id: 'saida', type: 'saida', time: timeRecords.find(r => r.type === 'saida')?.time }}
             theme={theme}
-            onClick={() => handleTimeRecord('saida')}
+            onClick={(locationData) => handleTimeRecord(locationData, 'saida')}
             isDisabled={nextAvailableRecord !== 'saida'}
           />
           
@@ -628,7 +725,7 @@ export default function TimeClock() {
           <TimeRecordCard
             record={{ id: 'fim_extra', type: 'fim_extra', time: timeRecords.find(r => r.type === 'fim_extra')?.time }}
             theme={theme}
-            onClick={() => handleTimeRecord('fim_extra')}
+            onClick={(locationData) => handleTimeRecord(locationData, 'fim_extra')}
             isDisabled={nextAvailableRecord !== 'fim_extra'}
           />
         </TimeRecordsGrid>
@@ -663,7 +760,7 @@ export default function TimeClock() {
           ))
         ) : (
           <EmptyState>
-            <div className="empty-icon">⏰</div>
+            <div className="empty-icon"><span role="img" aria-label="Relógio">⏰</span></div>
             <div className="empty-title">Horários oficiais não configurados</div>
           </EmptyState>
         )}
@@ -725,14 +822,15 @@ export default function TimeClock() {
             />
           </FormGroup>
           <FormGroup>
-            <OptimizedLabel>Tipo de Registro</OptimizedLabel>
+            <OptimizedLabel htmlFor='filter-type'>Tipo de Registro</OptimizedLabel>
             <Select
               $theme={theme}
+              id='filter-type'
+              title="Selecione o tipo de registro"
               value={filters.type}
               onChange={(e) =>
                 setFilters(prev => ({ ...prev, type: e.target.value }))
               }
-              title="Filtrar por tipo de registro"
               aria-label="Selecionar tipo de registro"
             >
               <option value=''>Todos os tipos</option>
@@ -780,6 +878,71 @@ export default function TimeClock() {
           />
         )}
       </HistorySection>
+
+      {/* Pendências de Aprovação */}
+      <HistorySection $theme={theme}>
+        <SectionTitle>
+          <AccessibleEmoji emoji="🕒" label="Pendências" />
+          Registros Pendentes para Aprovação ({pendingCount})
+        </SectionTitle>
+        {pendingItems.length === 0 ? (
+          <EmptyState>
+            <div className="empty-icon">
+              <AccessibleEmoji emoji="✅" label="Vazio" />
+            </div>
+            <div className="empty-title">Sem pendências no momento</div>
+          </EmptyState>
+        ) : (
+          <DataList
+            theme={theme}
+            items={pendingItems}
+            columns={pendingColumns}
+            actions={[]}
+            emptyMessage="Nenhuma pendência encontrada."
+            variant="detailed"
+            showHeader={true}
+            striped={true}
+            hoverable={true}
+          />
+        )}
+      </HistorySection>
+
+      {/* Modal de Override de Precisão */}
+      <UnifiedModal
+        isOpen={overrideModalOpen}
+        onClose={() => setOverrideModalOpen(false)}
+        title='Solicitar aprovação de registro'
+        $theme={theme}
+      >
+        <ModalColumn>
+          <p>
+            A localização está imprecisa ou antiga. Descreva o motivo para solicitar aprovação do registro de ponto.
+          </p>
+          <Input
+            $theme={theme}
+            type='text'
+            value={overrideJustification}
+            onChange={(e) => setOverrideJustification(e.target.value)}
+            placeholder='Ex.: Sem visão de céu, GPS lento, local interno, etc.'
+          />
+          <OptimizedButtonGroup>
+            <UnifiedButton $variant='secondary' onClick={() => setOverrideModalOpen(false)}>
+              Cancelar
+            </UnifiedButton>
+            <UnifiedButton
+              $variant='primary'
+              $disabled={!overrideJustification.trim() || !overrideDraft}
+              onClick={async () => {
+                if (!overrideDraft) return;
+                await handleTimeRecord({ ...overrideDraft.data, overrideJustification: overrideJustification.trim() }, overrideDraft.type);
+                setOverrideModalOpen(false);
+              }}
+            >
+              Enviar para aprovação
+            </UnifiedButton>
+          </OptimizedButtonGroup>
+        </ModalColumn>
+      </UnifiedModal>
 
       {/* Modal de Aprovação de Horas Extras */}
       <OvertimeApprovalModal

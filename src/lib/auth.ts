@@ -44,10 +44,36 @@ export async function getCurrentUser(req: NextApiRequest): Promise<JWTPayload | 
     if (process.env.NODE_ENV === 'development') {
       try {
         const userId = await getCurrentUserId();
+        
+        // Buscar dados reais do usuário no banco
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        
+        const user = await prisma.usuario.findUnique({
+          where: { id: userId },
+          include: {
+            perfis: {
+              where: { principal: true },
+              include: {
+                perfil: true
+              }
+            }
+          }
+        });
+        
+        await prisma.$disconnect();
+        
+        if (!user || user.perfis.length === 0) {
+          console.error('Usuário de desenvolvimento sem perfis válidos');
+          return null;
+        }
+        
+        const primaryProfile = user.perfis[0].perfil;
+        
         return {
           userId: userId,
-          email: 'usuario@empresa.com',
-          role: 'EMPREGADO'
+          email: user.email,
+          role: primaryProfile.codigo
         };
       } catch (error) {
         console.error('Erro ao obter usuário padrão:', error);

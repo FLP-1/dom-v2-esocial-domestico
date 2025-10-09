@@ -5,7 +5,7 @@
 ### 🎯 O QUE FOI FEITO
 
 1. **✅ Banco de Dados Criado**
-   - Nome: `dom_v2`
+   - Nome: `dom`
    - Host: `localhost:5433`
    - Usuário: `userdom`
    - Senha: `FLP*2025`
@@ -146,7 +146,7 @@ npx tsx prisma/seed.ts
 
 ### Verificar Dados
 ```powershell
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT cpf, nome_completo, email FROM usuarios;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT cpf, nome_completo, email FROM usuarios;"
 ```
 
 ### Abrir Prisma Studio

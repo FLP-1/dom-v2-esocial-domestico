@@ -9,9 +9,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import styled, { keyframes } from 'styled-components';
 import { UserProfile, useUserProfile } from '../contexts/UserProfileContext';
 import { useAlertManager } from '../hooks/useAlertManager';
+import { useGeolocation } from '../hooks/useGeolocation';
+import { useGeolocationContext } from '../contexts/GeolocationContext';
 import { validateCpf } from '../utils/cpfValidator';
 import { applyCpfMask, removeCpfMask } from '../utils/cpfMask';
-import { useGeolocation } from '../hooks/useGeolocation';
 import {
   OptimizedErrorMessage,
   OptimizedCheckboxContainer,
@@ -377,6 +378,8 @@ const ErrorMessage = styled.div`
 export default function LoginBiometric() {
   const router = useRouter();
   const alertManager = useAlertManager();
+  const { captureRealTimeLocation } = useGeolocation();
+  const { setLastLocation } = useGeolocationContext();
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -398,9 +401,6 @@ export default function LoginBiometric() {
     handleProfileSelection,
     setShowProfileModal,
   } = useUserProfile();
-
-  // Hook de geolocalização para capturar localização no login
-  const { captureRealTimeLocation } = useGeolocation();
 
   const motivationalPhrases = [
     'Transforme sua casa em um lar organizado e acolhedor',
@@ -501,6 +501,51 @@ export default function LoginBiometric() {
     return Object.keys(newErrors).length === 0;
   };
 
+  /**
+   * Solicitar permissão de geolocalização após login
+   * O popup aparece aqui (primeira vez) para que não apareça nos registros de ponto
+   */
+  const requestGeolocationPermission = async () => {
+    try {
+      if (!navigator.geolocation) {
+        console.warn('⚠️ Geolocalização não suportada pelo navegador');
+        return;
+      }
+
+      // Apenas solicitar permissão (popup aparece aqui)
+      // Não precisa capturar dados completos, apenas disparar o popup
+      navigator.geolocation.getCurrentPosition(
+        async () => {
+          // Permissão concedida; capturar localização manual com maior precisão e salvar no contexto
+          try {
+            const data = await captureRealTimeLocation();
+            setLastLocation({
+              latitude: data.latitude,
+              longitude: data.longitude,
+              accuracy: data.accuracy,
+              address: data.address,
+              wifiName: data.wifiName,
+              networkInfo: data.networkInfo,
+              timestamp: new Date()
+            });
+          } catch {}
+        },
+        (error) => {
+          console.warn('⚠️ Permissão de geolocalização negada ou falhou:', error.message);
+          // Não bloqueia o login se usuário negar
+        },
+        {
+          enableHighAccuracy: false, // Não precisa de alta precisão aqui
+          timeout: 5000, // Timeout curto (só queremos disparar o popup)
+          maximumAge: Infinity // Aceita cache (só queremos a permissão)
+        }
+      );
+    } catch (error) {
+      console.warn('⚠️ Erro ao solicitar permissão de geolocalização:', error);
+      // Não bloqueia o login
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -512,8 +557,7 @@ export default function LoginBiometric() {
 
     // Geolocalização será capturada apenas quando necessário
     // A permissão está implícita no aceite das políticas de uso
-    let locationData = null;
-    console.log('📍 Geolocalização disponível quando necessário (permissão implícita nas políticas)');
+    const locationData = null;
 
     // Valida login (CPF + senha) e busca perfis
     fetch('/api/auth/login', {
@@ -541,6 +585,10 @@ export default function LoginBiometric() {
         
         if (result.success && result.data) {
           alertManager.showSuccess('Login realizado com sucesso!');
+          
+          // ✅ Solicitar permissão de geolocalização logo após login bem-sucedido
+          // Popup aparece aqui (primeira vez) para que não apareça nos registros de ponto
+          requestGeolocationPermission();
           
           const userProfiles: UserProfile[] = result.data;
           
@@ -595,6 +643,10 @@ export default function LoginBiometric() {
           
           if (result.success && result.data) {
             alertManager.showSuccess('Login realizado com sucesso!');
+            
+            // ✅ Solicitar permissão de geolocalização logo após login bem-sucedido
+            // Popup aparece aqui (primeira vez) para que não apareça nos registros de ponto
+            requestGeolocationPermission();
             
             const userProfiles: UserProfile[] = result.data;
             

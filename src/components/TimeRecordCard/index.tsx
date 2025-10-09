@@ -1,6 +1,7 @@
-import React, { ReactNode, useCallback } from 'react';
+import React, { ReactNode, useCallback, useRef } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import AccessibleEmoji from '../AccessibleEmoji';
+import { logger } from '../../utils/logger';
 import { UnifiedCard } from '../unified';
 import { useGeolocationCapture } from '../../hooks/useGeolocationCapture';
 
@@ -223,7 +224,7 @@ export interface TimeRecord {
 export interface TimeRecordCardProps {
   record: TimeRecord;
   theme: any;
-  onClick?: () => void;
+  onClick?: (locationData?: any) => Promise<void> | void;
   isDisabled?: boolean;
   // Propriedades para captura automática de geolocalização
   $criticalAction?: boolean;
@@ -280,16 +281,22 @@ export const TimeRecordCard: React.FC<TimeRecordCardProps> = ({
   // Nome da ação baseado no tipo de registro
   const actionName = $actionName || `Registro de ${config.label}`;
 
+  const isProcessingRef = useRef(false);
+
   const handleClick = useCallback(async () => {
-    if (clickable && onClick) {
-      // Só capturar geolocalização quando o usuário REALMENTE clicar
+    if (!clickable || !onClick) return;
+    if (isProcessingRef.current) return;
+    isProcessingRef.current = true;
+    try {
       if ($criticalAction) {
-        console.log(`🎯 Registro de ponto crítico: ${actionName}`);
+        logger.geo(`🎯 Registro de ponto crítico: ${actionName}`);
         const criticalHandler = createCriticalButtonHandler(onClick, actionName);
         await criticalHandler();
       } else {
         onClick();
       }
+    } finally {
+      isProcessingRef.current = false;
     }
   }, [clickable, onClick, $criticalAction, actionName, createCriticalButtonHandler]);
 
@@ -304,8 +311,6 @@ export const TimeRecordCard: React.FC<TimeRecordCardProps> = ({
         theme={theme}
         variant="default"
         size="md"
-        interactive={clickable}
-        onClick={handleClick}
         aria-label={`${config.label} - ${record.time || 'Clique para registrar'}`}
       >
         {record.type.includes('extra') && record.approved !== undefined && (

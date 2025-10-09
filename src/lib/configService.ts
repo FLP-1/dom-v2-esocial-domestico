@@ -67,7 +67,7 @@ class ConfigService {
     this.cache.set(cacheKey, {
       valor: config.valor,
       tipo: config.tipo,
-      obrigatorio: config.obrigatorio
+      obrigatorio: false
     });
 
     return this.convertValue(config.valor, config.tipo);
@@ -162,7 +162,34 @@ class ConfigService {
     try {
       return parseInt(await this.getConfig('geolocalizacao_precisao_maxima'));
     } catch (error) {
-      return 20; // Fallback para 20 metros
+      return 20; // Evitar hardcode em produção: garantir seed dessa chave
+    }
+  }
+
+  /**
+   * Obtém idade máxima aceitável da localização (segundos)
+   */
+  public async getGeolocationMaxAgeSeconds(): Promise<number> {
+    try {
+      return parseInt(await this.getConfig('geolocalizacao_idade_maxima_segundos'));
+    } catch (error) {
+      return 60; // Evitar hardcode em produção: garantir seed dessa chave
+    }
+  }
+
+  /**
+   * Perfis que podem autorizar override de registro de ponto (JSON ou CSV)
+   */
+  public async getPunchOverrideRoles(): Promise<string[]> {
+    try {
+      const raw = await this.getConfig('ponto_override_roles');
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed.map(String);
+      } catch {}
+      return raw.split(',').map(s => s.trim()).filter(Boolean);
+    } catch (error) {
+      return ['EMPREGADOR', 'ADMIN']; // garantir seed
     }
   }
 
@@ -189,16 +216,13 @@ class ConfigService {
   ): Promise<void> {
     await prisma.configuracaoSistema.upsert({
       where: { chave },
-      update: { valor, categoria, tipo, empresaId },
+      update: { valor, categoria, tipo },
       create: {
         chave,
         valor,
         categoria,
         tipo,
-        empresaId,
         descricao: `Configuração ${categoria}`,
-        obrigatorio: false,
-        visivel: true,
         editavel: true
       }
     });

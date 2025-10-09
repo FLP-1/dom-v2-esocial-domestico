@@ -2,7 +2,7 @@
 
 ## ✅ O QUE JÁ FOI FEITO
 
-1. ✅ Banco de dados `dom_v2` criado
+1. ✅ Banco de dados `dom` criado
 2. ✅ Usuário `userdom` configurado
 3. ✅ 41 tabelas criadas no banco
 4. ✅ Arquivo `prisma/seed.ts` criado com **CPFs VÁLIDOS**
@@ -46,10 +46,10 @@ npx tsx prisma/seed.ts
 
 ```powershell
 # Ver total de usuários
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT COUNT(*) FROM usuarios;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT COUNT(*) FROM usuarios;"
 
 # Ver usuários criados
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT cpf, nome_completo, email FROM usuarios;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT cpf, nome_completo, email FROM usuarios;"
 ```
 
 ---
@@ -159,7 +159,7 @@ Isso significa que o seed já foi executado antes. Para reexecutar:
 
 **Solução 1 - Limpar apenas os dados:**
 ```powershell
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "TRUNCATE TABLE usuarios CASCADE;"
+psql -h localhost -p 5433 -U postgres -d dom -c "TRUNCATE TABLE usuarios CASCADE;"
 npx tsx prisma/seed.ts
 ```
 
@@ -173,7 +173,7 @@ npx tsx prisma/seed.ts
 
 **Verificar se os dados foram criados:**
 ```powershell
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT * FROM usuarios LIMIT 3;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT * FROM usuarios LIMIT 3;"
 ```
 
 Se aparecer dados, o seed funcionou!
@@ -214,10 +214,10 @@ Use as credenciais acima para fazer login no sistema.
 
 ```powershell
 # Listar todos os usuários
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT cpf, nome_completo, email FROM usuarios;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT cpf, nome_completo, email FROM usuarios;"
 
 # Contar registros em cada tabela
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "
+psql -h localhost -p 5433 -U postgres -d dom -c "
 SELECT 
   'usuarios' as tabela, COUNT(*) as total FROM usuarios
 UNION ALL
@@ -231,14 +231,14 @@ SELECT 'alertas', COUNT(*) FROM alertas;
 "
 
 # Ver CPFs gerados
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "SELECT cpf, nome_completo FROM usuarios ORDER BY criado_em;"
+psql -h localhost -p 5433 -U postgres -d dom -c "SELECT cpf, nome_completo FROM usuarios ORDER BY criado_em;"
 ```
 
 ### Resetar dados
 
 ```powershell
 # Deletar apenas usuários (cascata deleta relacionados)
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "TRUNCATE TABLE usuarios CASCADE;"
+psql -h localhost -p 5433 -U postgres -d dom -c "TRUNCATE TABLE usuarios CASCADE;"
 
 # Resetar banco completo (cuidado!)
 npm run db:reset
@@ -266,7 +266,7 @@ Write-Host "DATABASE_URL: $env:DATABASE_URL"
 Write-Host ""
 npm list tsx bcryptjs
 Write-Host ""
-psql -h localhost -p 5433 -U postgres -d dom_v2 -c "\dt" 2>&1 | Select-String "usuarios"
+psql -h localhost -p 5433 -U postgres -d dom -c "\dt" 2>&1 | Select-String "usuarios"
 ```
 
 ---

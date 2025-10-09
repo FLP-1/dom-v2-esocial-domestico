@@ -1,5 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Container = styled.div`
   padding: 20px;
@@ -35,26 +37,30 @@ export default function TestSimpleAPI() {
     <Container>
       <Title>Teste Simples de API</Title>
       <Description>Se esta página carregar, o problema é específico do time-clock.tsx</Description>
-      <Button onClick={() => {
+      <Button onClick={async () => {
         // Obter configurações dinâmicas
         const configResponse = await fetch('/api/config/system');
         const configData = await configResponse.json();
         const empresaConfig = configData.data;
         
-        fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            cpf: empresaConfig.empresa_cpf_principal, 
-            senha: empresaConfig.sistema_senha_padrao || 'senha123'
-          })
-        })
-        .then(res => res.json())
-        .then(data => alert(`Status: ${data.message || 'OK'}`))
-        .catch(err => alert(`Erro: ${err.message}`));
+        try {
+          const res = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              cpf: empresaConfig.empresa_cpf_principal, 
+              senha: empresaConfig.sistema_senha_padrao || 'senha123'
+            })
+          });
+          const data = await res.json();
+          toast.info(`Status: ${data.message || 'OK'}`);
+        } catch (err: any) {
+          toast.error(`Erro: ${err.message}`);
+        }
       }}>
         Testar Login
       </Button>
+      <ToastContainer position='top-center' autoClose={3000} />
     </Container>
   );
 }
