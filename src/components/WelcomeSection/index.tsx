@@ -95,6 +95,19 @@ const WifiInfo = styled.span`
   font-weight: 500;
 `;
 
+const StatusBadge = styled.span<{ $variant?: 'ok' | 'warn' | 'pending' }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: ${({ $variant }) => ($variant === 'warn' ? '#a15c00' : $variant === 'pending' ? '#8a6d3b' : '#155724')};
+  background: ${({ $variant }) => ($variant === 'warn' ? '#fff3cd' : $variant === 'pending' ? '#ffeeba' : '#d4edda')};
+  border: 1px solid ${({ $variant }) => ($variant === 'warn' ? '#ffeeba' : $variant === 'pending' ? '#ffe8a1' : '#c3e6cb')};
+`;
+
 
 const NotificationContainer = styled.div`
   display: flex;
@@ -143,7 +156,7 @@ export default function WelcomeSection({
   onNotificationClick,
 }: WelcomeSectionProps) {
   const { currentProfile } = useUserProfile();
-  const { lastLocation } = useGeolocationContext();
+  const { lastLocation, lastCaptureLocation, lastCaptureStatus } = useGeolocationContext();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
   
@@ -233,16 +246,31 @@ export default function WelcomeSection({
           <InfoRow>
             <span className="icon"><AccessibleEmoji emoji="📍" label="Localização" /></span>
             <LocationInfo>
-              {lastLocation ? (
+              {lastCaptureLocation ? (
+                <>
+                  {lastCaptureLocation.address || 'Endereço não disponível'}
+                  <br />
+                  <small className="location-details">
+                    Usada no registro • Precisão: {Math.round(lastCaptureLocation.accuracy)}m | {new Date(lastCaptureLocation.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </small>
+                  {' '}
+                  {lastCaptureStatus?.imprecise && (
+                    <StatusBadge $variant='warn'>Imprecisa</StatusBadge>
+                  )}
+                  {lastCaptureStatus?.pending && (
+                    <StatusBadge $variant='pending'>Pendente</StatusBadge>
+                  )}
+                </>
+              ) : lastLocation ? (
                 <>
                   {lastLocation.address || 'Endereço não disponível'}
                   <br />
                   <small className="location-details">
-                    Precisão: {Math.round(lastLocation.accuracy)}m | {new Date(lastLocation.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    Melhor recente • Precisão: {Math.round(lastLocation.accuracy)}m | {new Date(lastLocation.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </small>
                 </>
               ) : (
-                'Localização capturada no registro de ponto'
+                'Localização será exibida após registrar o ponto'
               )}
             </LocationInfo>
           </InfoRow>

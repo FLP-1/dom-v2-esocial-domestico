@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import '../scripts/shared/load-env';
 
 const prisma = new PrismaClient();
 
@@ -33,14 +34,21 @@ async function main() {
   // ============================================
   // DADOS DO NOVO EMPREGADO
   // ============================================
+  // Carregar configurações centrais para evitar hardcode
+  const configEmpresa = await prisma.configuracaoSistema.findUnique({ where: { chave: 'empresa_cpf_principal' } });
+  const configSenhaPadrao = await prisma.configuracaoSistema.findUnique({ where: { chave: 'sistema_senha_padrao' } });
+  if (!configEmpresa?.valor) {
+    throw new Error('ConfiguracaoSistema.empresa_cpf_principal não definida. Execute o seed completo antes.');
+  }
+
   const novoEmpregadoData = {
-    cpf: '40263020673', // CPF válido - patricia da lista
+    cpf: '40263020673',
     nomeCompleto: 'João Pedro Silva Santos',
     dataNascimento: new Date('1995-03-15'),
     email: 'joao.pedro.santos.novo@email.com',
-    telefone: '(11) 98765-4321',
-    senha: 'senha123',
-    empregadorCpf: '59876913700', // Francisco
+    telefone: '11987654321',
+    senha: configSenhaPadrao?.valor || '123456',
+    empregadorCpf: configEmpresa.valor,
   };
 
   // Validar CPF
@@ -75,7 +83,7 @@ async function main() {
   // ============================================
   console.log('🔍 Buscando perfil de Empregado...');
   const perfilEmpregado = await prisma.perfil.findFirst({
-    where: { nome: 'Empregado' }
+    where: { OR: [{ nome: 'Empregado' }, { codigo: 'EMPREGADO' }] }
   });
 
   if (!perfilEmpregado) {
@@ -86,85 +94,103 @@ async function main() {
   // ============================================
   // CRIAR NOVO USUÁRIO
   // ============================================
-  console.log('👤 Criando novo usuário...');
+  console.log('👤 Criando/atualizando usuário (idempotente)...');
   const salt = await bcrypt.genSalt(10);
   const senhaHash = await bcrypt.hash(novoEmpregadoData.senha, salt);
 
-  const novoUsuario = await prisma.usuario.create({
-    data: {
-      cpf: novoEmpregadoData.cpf,
-      nomeCompleto: novoEmpregadoData.nomeCompleto,
-      dataNascimento: novoEmpregadoData.dataNascimento,
-      email: novoEmpregadoData.email,
-      senhaHash: senhaHash,
-      salt: salt,
-      telefone: '11987654321',
-      emailVerificado: true,
-      telefoneVerificado: true,
-      autenticacao2FA: false,
-      ativo: true,
-      logradouro: 'Rua das Flores',
-      numero: '123',
-      complemento: 'Apto 45',
-      bairro: 'Jardim Paulista',
-      cidade: 'São Paulo',
-      uf: 'SP',
-      cep: '01234567',
-      bloqueado: false,
-      tentativasLogin: 0,
-      notificarNovoDispositivo: true,
-      notificarLoginSuspeito: true,
-      consentimentoLGPD: true,
-      dataConsentimento: new Date(),
-      termosAceitos: true,
-      versaoTermos: '1.0'
-    }
-  });
-  console.log(`✅ Usuário criado: ${novoUsuario.nomeCompleto} (CPF: ${novoUsuario.cpf})\n`);
+  const usuarioExistente = await prisma.usuario.findUnique({ where: { cpf: novoEmpregadoData.cpf } });
+  const novoUsuario = usuarioExistente
+    ? await prisma.usuario.update({
+        where: { cpf: novoEmpregadoData.cpf },
+        data: {
+          nomeCompleto: novoEmpregadoData.nomeCompleto,
+          email: novoEmpregadoData.email,
+          telefone: novoEmpregadoData.telefone,
+          ativo: true,
+        },
+      })
+    : await prisma.usuario.create({
+        data: {
+          cpf: novoEmpregadoData.cpf,
+          nomeCompleto: novoEmpregadoData.nomeCompleto,
+          dataNascimento: novoEmpregadoData.dataNascimento,
+          email: novoEmpregadoData.email,
+          senhaHash,
+          salt,
+          telefone: novoEmpregadoData.telefone,
+          emailVerificado: true,
+          telefoneVerificado: true,
+          autenticacao2FA: false,
+          ativo: true,
+          logradouro: 'Rua das Flores',
+          numero: '123',
+          complemento: 'Apto 45',
+          bairro: 'Jardim Paulista',
+          cidade: 'São Paulo',
+          uf: 'SP',
+          cep: '01234567',
+          bloqueado: false,
+          tentativasLogin: 0,
+          notificarNovoDispositivo: true,
+          notificarLoginSuspeito: true,
+          consentimentoLGPD: true,
+          dataConsentimento: new Date(),
+          termosAceitos: true,
+          versaoTermos: '1.0'
+        }
+      });
+  console.log(`✅ Usuário pronto: ${novoUsuario.nomeCompleto} (CPF: ${novoUsuario.cpf})\n`);
 
   // ============================================
   // ASSOCIAR PERFIL
   // ============================================
-  console.log('🔗 Associando perfil de Empregado...');
-  await prisma.usuarioPerfil.create({
-    data: {
-      usuarioId: novoUsuario.id,
-      perfilId: perfilEmpregado.id
-    }
+  console.log('🔗 Associando perfil de Empregado (idempotente)...');
+  await prisma.usuarioPerfil.upsert({
+    where: { usuarioId_perfilId: { usuarioId: novoUsuario.id, perfilId: perfilEmpregado.id } },
+    update: { ativo: true, principal: true },
+    create: { usuarioId: novoUsuario.id, perfilId: perfilEmpregado.id, ativo: true, principal: true }
   });
   console.log('✅ Perfil associado\n');
 
   // ============================================
   // CRIAR VÍNCULO COM EMPREGADOR (MEMBRO FAMÍLIA)
   // ============================================
-  console.log('👨‍👩‍👧‍👦 Criando vínculo com empregador...');
-  await prisma.membroFamilia.create({
-    data: {
-      usuarioId: empregador.id,
-      nome: novoUsuario.nomeCompleto,
-      parentesco: 'FUNCIONARIO',
-      cpf: novoUsuario.cpf,
-      dataNascimento: novoUsuario.dataNascimento,
-      telefone: novoUsuario.telefone,
-      email: novoUsuario.email,
-      usuarioVinculado: novoUsuario.id,
-      contatoEmergencia: false,
-      responsavelFinanceiro: false,
-      ativo: true,
-      favorito: false,
-      bloqueado: false
-    }
-  });
-  console.log('✅ Vínculo criado\n');
+  console.log('👨‍👩‍👧‍👦 Criando vínculo com empregador (idempotente)...');
+  const vinculoExistente = await prisma.membroFamilia.findFirst({ where: { usuarioId: empregador.id, usuarioVinculado: novoUsuario.id } });
+  if (!vinculoExistente) {
+    await prisma.membroFamilia.create({
+      data: {
+        usuarioId: empregador.id,
+        nome: novoUsuario.nomeCompleto,
+        parentesco: 'FUNCIONARIO',
+        cpf: novoUsuario.cpf,
+        dataNascimento: novoUsuario.dataNascimento,
+        telefone: novoUsuario.telefone,
+        email: novoUsuario.email,
+        usuarioVinculado: novoUsuario.id,
+        contatoEmergencia: false,
+        responsavelFinanceiro: false,
+        ativo: true,
+        favorito: false,
+        bloqueado: false
+      }
+    });
+    console.log('✅ Vínculo criado\n');
+  } else {
+    console.log('↻ Vínculo já existente\n');
+  }
 
   // ============================================
   // CRIAR DISPOSITIVO PARA REGISTROS DE PONTO
   // ============================================
-  console.log('📱 Criando dispositivo...');
-  const dispositivo = await prisma.dispositivo.create({
-    data: {
+  console.log('📱 Criando/garantindo dispositivo (idempotente)...');
+  const dispositivoId = `seed_device_${novoUsuario.id.substring(0, 8)}`;
+  const dispositivo = await prisma.dispositivo.upsert({
+    where: { dispositivoId },
+    update: { usuarioId: novoUsuario.id, ultimoUso: new Date(), ativo: true, confiavel: true },
+    create: {
       usuarioId: novoUsuario.id,
-      dispositivoId: `device_${Date.now()}_${novoUsuario.id}`,
+      dispositivoId,
       nome: 'Samsung Galaxy S21',
       modelo: 'SM-G991B',
       versaoSO: 'Android 13',
@@ -179,12 +205,12 @@ async function main() {
       ultimoUso: new Date()
     }
   });
-  console.log('✅ Dispositivo criado\n');
+  console.log('✅ Dispositivo pronto\n');
 
   // ============================================
   // CRIAR REGISTROS DE PONTO (40 DIAS)
   // ============================================
-  console.log('🕐 Criando registros de ponto (40 dias)...');
+  console.log('🕐 Criando registros de ponto (40 dias, idempotente)...');
   
   const hoje = new Date();
   const dataInicio = new Date(hoje);
@@ -213,89 +239,98 @@ async function main() {
     const saida2 = new Date(data);
     saida2.setHours(17, 0, 0, 0);
 
-    // Entrada manhã
-    await prisma.registroPonto.create({
-      data: {
-        usuarioId: novoUsuario.id,
-        dispositivoId: dispositivo.id,
-        dataHora: entrada1,
-        tipo: 'ENTRADA',
-        latitude: -23.5505,
-        longitude: -46.6333,
-        precisao: 10.0,
-        dentroGeofence: true,
-        enderecoIP: '192.168.1.100',
-        nomeRedeWiFi: 'WiFi-Empresa',
-        aprovado: true,
-        aprovadoPor: empregador.id,
-        aprovadoEm: entrada1,
-        observacao: 'Entrada normal',
-        hashIntegridade: `hash_${Date.now()}_entrada1`
-      }
-    });
+    // Evitar duplicar se já existir para a data/hora
+    const existsEntrada = await prisma.registroPonto.findFirst({ where: { usuarioId: novoUsuario.id, dataHora: entrada1 } });
+    if (!existsEntrada) {
+      await prisma.registroPonto.create({
+        data: {
+          usuarioId: novoUsuario.id,
+          dispositivoId: dispositivo.id,
+          dataHora: entrada1,
+          tipo: 'entrada',
+          latitude: -23.5505,
+          longitude: -46.6333,
+          precisao: 10.0,
+          dentroGeofence: true,
+          enderecoIP: '192.168.1.100',
+          nomeRedeWiFi: 'WiFi-Empresa',
+          aprovado: true,
+          aprovadoPor: empregador.id,
+          aprovadoEm: entrada1,
+          observacao: 'Entrada normal',
+          hashIntegridade: `hash_${Date.now()}_entrada1`
+        }
+      });
+    }
 
-    // Saída almoço
-    await prisma.registroPonto.create({
-      data: {
-        usuarioId: novoUsuario.id,
-        dispositivoId: dispositivo.id,
-        dataHora: saida1,
-        tipo: 'SAIDA',
-        latitude: -23.5505,
-        longitude: -46.6333,
-        precisao: 10.0,
-        dentroGeofence: true,
-        enderecoIP: '192.168.1.100',
-        nomeRedeWiFi: 'WiFi-Empresa',
-        aprovado: true,
-        aprovadoPor: empregador.id,
-        aprovadoEm: saida1,
-        observacao: 'Saída para almoço',
-        hashIntegridade: `hash_${Date.now()}_saida1`
-      }
-    });
+    const existsSaidaAlmoco = await prisma.registroPonto.findFirst({ where: { usuarioId: novoUsuario.id, dataHora: saida1 } });
+    if (!existsSaidaAlmoco) {
+      await prisma.registroPonto.create({
+        data: {
+          usuarioId: novoUsuario.id,
+          dispositivoId: dispositivo.id,
+          dataHora: saida1,
+          tipo: 'saida_almoco',
+          latitude: -23.5505,
+          longitude: -46.6333,
+          precisao: 10.0,
+          dentroGeofence: true,
+          enderecoIP: '192.168.1.100',
+          nomeRedeWiFi: 'WiFi-Empresa',
+          aprovado: true,
+          aprovadoPor: empregador.id,
+          aprovadoEm: saida1,
+          observacao: 'Saída para almoço',
+          hashIntegridade: `hash_${Date.now()}_saida_almoco`
+        }
+      });
+    }
 
-    // Retorno almoço
-    await prisma.registroPonto.create({
-      data: {
-        usuarioId: novoUsuario.id,
-        dispositivoId: dispositivo.id,
-        dataHora: entrada2,
-        tipo: 'ENTRADA',
-        latitude: -23.5505,
-        longitude: -46.6333,
-        precisao: 10.0,
-        dentroGeofence: true,
-        enderecoIP: '192.168.1.100',
-        nomeRedeWiFi: 'WiFi-Empresa',
-        aprovado: true,
-        aprovadoPor: empregador.id,
-        aprovadoEm: entrada2,
-        observacao: 'Retorno do almoço',
-        hashIntegridade: `hash_${Date.now()}_entrada2`
-      }
-    });
+    const existsRetorno = await prisma.registroPonto.findFirst({ where: { usuarioId: novoUsuario.id, dataHora: entrada2 } });
+    if (!existsRetorno) {
+      await prisma.registroPonto.create({
+        data: {
+          usuarioId: novoUsuario.id,
+          dispositivoId: dispositivo.id,
+          dataHora: entrada2,
+          tipo: 'retorno_almoco',
+          latitude: -23.5505,
+          longitude: -46.6333,
+          precisao: 10.0,
+          dentroGeofence: true,
+          enderecoIP: '192.168.1.100',
+          nomeRedeWiFi: 'WiFi-Empresa',
+          aprovado: true,
+          aprovadoPor: empregador.id,
+          aprovadoEm: entrada2,
+          observacao: 'Retorno do almoço',
+          hashIntegridade: `hash_${Date.now()}_retorno_almoco`
+        }
+      });
+    }
 
-    // Saída fim do dia
-    await prisma.registroPonto.create({
-      data: {
-        usuarioId: novoUsuario.id,
-        dispositivoId: dispositivo.id,
-        dataHora: saida2,
-        tipo: 'SAIDA',
-        latitude: -23.5505,
-        longitude: -46.6333,
-        precisao: 10.0,
-        dentroGeofence: true,
-        enderecoIP: '192.168.1.100',
-        nomeRedeWiFi: 'WiFi-Empresa',
-        aprovado: true,
-        aprovadoPor: empregador.id,
-        aprovadoEm: saida2,
-        observacao: 'Saída normal',
-        hashIntegridade: `hash_${Date.now()}_saida2`
-      }
-    });
+    const existsSaida = await prisma.registroPonto.findFirst({ where: { usuarioId: novoUsuario.id, dataHora: saida2 } });
+    if (!existsSaida) {
+      await prisma.registroPonto.create({
+        data: {
+          usuarioId: novoUsuario.id,
+          dispositivoId: dispositivo.id,
+          dataHora: saida2,
+          tipo: 'saida',
+          latitude: -23.5505,
+          longitude: -46.6333,
+          precisao: 10.0,
+          dentroGeofence: true,
+          enderecoIP: '192.168.1.100',
+          nomeRedeWiFi: 'WiFi-Empresa',
+          aprovado: true,
+          aprovadoPor: empregador.id,
+          aprovadoEm: saida2,
+          observacao: 'Saída normal',
+          hashIntegridade: `hash_${Date.now()}_saida`
+        }
+      });
+    }
 
     totalRegistros += 4;
   }

@@ -12,6 +12,7 @@ import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
+import { useGeolocationContext } from '../contexts/GeolocationContext';
 // import { useGeolocation } from '../hooks/useGeolocation'; // Removido - usando apenas nos componentes
 import { getEmpresaConfig, getDefaultPassword } from '../lib/configService';
 import {
@@ -220,6 +221,7 @@ export default function TimeClock() {
   const [overrideModalOpen, setOverrideModalOpen] = useState(false);
   const [overrideJustification, setOverrideJustification] = useState('');
   const [overrideDraft, setOverrideDraft] = useState<{ data: any; type: TimeRecord['type'] } | null>(null);
+  const { setLastCaptureStatus } = useGeolocationContext();
 
   // Filtros
   const [filters, setFilters] = useState({
@@ -377,6 +379,35 @@ export default function TimeClock() {
     loadPending();
   }, []);
 
+  // Carregar solicitações de hora extra
+  useEffect(() => {
+    const loadOvertime = async () => {
+      try {
+        const resp = await fetch('/api/time-clock/overtime-requests');
+        if (resp.ok) {
+          const data = await resp.json();
+          setOvertimeRequests(
+            (data.data || []).map((r: any) => ({
+              id: r.id,
+              employeeId: currentUser?.id || 'current-user',
+              employeeName: currentUser?.nomeCompleto || 'Usuário',
+              date: new Date(r.data).toISOString().split('T')[0],
+              startTime: r.inicio,
+              endTime: r.fim,
+              justification: r.justificativa || '',
+              status: (r.status || 'PENDENTE').toLowerCase(),
+              requestedAt: new Date(r.criadoEm),
+              reviewedAt: r.revisadaEm ? new Date(r.revisadaEm) : undefined,
+              reviewedBy: r.revisadaPor || undefined,
+              reviewComment: r.observacao || undefined,
+            }))
+          );
+        }
+      } catch {}
+    };
+    loadOvertime();
+  }, [currentUser]);
+
   // Atualizar relógio a cada segundo
   useEffect(() => {
     const timer = setInterval(() => {
@@ -462,6 +493,7 @@ export default function TimeClock() {
         if (response.status === 409) {
           // Duplicidade do mesmo tipo no dia
           toast.warning(message, { position: 'top-center', autoClose: 3000 });
+          setLastCaptureStatus && setLastCaptureStatus({ pending: false, approved: false, imprecise: false, reason: message });
           return;
         }
         if (response.status === 422) {
@@ -472,17 +504,20 @@ export default function TimeClock() {
             setOverrideDraft({ data: locationData, type });
             setOverrideJustification('');
             setOverrideModalOpen(true);
+            setLastCaptureStatus && setLastCaptureStatus({ pending: true, approved: false, imprecise: true, reason: message });
           }
           return;
         }
         if (response.status === 401) {
           toast.error('Sessão expirada. Faça login novamente.', { position: 'top-center', autoClose: 3000 });
+          setLastCaptureStatus && setLastCaptureStatus({ pending: false, approved: false, imprecise: false, reason: 'Sessão expirada' });
           return;
         }
         throw new Error(message);
       }
 
       const result = await response.json();
+      setLastCaptureStatus && setLastCaptureStatus({ pending: false, approved: true, imprecise: false, serverRecordId: result?.data?.id });
       const now = new Date();
       const timeString = now.toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -509,13 +544,20 @@ export default function TimeClock() {
         const refresh = await fetch('/api/time-clock/records');
         if (refresh.ok) {
           const server = await refresh.json();
-          const formatted: TimeRecord[] = server.data.map((record: any) => ({
+          const now = new Date();
+          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+          const todays: any[] = (server.data as any[])
+            .map(r => ({ ...r, dt: new Date(r.dataHora) }))
+            .filter(r => r.dt >= start && r.dt < end)
+            .sort((a, b) => a.dt.getTime() - b.dt.getTime());
+          const formatted: TimeRecord[] = todays.map((record: any) => ({
             id: record.id,
             type: record.tipo,
-            time: new Date(record.dataHora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            time: record.dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
             location: record.enderecoCompleto || record.endereco || 'Local não informado',
             wifi: record.nomeRedeWiFi || 'WiFi não detectado',
-            timestamp: new Date(record.dataHora),
+            timestamp: record.dt,
           }));
           setTimeRecords(formatted);
         }
@@ -529,10 +571,64 @@ export default function TimeClock() {
     }
   };
 
-  // Handler para solicitar hora extra
-  const handleOvertimeRequest = (request: OvertimeRequest) => {
-    setOvertimeRequests(prev => [request, ...prev]);
-    toast.success('Solicitação de hora extra enviada para aprovação!');
+  // Handler para solicitar hora extra (POST)
+  const handleOvertimeRequest = async (request: OvertimeRequest) => {
+    try {
+      const body = {
+        data: request.date,
+        inicio: request.startTime,
+        fim: request.endTime,
+        justificativa: request.justification,
+      };
+      const resp = await fetch('/api/time-clock/overtime-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      if (!resp.ok) throw new Error('Falha ao criar solicitação');
+      const created = await resp.json();
+      const r = created.data;
+      const mapped: OvertimeRequest = {
+        id: r.id,
+        employeeId: currentUser?.id || 'current-user',
+        employeeName: currentUser?.nomeCompleto || 'Usuário',
+        date: new Date(r.data).toISOString().split('T')[0],
+        startTime: r.inicio,
+        endTime: r.fim,
+        justification: r.justificativa || '',
+        status: (r.status || 'PENDENTE').toLowerCase(),
+        requestedAt: new Date(r.criadoEm),
+        reviewedAt: r.revisadaEm ? new Date(r.revisadaEm) : undefined,
+        reviewedBy: r.revisadaPor || undefined,
+        reviewComment: r.observacao || undefined,
+      };
+      setOvertimeRequests(prev => [mapped, ...prev]);
+      toast.success('Solicitação de hora extra enviada para aprovação!');
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao solicitar hora extra');
+    }
+  };
+
+  const reviewOvertime = async (id: string, approve: boolean) => {
+    try {
+      const resp = await fetch('/api/time-clock/overtime-requests', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: approve ? 'APROVADA' : 'REJEITADA' })
+      });
+      if (!resp.ok) throw new Error('Falha ao atualizar solicitação');
+      const updated = await resp.json();
+      setOvertimeRequests(prev => prev.map(r => r.id === id ? {
+        ...r,
+        status: (updated.data.status || 'PENDENTE').toLowerCase(),
+        reviewedAt: updated.data.revisadaEm ? new Date(updated.data.revisadaEm) : undefined,
+        reviewedBy: updated.data.revisadaPor || undefined,
+        reviewComment: updated.data.observacao || undefined,
+      } : r));
+      toast.success(approve ? 'Solicitação aprovada' : 'Solicitação rejeitada');
+    } catch (e: any) {
+      toast.error(e?.message || 'Erro ao atualizar solicitação');
+    }
   };
 
   // Handler para upload de documentos
@@ -611,6 +707,19 @@ export default function TimeClock() {
     { key: 'tipo', label: 'Tipo', width: '140px' },
     { key: 'precisao', label: 'Precisão (m)', width: '120px', render: (item) => (item as any).precisao?.toFixed?.(0) ?? '-' },
     { key: 'wifi', label: 'WiFi', width: '160px', render: (item) => (item as any).nomeRedeWiFi ?? '—' },
+  ];
+
+  // Lista de HE
+  const overtimeColumns: DataListColumn[] = [
+    { key: 'data', label: 'Data', width: '120px', render: (item) => new Date((item as any).date).toLocaleDateString('pt-BR') },
+    { key: 'horario', label: 'Horário', width: '140px', render: (item) => `${(item as any).startTime} - ${(item as any).endTime}` },
+    { key: 'justificativa', label: 'Justificativa', width: '260px', render: (item) => (item as any).justification || '—' },
+    { key: 'status', label: 'Status', width: '120px', render: (item) => (item as any).status },
+  ];
+
+  const overtimeActions: DataListAction[] = [
+    { icon: '✅', label: 'Aprovar', variant: 'primary', onClick: (item) => reviewOvertime((item as any).id, true) },
+    { icon: '❌', label: 'Rejeitar', variant: 'secondary', onClick: (item) => reviewOvertime((item as any).id, false) },
   ];
 
   // Configuração das ações para histórico
@@ -899,6 +1008,33 @@ export default function TimeClock() {
             columns={pendingColumns}
             actions={[]}
             emptyMessage="Nenhuma pendência encontrada."
+            variant="detailed"
+            showHeader={true}
+            striped={true}
+            hoverable={true}
+          />
+        )}
+      </HistorySection>
+
+      {/* Solicitações de Hora Extra */}
+      <HistorySection $theme={theme}>
+        <SectionTitle>
+          <AccessibleEmoji emoji="⏱️" label="HE" /> Solicitações de Hora Extra
+        </SectionTitle>
+        {overtimeRequests.length === 0 ? (
+          <EmptyState>
+            <div className="empty-icon">
+              <AccessibleEmoji emoji="✅" label="Vazio" />
+            </div>
+            <div className="empty-title">Sem solicitações</div>
+          </EmptyState>
+        ) : (
+          <DataList
+            theme={theme}
+            items={overtimeRequests}
+            columns={overtimeColumns}
+            actions={overtimeActions}
+            emptyMessage="Nenhuma solicitação encontrada."
             variant="detailed"
             showHeader={true}
             striped={true}

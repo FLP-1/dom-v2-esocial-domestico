@@ -9,7 +9,7 @@ import logger from '../utils/logger';
  */
 export const useGeolocationCapture = () => {
   const { captureRealTimeLocation } = useGeolocation();
-  const { setLastLocation } = useGeolocationContext();
+  const { updateLastLocationIfBetter, setLastCaptureLocation, setLastCaptureStatus } = useGeolocationContext();
 
   /**
    * Detectar se é dispositivo mobile
@@ -64,7 +64,7 @@ export const useGeolocationCapture = () => {
           });
           
           // ✅ Salvar no contexto global para WelcomeSection
-          setLastLocation({
+          updateLastLocationIfBetter({
             latitude: locationData.latitude,
             longitude: locationData.longitude,
             accuracy: locationData.accuracy,
@@ -83,7 +83,22 @@ export const useGeolocationCapture = () => {
         
         logger.log(`✅ Ação ${actionName} executada com sucesso`);
 
-        // 3. Retornar resultado com dados de localização (se disponível)
+        // 3. Se a ação concluiu com sucesso, marcar a última captura usada para persistência
+        if (locationData) {
+          setLastCaptureLocation({
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            accuracy: locationData.accuracy,
+            address: locationData.address,
+            wifiName: locationData.wifiName,
+            networkInfo: locationData.networkInfo,
+            timestamp: new Date()
+          });
+          // Reset meta até receber status do servidor no chamador
+          setLastCaptureStatus && setLastCaptureStatus(null);
+        }
+
+        // 4. Retornar resultado com dados de localização (se disponível)
         return {
           success: true,
           result,
@@ -120,7 +135,7 @@ export const useGeolocationCapture = () => {
         }
       }
     },
-    [captureRealTimeLocation, isMobileDevice, setLastLocation]
+    [captureRealTimeLocation, isMobileDevice, updateLastLocationIfBetter, setLastCaptureLocation, setLastCaptureStatus]
   );
 
   /**

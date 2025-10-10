@@ -24,7 +24,7 @@ function AppContent({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const [key, setKey] = useState(0);
   const { captureRealTimeLocation } = useGeolocation();
-  const { setLastLocation } = useGeolocationContext();
+  const { updateLastLocationIfBetter } = useGeolocationContext();
   const {
     handleProfileSelection,
     currentProfile,
@@ -34,31 +34,28 @@ function AppContent({ Component, pageProps }: AppProps) {
   } = useUserProfile();
 
   // Forçar re-renderização quando a rota mudar (incluindo navegação com seta)
+  const { setLastCaptureLocation, setLastCaptureStatus } = useGeolocationContext();
   useEffect(() => {
     const handleRouteChange = () => {
       setKey(prev => prev + 1);
-      // Disparar captura manual na mudança de página se permissão já concedida
-      try {
-        if (navigator.permissions && navigator.permissions.query) {
-          navigator.permissions.query({ name: 'geolocation' as PermissionName }).then((result) => {
-            if (result.state === 'granted') {
-              captureRealTimeLocation()
-                .then(data => {
-                  setLastLocation({
-                    latitude: data.latitude,
-                    longitude: data.longitude,
-                    accuracy: data.accuracy,
-                    address: data.address,
-                    wifiName: data.wifiName,
-                    networkInfo: data.networkInfo,
-                    timestamp: new Date()
-                  });
-                })
-                .catch(() => {});
-            }
-          });
-        }
-      } catch {}
+      // Hidratar "última captura usada no registro" do servidor
+      fetch('/api/time-clock/last')
+        .then(r => (r && r.ok ? r.json() : null))
+        .then(json => {
+          const last = json?.data;
+          if (last) {
+            setLastCaptureLocation && setLastCaptureLocation({
+              latitude: last.latitude,
+              longitude: last.longitude,
+              accuracy: last.precisao,
+              address: last.endereco || undefined,
+              wifiName: last.nomeRedeWiFi || undefined,
+              timestamp: new Date(last.dataHora)
+            });
+            setLastCaptureStatus && setLastCaptureStatus({ approved: !!last.aprovado, pending: !last.aprovado, imprecise: !last.dentroGeofence, serverRecordId: last.id });
+          }
+        })
+        .catch(() => {});
     };
 
     router.events.on('routeChangeComplete', handleRouteChange);
@@ -68,7 +65,7 @@ function AppContent({ Component, pageProps }: AppProps) {
       router.events.off('routeChangeComplete', handleRouteChange);
       router.events.off('beforeHistoryChange', handleRouteChange);
     };
-  }, [router.events, captureRealTimeLocation, setLastLocation]);
+  }, [router.events, setLastCaptureLocation, setLastCaptureStatus]);
 
   const handleProfileSelect = (profile: any) => {
     handleProfileSelection(profile);

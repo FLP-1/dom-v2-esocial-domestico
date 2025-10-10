@@ -83,6 +83,7 @@ model Usuario {
   gruposUsuario            UsuarioGrupo[]
   perfis                   UsuarioPerfil[]
   validacoesContato        ValidacaoContato[]
+  solicitacoesHoraExtra    SolicitacaoHoraExtra[]
 
   @@index([cpf])
   @@index([email])
@@ -632,6 +633,28 @@ model RegistroPonto {
   @@index([dataHora])
   @@index([tipo])
   @@map("registros_ponto")
+}
+
+/// @description Solicitações de Hora Extra para aprovação
+model SolicitacaoHoraExtra {
+  id            String   @id @default(uuid())
+  usuarioId     String
+  data          DateTime @db.Date
+  inicio        String   @db.VarChar(5)   // HH:MM
+  fim           String   @db.VarChar(5)   // HH:MM
+  justificativa String?  @db.VarChar(500)
+  status        String   @default("PENDENTE") @db.VarChar(20) // PENDENTE, APROVADA, REJEITADA
+  revisadaPor   String?  @db.VarChar(255)
+  revisadaEm    DateTime?
+  observacao    String?  @db.VarChar(500)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([data])
+  @@index([status])
+  @@map("solicitacoes_hora_extra")
 }
 
 model EventoESocial {

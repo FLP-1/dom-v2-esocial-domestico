@@ -779,78 +779,34 @@ async function main() {
   // ============================================
   console.log('⚙️  Criando configurações do sistema...');
   
-  await prisma.configuracaoSistema.createMany({
-    data: [
-      {
-        chave: 'sistema_nome',
-        valor: 'DOM - Doméstico Online Manager',
-        tipo: 'string',
-        categoria: 'sistema',
-        descricao: 'Nome do sistema',
-        editavel: false
-      },
-      {
-        chave: 'sistema_url_base',
-        valor: 'http://localhost:3000',
-        tipo: 'string',
-        categoria: 'sistema',
-        descricao: 'URL base da aplicação',
-        editavel: true
-      },
-      {
-        chave: 'sistema_senha_padrao',
-        valor: '123456',
-        tipo: 'string',
-        categoria: 'sistema',
-        descricao: 'Senha padrão para novos usuários',
-        editavel: true
-      },
-      {
-        chave: 'auth_jwt_secret',
-        valor: 'your-secret-key-change-in-production',
-        tipo: 'string',
-        categoria: 'autenticacao',
-        descricao: 'Chave secreta JWT',
-        editavel: true
-      },
-      {
-        chave: 'empresa_cpf_principal',
-        valor: francisco.cpf,
-        tipo: 'string',
-        categoria: 'empresa',
-        descricao: 'CPF do responsável principal',
-        editavel: true
-      },
-      {
-        chave: 'geolocalizacao_precisao_maxima',
-        valor: '50',
-        tipo: 'number',
-        categoria: 'geolocalizacao',
-        descricao: 'Precisão máxima aceitável (metros) para registro de ponto',
-        editavel: true
-      },
-      {
-        chave: 'geolocalizacao_idade_maxima_segundos',
-        valor: '60',
-        tipo: 'number',
-        categoria: 'geolocalizacao',
-        descricao: 'Idade máxima aceitável da localização (segundos)',
-        editavel: true
-      },
-      {
-        chave: 'ponto_override_roles',
-        valor: '["EMPREGADOR","ADMIN"]',
-        tipo: 'json',
-        categoria: 'ponto',
-        descricao: 'Perfis que podem autorizar override no registro de ponto',
-        editavel: true
-      }
-    ]
-  });
+  const upsertConfig = async (chave: string, valor: string, tipo: string, categoria: string, descricao: string, editavel = true) => {
+    await prisma.configuracaoSistema.upsert({
+      where: { chave },
+      update: { valor, tipo, categoria, descricao, editavel },
+      create: { chave, valor, tipo, categoria, descricao, editavel }
+    });
+  };
 
-  // Termos de uso
-  await prisma.termo.create({
-    data: {
+  await upsertConfig('sistema_nome', 'DOM - Doméstico Online Manager', 'string', 'sistema', 'Nome do sistema', false);
+  await upsertConfig('sistema_url_base', 'http://localhost:3000', 'string', 'sistema', 'URL base da aplicação', true);
+  await upsertConfig('sistema_senha_padrao', '123456', 'string', 'sistema', 'Senha padrão para novos usuários', true);
+  await upsertConfig('auth_jwt_secret', 'your-secret-key-change-in-production', 'string', 'autenticacao', 'Chave secreta JWT', true);
+  await upsertConfig('empresa_cpf_principal', francisco.cpf, 'string', 'empresa', 'CPF do responsável principal', true);
+  await upsertConfig('geolocalizacao_precisao_maxima', '50', 'number', 'geolocalizacao', 'Precisão máxima aceitável (metros) para registro de ponto', true);
+  await upsertConfig('geolocalizacao_idade_maxima_segundos', '60', 'number', 'geolocalizacao', 'Idade máxima aceitável da localização (segundos)', true);
+  await upsertConfig('ponto_override_roles', '["EMPREGADOR","ADMIN"]', 'json', 'ponto', 'Perfis que podem autorizar override no registro de ponto', true);
+
+  // Termos de uso (idempotente)
+  await prisma.termo.upsert({
+    where: { versao: '1.0' },
+    update: {
+      tipo: 'TERMOS_USO',
+      titulo: 'Termos de Uso do Sistema DOM',
+      conteudo: 'Ao utilizar o sistema DOM, você concorda com estes termos de uso...',
+      ativo: true,
+      dataVigencia: new Date()
+    },
+    create: {
       tipo: 'TERMOS_USO',
       versao: '1.0',
       titulo: 'Termos de Uso do Sistema DOM',
@@ -861,6 +817,119 @@ async function main() {
   });
 
   console.log('✅ Configurações do sistema criadas\n');
+
+  // ============================================
+  // 12. PONTO: DISPOSITIVO + REGISTROS DE HOJE
+  // ============================================
+  console.log('🕒 Criando dispositivo e registros de ponto de hoje...');
+
+  const deviceFrancisco = await prisma.dispositivo.create({
+    data: {
+      usuarioId: francisco.id,
+      dispositivoId: `seed_device_${francisco.id.substring(0, 8)}`,
+      nome: 'Notebook Pessoal',
+      modelo: 'Windows 11',
+      versaoSO: '23H2',
+      tipo: 'DESKTOP',
+      nomeRedeWiFi: 'WiFi: Conectado',
+      enderecoIP: '127.0.0.1',
+      latitude: -23.6025,
+      longitude: -46.6309,
+      precisao: 18.5,
+      confiavel: true
+    }
+  });
+
+  const today = new Date();
+  const dt = (h: number, m: number) => new Date(today.getFullYear(), today.getMonth(), today.getDate(), h, m, 0);
+
+  await prisma.registroPonto.createMany({
+    data: [
+      {
+        usuarioId: francisco.id,
+        dispositivoId: deviceFrancisco.id,
+        dataHora: dt(9, 0),
+        tipo: 'entrada',
+        latitude: -23.6025,
+        longitude: -46.6309,
+        precisao: 18.5,
+        dentroGeofence: true,
+        enderecoIP: '127.0.0.1',
+        nomeRedeWiFi: 'WiFi: Conectado',
+        aprovado: true,
+        aprovadoPor: 'Seed',
+        aprovadoEm: new Date(),
+        observacao: 'Registro seed',
+        hashIntegridade: 'seed_hash_entrada'
+      },
+      {
+        usuarioId: francisco.id,
+        dispositivoId: deviceFrancisco.id,
+        dataHora: dt(12, 0),
+        tipo: 'saida_almoco',
+        latitude: -23.6026,
+        longitude: -46.6312,
+        precisao: 22.0,
+        dentroGeofence: true,
+        enderecoIP: '127.0.0.1',
+        nomeRedeWiFi: 'WiFi: Conectado',
+        aprovado: true,
+        aprovadoPor: 'Seed',
+        aprovadoEm: new Date(),
+        observacao: 'Registro seed',
+        hashIntegridade: 'seed_hash_saida_almoco'
+      },
+      {
+        usuarioId: francisco.id,
+        dispositivoId: deviceFrancisco.id,
+        dataHora: dt(13, 0),
+        tipo: 'retorno_almoco',
+        latitude: -23.6025,
+        longitude: -46.6309,
+        precisao: 19.0,
+        dentroGeofence: true,
+        enderecoIP: '127.0.0.1',
+        nomeRedeWiFi: 'WiFi: Conectado',
+        aprovado: true,
+        aprovadoPor: 'Seed',
+        aprovadoEm: new Date(),
+        observacao: 'Registro seed',
+        hashIntegridade: 'seed_hash_retorno_almoco'
+      }
+    ]
+  });
+
+  console.log('✅ Registros de ponto criados\n');
+
+  // ============================================
+  // 13. Solicitações de Hora Extra
+  // ============================================
+  console.log('⏱️  Criando solicitações de hora extra...');
+
+  await prisma.solicitacaoHoraExtra.createMany({
+    data: [
+      {
+        usuarioId: francisco.id,
+        data: new Date(today.getFullYear(), today.getMonth(), today.getDate()),
+        inicio: '18:00',
+        fim: '20:00',
+        justificativa: 'Atendimento emergencial',
+        status: 'PENDENTE'
+      },
+      {
+        usuarioId: francisco.id,
+        data: new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1),
+        inicio: '18:00',
+        fim: '19:00',
+        justificativa: 'Fechamento mensal',
+        status: 'APROVADA',
+        revisadaPor: 'Seed',
+        revisadaEm: new Date()
+      }
+    ]
+  });
+
+  console.log('✅ Solicitações de HE criadas\n');
 
   // ============================================
   // RESUMO FINAL
