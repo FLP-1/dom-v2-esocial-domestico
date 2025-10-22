@@ -1,7 +1,7 @@
 // src/pages/api/geocoding/reverse.ts
 import { NextApiRequest, NextApiResponse } from 'next';
 import { reverseGeocodeGoogle, hasGoogleMapsKey, getGoogleMapsKey, formatAddressForDisplay } from '../../../lib/googleGeocoding';
-import { reverseGeocodeFree, getAvailableFreeAPIs } from '../../../lib/freeGeocoding';
+import { reverseGeocodeFree, getAvailableFreeAPIs, reverseGeocodeOpenCage } from '../../../lib/freeGeocoding';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -22,43 +22,33 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    // 🎯 PRIORIDADE 1: Google Maps (se disponível e com budget)
-    if (hasGoogleMapsKey()) {
-      console.log('🌐 Tentando Google Maps Geocoding API...');
-      
-      const googleResult = await reverseGeocodeGoogle(
-        latitude, 
-        longitude, 
-        getGoogleMapsKey()!
-      );
+    // 🎯 SISTEMA SIMPLIFICADO: Nominatim + OpenCage
+    // console.log('🌐 Usando sistema otimizado...');
 
-      if (googleResult.success && googleResult.address) {
-        const formattedAddress = formatAddressForDisplay(googleResult.address);
-        
-        return res.status(200).json({
-          success: true,
-          address: formattedAddress,
-          fullAddress: googleResult.address.formattedAddress,
-          cep: googleResult.address.postalCode,
-          formattedAddress: formattedAddress,
-          components: {
-            street: googleResult.address.route,
-            number: googleResult.address.streetNumber,
-            neighborhood: googleResult.address.neighborhood,
-            city: googleResult.address.city,
-            state: googleResult.address.state,
-            country: googleResult.address.country,
-            postcode: googleResult.address.postalCode
-          },
-          source: 'google_maps'
-        });
+    // 🎯 PRIORIDADE 1: OpenCage (melhor qualidade para busca reversa)
+    const openCageKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
+    if (openCageKey) {
+      try {
+        const openCageResult = await reverseGeocodeOpenCage(latitude, longitude, openCageKey);
+        if (openCageResult.success) {
+          return res.status(200).json({
+            success: true,
+            address: openCageResult.address,
+            fullAddress: openCageResult.address,
+            cep: openCageResult.components?.postalCode,
+            formattedAddress: openCageResult.formattedAddress,
+            components: openCageResult.components,
+            source: 'opencage',
+            availableAPIs: ['OpenCage Data']
+          });
+        }
+      } catch (openCageError) {
+        // console.log('⚠️ OpenCage falhou, tentando Nominatim...');
       }
-      
-      console.log('⚠️ Google Maps falhou, tentando APIs gratuitas...');
     }
-
-    // 🎯 PRIORIDADE 2: Nominatim (sempre funciona, sem chave)
-    console.log('🌐 Tentando Nominatim (OpenStreetMap)...');
+    
+    // 🎯 PRIORIDADE 2: Nominatim (sempre funciona)
+    // console.log('🌐 Usando Nominatim...');
     
     try {
       const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&accept-language=pt-BR&zoom=19`;
@@ -98,25 +88,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
       }
     } catch (nominatimError) {
-      console.log('⚠️ Erro no Nominatim:', nominatimError);
-    }
-    
-    // 🎯 PRIORIDADE 3: APIs GRATUITAS (se configuradas)
-    console.log('🆓 Usando sistema de APIs gratuitas...');
-    
-    const freeResult = await reverseGeocodeFree(latitude, longitude);
-    
-    if (freeResult.success) {
-      return res.status(200).json({
-        success: true,
-        address: freeResult.address,
-        fullAddress: freeResult.address,
-        cep: freeResult.components?.postalCode,
-        formattedAddress: freeResult.formattedAddress,
-        components: freeResult.components,
-        source: freeResult.source,
-        availableAPIs: getAvailableFreeAPIs()
-      });
+        // console.log('⚠️ Erro no Nominatim:', nominatimError);
     }
 
   } catch (error) {

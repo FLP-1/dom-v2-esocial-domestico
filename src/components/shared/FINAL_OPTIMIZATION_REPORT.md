@@ -237,5 +237,5 @@ O projeto agora possui um **design system robusto e otimizado** que suporta cres
 **🎉 PARABÉNS! OTIMIZAÇÃO 100% CONCLUÍDA COM SUCESSO! 🎉**
 
 **📅 Data:** Dezembro 2024  
-**👥 Equipe:** DOM v2.1.0  
+**👥 Equipe:** DOM v1.0.0  
 **🚀 Status:** PRONTO PARA PRODUÇÃO

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { NextApiRequest } from 'next';
 import { getCurrentUserId } from './configService';
+import prisma from './prisma';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -46,9 +47,6 @@ export async function getCurrentUser(req: NextApiRequest): Promise<JWTPayload | 
         const userId = await getCurrentUserId();
         
         // Buscar dados reais do usuário no banco
-        const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
-        
         const user = await prisma.usuario.findUnique({
           where: { id: userId },
           include: {

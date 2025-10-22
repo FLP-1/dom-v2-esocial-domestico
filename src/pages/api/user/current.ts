@@ -18,6 +18,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             include: {
               perfil: true
             }
+          },
+          gruposUsuario: {
+            include: {
+              grupo: true
+            }
           }
         }
       });
@@ -62,7 +67,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             apelido: user.apelido,
             email: user.email,
             avatar: user.perfis.find(p => p.principal)?.avatar || user.apelido?.substring(0, 2).toUpperCase() || 'U',
-            role: user.perfis.find(p => p.principal)?.perfil?.nome || null
+            role: user.perfis.find(p => p.principal)?.perfil?.nome || null,
+            perfis: user.perfis,
+            gruposUsuario: user.gruposUsuario
           },
           horariosOficiais,
           folhaPagamento,

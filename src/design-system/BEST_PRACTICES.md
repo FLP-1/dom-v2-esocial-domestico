@@ -2,7 +2,7 @@
 
 ## 📋 Visão Geral
 
-Este documento contém as melhores práticas para usar o design system unificado do DOM v2.1.0.
+Este documento contém as melhores práticas para usar o design system unificado do DOM.
 
 ## 🚀 Componentes Unificados
 

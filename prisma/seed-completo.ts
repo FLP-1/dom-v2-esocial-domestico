@@ -310,7 +310,78 @@ async function main() {
   console.log('✅ Perfis associados\n');
 
   // ============================================
-  // 5. MEMBROS DA FAMÍLIA COMPLETOS
+  // 5. CRIAR GRUPOS E ASSOCIAR USUÁRIOS
+  // ============================================
+  console.log('🏢 Criando grupos...');
+
+  const grupoEmpresarial = await prisma.grupo.create({
+    data: {
+      id: 'grupo-empresarial-001',
+      nome: 'Empresa Principal',
+      descricao: 'Grupo principal da empresa',
+      cor: '#3498db',
+      icone: 'building',
+      tipo: 'empresa',
+      privado: false,
+      ativo: true
+    }
+  });
+
+  const grupoRH = await prisma.grupo.create({
+    data: {
+      id: 'grupo-rh-001',
+      nome: 'Recursos Humanos',
+      descricao: 'Departamento de RH',
+      cor: '#27ae60',
+      icone: 'users',
+      tipo: 'departamento',
+      privado: false,
+      ativo: true
+    }
+  });
+
+  console.log('✅ 2 grupos criados\n');
+
+  console.log('🔗 Associando usuários aos grupos...');
+
+  await prisma.usuarioGrupo.createMany({
+    data: [
+      {
+        usuarioId: francisco.id,
+        grupoId: grupoRH.id,
+        papel: 'admin',
+        ativo: true
+      },
+      {
+        usuarioId: maria.id,
+        grupoId: grupoEmpresarial.id,
+        papel: 'membro',
+        ativo: true
+      },
+      {
+        usuarioId: carlos.id,
+        grupoId: grupoEmpresarial.id,
+        papel: 'membro',
+        ativo: true
+      },
+      {
+        usuarioId: ana.id,
+        grupoId: grupoEmpresarial.id,
+        papel: 'membro',
+        ativo: true
+      }
+    ]
+  });
+
+  console.log('✅ Usuários associados aos grupos\n');
+
+  // Buscar os IDs dos perfis de usuário criados para usar nos registros
+  const franciscoPerfilEmpregador = await prisma.usuarioPerfil.findFirst({
+    where: { usuarioId: francisco.id, perfilId: perfilEmpregador.id }
+  });
+
+  // ============================================
+  // 6. MEMBROS DA FAMÍLIA COMPLETOS
   // ============================================
   console.log('👨‍👩‍👧‍👦 Criando membros da família...');
   
@@ -860,7 +931,9 @@ async function main() {
         aprovadoPor: 'Seed',
         aprovadoEm: new Date(),
         observacao: 'Registro seed',
-        hashIntegridade: 'seed_hash_entrada'
+        hashIntegridade: 'seed_hash_entrada',
+        grupoId: grupoRH.id,
+        usuarioPerfilId: franciscoPerfilEmpregador!.id
       },
       {
         usuarioId: francisco.id,
@@ -877,7 +950,9 @@ async function main() {
         aprovadoPor: 'Seed',
         aprovadoEm: new Date(),
         observacao: 'Registro seed',
-        hashIntegridade: 'seed_hash_saida_almoco'
+        hashIntegridade: 'seed_hash_saida_almoco',
+        grupoId: grupoRH.id,
+        usuarioPerfilId: franciscoPerfilEmpregador!.id
       },
       {
         usuarioId: francisco.id,
@@ -894,7 +969,9 @@ async function main() {
         aprovadoPor: 'Seed',
         aprovadoEm: new Date(),
         observacao: 'Registro seed',
-        hashIntegridade: 'seed_hash_retorno_almoco'
+        hashIntegridade: 'seed_hash_retorno_almoco',
+        grupoId: grupoRH.id,
+        usuarioPerfilId: franciscoPerfilEmpregador!.id
       }
     ]
   });
@@ -914,7 +991,9 @@ async function main() {
         inicio: '18:00',
         fim: '20:00',
         justificativa: 'Atendimento emergencial',
-        status: 'PENDENTE'
+        status: 'PENDENTE',
+        grupoId: grupoRH.id,
+        usuarioPerfilId: franciscoPerfilEmpregador!.id
       },
       {
         usuarioId: francisco.id,
@@ -924,7 +1003,9 @@ async function main() {
         justificativa: 'Fechamento mensal',
         status: 'APROVADA',
         revisadaPor: 'Seed',
-        revisadaEm: new Date()
+        revisadaEm: new Date(),
+        grupoId: grupoRH.id,
+        usuarioPerfilId: franciscoPerfilEmpregador!.id
       }
     ]
   });

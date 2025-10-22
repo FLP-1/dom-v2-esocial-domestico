@@ -216,5 +216,5 @@ O projeto agora possui um **design system robusto e otimizado** que suporta cres
 **🎉 Status: CONCLUÍDO COM SUCESSO! 🎉**
 
 **📅 Data:** Dezembro 2024  
-**👥 Equipe:** DOM v2.1.0  
+**👥 Equipe:** DOM v1.0.0  
 **🚀 Próxima versão:** v2.2.0 (Otimizada)

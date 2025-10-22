@@ -1,9 +1,13 @@
-import React, { ReactNode, useCallback, useRef } from 'react';
+import React, { ReactNode, useCallback, useRef, memo } from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import AccessibleEmoji from '../AccessibleEmoji';
 import { logger } from '../../utils/logger';
 import { UnifiedCard } from '../unified';
 import { useGeolocationCapture } from '../../hooks/useGeolocationCapture';
+import { useSmartGeolocation } from '../../hooks/useSmartGeolocation';
+import { useTheme } from '../../hooks/useTheme';
+import { useUserProfile } from '../../contexts/UserProfileContext';
+import { getGeolocationConfig } from '../../config/geolocation-config';
 
 // Animações
 const fadeIn = keyframes`
@@ -76,11 +80,11 @@ const TimeDisplay = styled.div<{ $theme: any; $status: string }>`
         case 'completed':
           return props.$theme.colors.primary;
         case 'pending':
-          return '#f39c12';
+          return props.$theme.colors.status.warning.color;
         case 'available':
-          return props.$theme.colors.text;
+          return props.$theme.colors.text.primary;
         case 'disabled':
-          return '#bdc3c7';
+          return props.$theme.colors.text.muted;
         default:
           return props.$theme.colors.text;
       }
@@ -96,13 +100,13 @@ const TimeDisplay = styled.div<{ $theme: any; $status: string }>`
         case 'completed':
           return props.$theme.colors.primary;
         case 'pending':
-          return '#e67e22';
+          return props.$theme.colors.status.warning.color;
         case 'available':
-          return '#2c3e50';
+          return props.$theme.colors.text.dark;
         case 'disabled':
-          return '#95a5a6';
+          return props.$theme.colors.text.light;
         default:
-          return '#2c3e50';
+          return props.$theme.colors.text.dark;
       }
     }};
     text-transform: uppercase;
@@ -132,13 +136,13 @@ const StatusIndicator = styled.div<{
       case 'completed':
         return props.$theme.colors.primary;
       case 'pending':
-        return '#f39c12';
+        return props.$theme.colors.status.warning.color;
       case 'available':
-        return '#27ae60';
+        return props.$theme.colors.status.success.color;
       case 'disabled':
-        return '#bdc3c7';
+        return props.$theme.colors.text.muted;
       default:
-        return '#95a5a6';
+        return props.$theme.colors.text.light;
     }
   }};
   color: white;
@@ -175,20 +179,20 @@ const LocationInfo = styled.div<{ $theme: any }>`
 const ObservationSection = styled.div<{ $theme: any }>`
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #f8f9fa;
+  background: ${props => props.$theme?.background?.secondary || '#f8f9fa'};
   border-radius: 8px;
-  border: 1px solid #e9ecef;
+  border: 1px solid ${props => props.$theme?.border?.secondary || '#e9ecef'};
   
   .observation-label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #2c3e50;
+    color: ${props => props.$theme?.text?.dark || '#2c3e50'};
     margin: 0 0 0.5rem 0;
   }
   
   .observation-text {
     font-size: 0.8rem;
-    color: #7f8c8d;
+    color: ${props => props.$theme?.text?.secondary || '#7f8c8d'};
     margin: 0;
     font-style: italic;
   }
@@ -202,7 +206,7 @@ const ApprovalBadge = styled.div<{ $theme: any; $approved: boolean }>`
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: ${props => props.$approved ? '#27ae60' : '#f39c12'};
+  background: ${props => props.$approved ? (props.$theme?.status?.success?.color || '#27ae60') : (props.$theme?.status?.warning?.color || '#f39c12')};
   color: white;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -214,6 +218,7 @@ export interface TimeRecord {
   type: 'entrada' | 'saida_almoco' | 'retorno_almoco' | 'saida' | 'inicio_extra' | 'fim_extra';
   time?: string;
   location?: string;
+  addressNumber?: string; // Número do endereço capturado
   wifi?: string;
   employeeObservation?: string;
   employerObservation?: string;
@@ -236,44 +241,50 @@ const recordConfig = {
   entrada: {
     label: 'Entrada',
     icon: '🕐',
-    color: '#27ae60',
+    color: '#27ae60', // Cor específica para entrada
   },
   saida_almoco: {
     label: 'Saída Almoço',
     icon: '🍽️',
-    color: '#f39c12',
+    color: '#f39c12', // Cor específica para saída almoço
   },
   retorno_almoco: {
     label: 'Retorno Almoço',
     icon: '🔄',
-    color: '#3498db',
+    color: '#3498db', // Cor específica para retorno almoço
   },
   saida: {
     label: 'Saída',
     icon: '🏠',
-    color: '#e74c3c',
+    color: '#e74c3c', // Cor específica para saída
   },
   inicio_extra: {
     label: 'Início Hora Extra',
     icon: '⏰',
-    color: '#9b59b6',
+    color: '#9b59b6', // Cor específica para início extra
   },
   fim_extra: {
     label: 'Fim Hora Extra',
     icon: '⏹️',
-    color: '#34495e',
+    color: '#34495e', // Cor específica para fim extra
   },
 };
 
-export const TimeRecordCard: React.FC<TimeRecordCardProps> = ({
+export const TimeRecordCard: React.FC<TimeRecordCardProps> = memo(function TimeRecordCard({
   record,
   theme,
   onClick,
   isDisabled = false,
   $criticalAction = true, // Por padrão, registros de ponto são críticos
   $actionName,
-}) => {
+}) {
+  const { currentProfile } = useUserProfile();
+  const { colors: centralizedTheme } = useTheme(currentProfile?.role.toLowerCase());
   const { createCriticalButtonHandler } = useGeolocationCapture();
+  const { captureLocation, isCapturing, isDataRecent, isDataAccurate } = useSmartGeolocation(
+    getGeolocationConfig('timeRecordCard')
+  );
+  
   const config = recordConfig[record.type];
   const status = record.time ? 'completed' : isDisabled ? 'disabled' : 'available';
   const clickable = !isDisabled && !record.time;
@@ -287,9 +298,17 @@ export const TimeRecordCard: React.FC<TimeRecordCardProps> = ({
     if (!clickable || !onClick) return;
     if (isProcessingRef.current) return;
     isProcessingRef.current = true;
+    
     try {
       if ($criticalAction) {
         logger.geo(`🎯 Registro de ponto crítico: ${actionName}`);
+        
+        // ✅ Capturar localização atualizada antes de registrar
+        if (!isDataRecent || !isDataAccurate) {
+          logger.geo(`🔄 Atualizando localização antes do registro: ${actionName}`);
+          await captureLocation();
+        }
+        
         const criticalHandler = createCriticalButtonHandler(onClick, actionName);
         await criticalHandler();
       } else {
@@ -298,7 +317,7 @@ export const TimeRecordCard: React.FC<TimeRecordCardProps> = ({
     } finally {
       isProcessingRef.current = false;
     }
-  }, [clickable, onClick, $criticalAction, actionName, createCriticalButtonHandler]);
+  }, [clickable, onClick, $criticalAction, actionName, createCriticalButtonHandler, captureLocation, isDataRecent, isDataAccurate]);
 
   return (
     <TimeRecordContainer
@@ -377,6 +396,6 @@ export const TimeRecordCard: React.FC<TimeRecordCardProps> = ({
       </UnifiedCard>
     </TimeRecordContainer>
   );
-};
+});
 
 export default TimeRecordCard;

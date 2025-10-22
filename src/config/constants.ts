@@ -1,5 +1,5 @@
 /**
- * 📋 Constantes Centralizadas - DOM v2.2.0
+ * 📋 Constantes Centralizadas - Sistema DOM
  *
  * Este arquivo centraliza todas as constantes do sistema.
  */
@@ -112,9 +112,9 @@ export const ENVIRONMENT_CONSTANTS = {
 
 // 🔧 Configurações de Sistema
 export const SYSTEM_CONSTANTS = {
-  VERSION: '2.2.0',
+  VERSION: '1.0.0',
   NAME: 'DOM',
-  DESCRIPTION: 'Sistema de Gestão Empresarial',
+  DESCRIPTION: 'Sistema de Gestão Doméstica',
   AUTHOR: 'Equipe DOM',
 } as const;
 

@@ -1,4 +1,4 @@
-# 📊 Documentação do Schema Prisma - Sistema DOM v2.2.1
+# 📊 Documentação do Schema Prisma - Sistema DOM
 
 ## 🎯 Visão Geral
 

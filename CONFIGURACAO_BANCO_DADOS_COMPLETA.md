@@ -1,4 +1,4 @@
-# 🗄️ CONFIGURAÇÃO DO BANCO DE DADOS - DOM v2.2.1
+# 🗄️ CONFIGURAÇÃO DO BANCO DE DADOS - DOM v1.0.0
 
 ## ✅ O QUE JÁ FOI FEITO AUTOMATICAMENTE
 
@@ -247,6 +247,6 @@ Se houver algum problema:
 ---
 
 **Data da Configuração:** 02/10/2025  
-**Versão do Sistema:** DOM v2.2.1  
+**Versão do Sistema:** DOM v1.0.0  
 **PostgreSQL:** Versão 18 (x64) - Porta 5433
 

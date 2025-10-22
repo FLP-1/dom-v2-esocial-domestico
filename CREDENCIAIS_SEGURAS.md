@@ -1,4 +1,4 @@
-# 🔐 Credenciais do Sistema DOM v2.2.0
+# 🔐 Credenciais do Sistema DOM v1.0.0
 
 ## ⚠️ **IMPORTANTE: ARQUIVO TEMPORÁRIO**
 Este arquivo contém credenciais sensíveis e deve ser:

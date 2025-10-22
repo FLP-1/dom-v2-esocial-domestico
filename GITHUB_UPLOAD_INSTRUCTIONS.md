@@ -11,7 +11,7 @@
 
 ### 🏷️ Tags Criadas:
 
-- `v2.0.0` - Sistema DOM v2 - Gestão Doméstica Completa
+- `v1.0.0` - Sistema DOM - Gestão Doméstica Completa
 - `v2.1.0` - Correções de Emojis e Acessibilidade
 
 ## 🚀 Próximos Passos para Upload
@@ -21,7 +21,7 @@
 1. Acesse [GitHub.com](https://github.com)
 2. Clique em "New repository"
 3. Nome sugerido: `sistema-dom` ou `dom-gestao-domestica`
-4. Descrição: "Sistema DOM v2.1.0 - Gestão Doméstica Completa com Correções de Acessibilidade"
+4. Descrição: "Sistema DOM - Gestão Doméstica Completa com Correções de Acessibilidade"
 5. Marque como **Público** ou **Privado** conforme preferência
 6. **NÃO** inicialize com README, .gitignore ou licença (já temos)
 7. Clique em "Create repository"
@@ -91,4 +91,4 @@ Após o upload, verifique:
 
 ---
 
-**🎉 Parabéns! O Sistema DOM v2.1.0 está pronto para ser compartilhado no GitHub!**
+**🎉 Parabéns! O Sistema DOM está pronto para ser compartilhado no GitHub!**

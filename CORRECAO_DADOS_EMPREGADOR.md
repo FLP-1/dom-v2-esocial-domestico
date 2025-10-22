@@ -235,5 +235,5 @@ psql -h localhost -p 5433 -U userdom -d dom -c "SELECT nome, cpfCnpj, email FROM
 ---
 
 **Data de Correção**: 2025-10-02  
-**Versão**: DOM v2.2.1-final
+**Versão**: DOM v1.0.0-final
 

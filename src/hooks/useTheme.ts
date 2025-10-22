@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useSystemConfig } from './useSystemConfig';
+import { geofencingColors } from '../design-system/tokens/geofencing-colors';
 
 export interface ThemeColors {
   primary: string;
@@ -10,6 +12,24 @@ export interface ThemeColors {
   textSecondary: string;
   border: string;
   shadow: string;
+  // Cores semânticas
+  success?: string;
+  warning?: string;
+  error?: string;
+  info?: string;
+  // Cores de navegação
+  navigation?: {
+    primary: string;
+    hover: string;
+    active: string;
+  };
+  // Cores de status
+  status?: {
+    success: string;
+    warning: string;
+    error: string;
+    info: string;
+  };
 }
 
 export interface ProfileTheme {
@@ -25,14 +45,14 @@ export const profileThemes: Record<string, ProfileTheme> = {
     name: 'Empregado',
     colors: {
       primary: '#29ABE2',
-      secondary: '#6B7280',
-      accent: '#3B82F6',
+      secondary: '#90EE90',
+      accent: '#FFDA63',
       background: '#FFFFFF',
       surface: '#F8F9FA',
-      text: '#1F2937',
-      textSecondary: '#6B7280',
-      border: '#F8F9FA',
-      shadow: 'rgba(0, 0, 0, 0.1)',
+      text: '#2C3E50',
+      textSecondary: '#7F8C8D',
+      border: '#E9ECEF',
+      shadow: 'rgba(41, 171, 226, 0.1)',
     },
   },
   empregador: {
@@ -202,7 +222,8 @@ export const profileThemes: Record<string, ProfileTheme> = {
   },
 };
 
-export const useTheme = (profileId?: string) => {
+export const useTheme = (profileId?: string, useCentralizedConfig: boolean = true) => {
+  const { config, loading, error } = useSystemConfig();
   const [currentTheme, setCurrentTheme] = useState<ProfileTheme>(() => {
     return (
       profileThemes['empregado'] ||
@@ -224,11 +245,44 @@ export const useTheme = (profileId?: string) => {
     );
   });
 
+  // Aplicar tema por perfil
   useEffect(() => {
     if (profileId && profileThemes[profileId]) {
-      setCurrentTheme(profileThemes[profileId]);
+      const baseTheme = profileThemes[profileId];
+      
+      // Se usar configuração centralizada, mesclar com cores do banco
+      if (useCentralizedConfig && config) {
+        const mergedTheme: ProfileTheme = {
+          ...baseTheme,
+          colors: {
+            ...baseTheme.colors,
+            // Sobrescrever com cores do banco quando disponíveis
+            primary: config.colors.primary || baseTheme.colors.primary,
+            secondary: config.colors.secondary || baseTheme.colors.secondary,
+            success: config.colors.success || baseTheme.colors.success,
+            warning: config.colors.warning || baseTheme.colors.warning,
+            error: config.colors.error || baseTheme.colors.error,
+            info: config.colors.info || baseTheme.colors.info,
+            // Adicionar cores de navegação e status
+            navigation: {
+              primary: config.colors.primary || baseTheme.colors.primary,
+              hover: config.colors.primary || baseTheme.colors.primary,
+              active: config.colors.primary || baseTheme.colors.primary,
+            },
+            status: {
+              success: config.colors.success || '#10B981',
+              warning: config.colors.warning || '#F59E0B',
+              error: config.colors.error || '#EF4444',
+              info: config.colors.info || '#3B82F6',
+            },
+          },
+        };
+        setCurrentTheme(mergedTheme);
+      } else {
+        setCurrentTheme(baseTheme);
+      }
     }
-  }, [profileId]);
+  }, [profileId, useCentralizedConfig, config, loading, error]);
 
   const updateTheme = (profileId: string) => {
     if (profileThemes[profileId]) {
@@ -236,9 +290,44 @@ export const useTheme = (profileId?: string) => {
     }
   };
 
+  // Retornar estrutura compatível com useCentralizedColors para facilitar migração
+  const colors = {
+    ...currentTheme.colors,
+    // Estrutura compatível com geofencingColors
+    text: {
+      primary: currentTheme.colors.text,
+      secondary: currentTheme.colors.textSecondary,
+      dark: currentTheme.colors.text,
+      medium: currentTheme.colors.textSecondary,
+      light: currentTheme.colors.textSecondary,
+    },
+    background: {
+      primary: currentTheme.colors.background,
+      secondary: currentTheme.colors.surface,
+    },
+    border: {
+      light: currentTheme.colors.border,
+      primary: currentTheme.colors.border,
+    },
+    navigation: currentTheme.colors.navigation || {
+      primary: currentTheme.colors.primary,
+      hover: currentTheme.colors.primary,
+      active: currentTheme.colors.primary,
+    },
+    status: currentTheme.colors.status || {
+      success: currentTheme.colors.success || '#10B981',
+      warning: currentTheme.colors.warning || '#F59E0B',
+      error: currentTheme.colors.error || '#EF4444',
+      info: currentTheme.colors.info || '#3B82F6',
+    },
+  };
+
   return {
     theme: currentTheme,
+    colors, // Estrutura compatível com useCentralizedColors
     updateTheme,
     availableThemes: Object.values(profileThemes),
+    loading,
+    error,
   };
 };

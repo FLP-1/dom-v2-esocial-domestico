@@ -1,4 +1,4 @@
-# 🔍 CONFIGURAÇÃO DE VALIDAÇÃO - PROJETO DOM v2
+# 🔍 CONFIGURAÇÃO DE VALIDAÇÃO - PROJETO DOM
 
 ## 🚨 **VALIDAÇÕES AUTOMÁTICAS OBRIGATÓRIAS**
 
@@ -249,6 +249,6 @@ jobs:
 ## ⚠️ **LEMBRE-SE: VALIDAÇÃO É OBRIGATÓRIA**
 
 Nenhum código pode ser commitado, pushed ou deployado sem passar por todas as validações.
-O objetivo é manter a qualidade e consistência do projeto DOM v2.
+O objetivo é manter a qualidade e consistência do projeto DOM.
 
 **"A qualidade nunca é um acidente. É sempre o resultado de esforço inteligente."** - John Ruskin

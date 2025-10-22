@@ -1,9 +1,19 @@
 import AccessibleEmoji from '../components/AccessibleEmoji';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback, memo } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled from 'styled-components';
+import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
+
+const PendingApprovalContainer = styled.div`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+  cursor: pointer;
+`;
 import FilterSection from '../components/FilterSection';
 import { FormGroup, Input, Label, Select } from '../components/FormComponents';
 import PageContainer from '../components/PageContainer';
@@ -11,9 +21,50 @@ import PageHeader from '../components/PageHeader';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
+import PendingApprovalModal from '../components/PendingApprovalModal';
+import PendingActionIcon from '../components/PendingActionIcon';
+import PendingRecordsList from '../components/PendingRecordsList';
+import NetworkDebugInfo from '../components/NetworkDebugInfo';
+import GeofencingModal from '../components/GeofencingModal';
 import { UnifiedButton, UnifiedModal, UnifiedCard } from '../components/unified';
 import { useGeolocationContext } from '../contexts/GeolocationContext';
+import { useAutoGeolocation } from '../hooks/useAutoGeolocation';
+import { useTimeClockNotifications } from '../hooks/useTimeClockNotifications';
+import { useNetworkFingerprinting } from '../hooks/useNetworkFingerprinting';
+import { useNetworkDetection } from '../hooks/useNetworkDetection';
 // import { useGeolocation } from '../hooks/useGeolocation'; // Removido - usando apenas nos componentes
+
+// ✅ Função para obter IP do cliente via WebRTC
+const getClientIP = async (): Promise<string> => {
+  try {
+    // Usar WebRTC para obter IP local (não funciona em todos os navegadores)
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        pc.close();
+        resolve('unknown');
+      }, 3000);
+      
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          const candidate = event.candidate.candidate;
+          const ipMatch = candidate.match(/([0-9]{1,3}(\.[0-9]{1,3}){3})/);
+          if (ipMatch && ipMatch[1] !== '127.0.0.1') {
+            clearTimeout(timeout);
+            pc.close();
+            resolve(ipMatch[1]);
+          }
+        }
+      };
+      
+      pc.createDataChannel('');
+      pc.createOffer().then(offer => pc.setLocalDescription(offer));
+    });
+  } catch (error) {
+    return 'unknown';
+  }
+};
 import { getEmpresaConfig, getDefaultPassword } from '../lib/configService';
 import {
   OptimizedFormRow,
@@ -45,18 +96,18 @@ const CurrentTimeDisplay = styled.div`
   margin-bottom: 2rem;
 `;
 
-const CurrentTime = styled.h1`
+const CurrentTime = styled.h1<{ $theme: any }>`
   font-family: 'Montserrat', sans-serif;
   font-size: 3rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.$theme.colors.text.dark};
   margin: 0 0 0.5rem 0;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 `;
 
-const CurrentDate = styled.p`
+const CurrentDate = styled.p<{ $theme: any }>`
   font-size: 1.25rem;
-  color: #7f8c8d;
+  color: ${props => props.$theme.colors.text.light};
   margin: 0;
   font-weight: 500;
 `;
@@ -79,9 +130,9 @@ const OfficialScheduleCard = styled.div<{ $theme: any }>`
   margin-bottom: 2rem;
 `;
 
-const ScheduleTitle = styled.h3`
+const ScheduleTitle = styled.h3<{ $theme: any }>`
   margin: 0 0 1rem 0;
-  color: #2c3e50;
+  color: ${props => props.$theme.colors.text.dark};
   font-size: 1.2rem;
   font-weight: 600;
   display: flex;
@@ -101,9 +152,9 @@ const ScheduleItem = styled.div`
   }
 `;
 
-const ScheduleLabel = styled.span`
+const ScheduleLabel = styled.span<{ $theme: any }>`
   font-size: 0.9rem;
-  color: #7f8c8d;
+  color: ${props => props.$theme.colors.text.light};
   font-weight: 500;
 `;
 
@@ -123,9 +174,9 @@ const HistorySection = styled.div<{ $theme: any }>`
   border: 1px solid ${props => props.$theme.colors.primary}20;
 `;
 
-const SectionTitle = styled.h3`
+const SectionTitle = styled.h3<{ $theme: any }>`
   margin: 0 0 1.5rem 0;
-  color: #2c3e50;
+  color: ${props => props.$theme.colors.text.dark};
   font-size: 1.3rem;
   font-weight: 600;
   display: flex;
@@ -133,10 +184,10 @@ const SectionTitle = styled.h3`
   gap: 0.5rem;
 `;
 
-const EmptyState = styled.div`
+const EmptyState = styled.div<{ $theme: any }>`
   text-align: center;
   padding: 3rem;
-  color: #7f8c8d;
+  color: ${props => props.$theme.colors.text.light};
 
   .empty-icon {
     font-size: 4rem;
@@ -146,7 +197,7 @@ const EmptyState = styled.div`
   .empty-title {
     margin: 0 0 0.5rem 0;
     font-size: 1.25rem;
-    color: #2c3e50;
+    color: ${props => props.$theme.colors.text.dark};
   }
 
   .empty-description {
@@ -190,10 +241,13 @@ interface TimeClockHistory extends DataListItem {
 
 export default function TimeClock() {
   const router = useRouter();
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<'overtime' | 'document'>('overtime');
+  const [pendingApprovalOpen, setPendingApprovalOpen] = useState(false);
   
   // Estados dos dados do usuário
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -204,11 +258,11 @@ export default function TimeClock() {
   const [payrollData, setPayrollData] = useState<any>(null);
   const [theme, setTheme] = useState({
     colors: {
-      primary: '#2E8B57',
-      secondary: '#4682B4',
-      background: '#f8f9fa',
-      text: '#2c3e50',
-      shadow: 'rgba(0, 0, 0, 0.1)'
+      primary: theme.colors?.primary || '#2E8B57',
+      secondary: theme.colors?.secondary || '#4682B4',
+      background: theme.colors?.background || '#f8f9fa',
+      text: theme.colors?.text?.primary || '#2c3e50',
+      shadow: 'rgba(0, 0, 0, 0.1)' // Cor específica para tema padrão
     }
   });
 
@@ -216,12 +270,28 @@ export default function TimeClock() {
   const [timeRecords, setTimeRecords] = useState<TimeRecord[]>([]);
   const [overtimeRequests, setOvertimeRequests] = useState<OvertimeRequest[]>([]);
   const [historyRecords, setHistoryRecords] = useState<TimeClockHistory[]>([]);
-  const [pendingCount, setPendingCount] = useState<number>(0);
-  const [pendingItems, setPendingItems] = useState<any[]>([]);
   const [overrideModalOpen, setOverrideModalOpen] = useState(false);
   const [overrideJustification, setOverrideJustification] = useState('');
   const [overrideDraft, setOverrideDraft] = useState<{ data: any; type: TimeRecord['type'] } | null>(null);
-  const { setLastCaptureStatus } = useGeolocationContext();
+  
+  // Estados para modal de geofencing
+  const [geofencingModalOpen, setGeofencingModalOpen] = useState(false);
+  const [geofencingData, setGeofencingData] = useState<{
+    coordenadas: { latitude: number; longitude: number; precisao: number };
+    localMaisProximo: { nome: string; distancia: number } | null;
+    distanciaMinima: number;
+    endereco: string;
+  } | null>(null);
+  const { setLastCaptureStatus, setLastCaptureLocation } = useGeolocationContext();
+
+  // ✅ Integração com sistema de notificações centralizado
+  const {
+    unreadCount,
+    pendingApprovalCount,
+    overtimeRequestCount,
+    refreshNotifications,
+    markAsRead
+  } = useTimeClockNotifications();
 
   // Filtros
   const [filters, setFilters] = useState({
@@ -284,21 +354,21 @@ export default function TimeClock() {
           if (userResult.data.user.role === 'EMPREGADOR') {
             setTheme({
               colors: {
-                primary: '#2E8B57',
-                secondary: '#4682B4',
-                background: '#f8f9fa',
-                text: '#2c3e50',
-                shadow: 'rgba(0, 0, 0, 0.1)'
+                primary: '#2E8B57', // Cor específica para empregador
+                secondary: '#4682B4', // Cor específica para empregador
+                background: '#f8f9fa', // Cor específica para empregador
+                text: '#2c3e50', // Cor específica para empregador
+                shadow: 'rgba(0, 0, 0, 0.1)' // Cor específica para empregador
               }
             });
           } else if (userResult.data.user.role === 'EMPREGADO') {
             setTheme({
               colors: {
-                primary: '#29ABE2',
-                secondary: '#4682B4',
-                background: '#f8f9fa',
-                text: '#2c3e50',
-                shadow: 'rgba(0, 0, 0, 0.1)'
+                primary: '#29ABE2', // Cor específica para empregado
+                secondary: '#4682B4', // Cor específica para empregado
+                background: '#f8f9fa', // Cor específica para empregado
+                text: '#2c3e50', // Cor específica para empregado
+                shadow: 'rgba(0, 0, 0, 0.1)' // Cor específica para empregado
               }
             });
           }
@@ -334,11 +404,9 @@ export default function TimeClock() {
         if (response.ok) {
           const result = await response.json();
           const now = new Date();
-          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
           const todays = (result.data as any[])
             .map(r => ({ ...r, dt: new Date(r.dataHora) }))
-            .filter(r => r.dt >= start && r.dt < end)
+            .filter(r => r.dt.toDateString() === now.toDateString())
             .sort((a, b) => a.dt.getTime() - b.dt.getTime());
           const formattedRecords: TimeRecord[] = todays.map((record: any) => ({
             id: record.id,
@@ -349,6 +417,9 @@ export default function TimeClock() {
             timestamp: record.dt,
           }));
           setTimeRecords(formattedRecords);
+          
+          // ✅ NÃO inicializar automaticamente com último registro para evitar endereços antigos
+          // A geolocalização será capturada automaticamente pelo useAutoGeolocation
         }
       } catch (error) {
         console.error('Erro ao carregar registros:', error);
@@ -356,7 +427,7 @@ export default function TimeClock() {
     };
 
     loadRecords();
-  }, []);
+  }, [setLastCaptureLocation]);
 
   // Carregar pendências
   useEffect(() => {
@@ -368,15 +439,36 @@ export default function TimeClock() {
         ]);
         if (cnt.ok) {
           const cdata = await cnt.json();
-          setPendingCount(cdata.data?.total ?? 0);
+          // Contagem de pendentes carregada
         }
         if (list.ok) {
           const ldata = await list.json();
-          setPendingItems(ldata.data ?? []);
+          // Lista de pendentes carregada
         }
       } catch {}
     };
     loadPending();
+  }, []);
+
+  // Listener para evento de geofencing
+  useEffect(() => {
+    const handleGeofencingEvent = (event: CustomEvent) => {
+      const { coordenadas, localMaisProximo, distanciaMinima, endereco } = event.detail;
+      
+      setGeofencingData({
+        coordenadas,
+        localMaisProximo,
+        distanciaMinima,
+        endereco
+      });
+      setGeofencingModalOpen(true);
+    };
+
+    window.addEventListener('geofencing-requer-aprovacao', handleGeofencingEvent as EventListener);
+    
+    return () => {
+      window.removeEventListener('geofencing-requer-aprovacao', handleGeofencingEvent as EventListener);
+    };
   }, []);
 
   // Carregar solicitações de hora extra
@@ -408,10 +500,13 @@ export default function TimeClock() {
     loadOvertime();
   }, [currentUser]);
 
-  // Atualizar relógio a cada segundo
+  // Atualizar relógio a cada segundo (otimizado para evitar reflows)
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentTime(new Date());
+      // Usar requestAnimationFrame para evitar forced reflow
+      requestAnimationFrame(() => {
+        setCurrentTime(new Date());
+      });
     }, 1000);
 
     return () => clearInterval(timer);
@@ -420,9 +515,32 @@ export default function TimeClock() {
   // Hook centralizado para geolocalização e WiFi (removido - usando apenas nos componentes)
   // const { location, wifiName, captureRealTimeLocation } = useGeolocation();
 
+  // ❌ TEMPORARIAMENTE DESABILITADO - Causando loop infinito
+  // useAutoGeolocation({
+  //   intervalMinutes: 2, // Capturar a cada 2 minutos para teste
+  //   captureOnRouteChange: false, // Desabilitado para evitar loops
+  //   enableLogging: true // Habilitado temporariamente para debug
+  // });
+
+  // ✅ Sistema de fingerprinting de rede para antifraude
+  const {
+    fingerprint: networkFingerprint,
+    analysis: networkAnalysis,
+    loading: networkLoading,
+    error: networkError,
+    isFraudDetected,
+    riskLevel
+  } = useNetworkFingerprinting(true);
+
+  // ✅ Detecção de rede unificada (inclui SSID real)
+  const networkDetection = useNetworkDetection({ 
+    enableLogging: false, // ✅ Desabilitado para evitar spam no console
+    enableRealSSID: false // ✅ Desabilitado para evitar loop infinito
+  });
+
 
   // Lógica para determinar o próximo registro possível
-  const getNextAvailableRecord = (): TimeRecord['type'] | null => {
+  const getNextAvailableRecord = useCallback((): TimeRecord['type'] | null => {
     const lastRecord = timeRecords[timeRecords.length - 1];
     
     if (!lastRecord) return 'entrada';
@@ -443,17 +561,17 @@ export default function TimeClock() {
       default:
         return null;
     }
-  };
+  }, [timeRecords]);
 
   // Verificar se pode registrar hora extra
-  const canRequestOvertime = (): boolean => {
+  const canRequestOvertime = useCallback((): boolean => {
     const lastRecord = timeRecords[timeRecords.length - 1];
     return lastRecord?.type === 'saida';
-  };
+  }, [timeRecords]);
 
 
-  // Handler para registrar ponto
-  const handleTimeRecord = async (locationData: any, type: TimeRecord['type']) => {
+  // Handler para registrar ponto (memoizado para evitar re-renders)
+  const handleTimeRecord = useCallback(async (locationData: any, type: TimeRecord['type']) => {
     try {
       // início do registro
       const controller = new AbortController();
@@ -471,6 +589,7 @@ export default function TimeClock() {
           longitude: locationData?.longitude,
           precisao: locationData?.accuracy,
           endereco: locationData?.address,
+          numeroEndereco: locationData?.addressComponents?.number || locationData?.addressComponents?.house_number,
           wifiName: locationData?.wifiName,
           overrideJustification: locationData?.overrideJustification,
           connectionType: locationData?.networkInfo?.connectionType,
@@ -478,7 +597,37 @@ export default function TimeClock() {
           downlink: locationData?.networkInfo?.downlink,
           rtt: locationData?.networkInfo?.rtt,
           userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
-          networkTimestamp: new Date().toISOString()
+          networkTimestamp: new Date().toISOString(),
+          // ✅ Adicionar campos obrigatórios para a API
+          grupoId: currentUser?.gruposUsuario?.[0]?.grupoId || null,
+          usuarioPerfilId: currentUser?.perfis?.find(p => p.principal)?.id || currentUser?.perfis?.[0]?.id || null,
+          // ✅ Adicionar IP do cliente (se disponível via WebRTC)
+          clientIP: await getClientIP(),
+          // ✅ Adicionar fingerprinting de rede para antifraude
+          networkFingerprint: networkFingerprint ? {
+            connectionType: networkFingerprint.connectionType,
+            effectiveType: networkFingerprint.effectiveType,
+            downlink: networkFingerprint.downlink,
+            rtt: networkFingerprint.rtt,
+            ipAddress: networkFingerprint.ipAddress,
+            timezone: networkFingerprint.timezone,
+            language: networkFingerprint.language,
+            platform: networkFingerprint.platform,
+            screenResolution: networkFingerprint.screenResolution,
+            sessionId: networkFingerprint.sessionId,
+            timestamp: networkFingerprint.timestamp,
+            // ✅ SSID real capturado do sistema operacional
+            realSSID: networkDetection.realSSID,
+            ssidPlatform: networkDetection.ssidPlatform
+          } : null,
+          // ✅ Adicionar análise de risco
+          riskAnalysis: networkAnalysis ? {
+            riskScore: networkAnalysis.riskScore,
+            confidence: networkAnalysis.confidence,
+            isFraud: networkAnalysis.riskScore > 70,
+            fraudConfidence: networkAnalysis.confidence,
+            anomalies: networkAnalysis.anomalies
+          } : null
         }),
         signal: controller.signal
       }).finally(() => clearTimeout(timer));
@@ -489,6 +638,18 @@ export default function TimeClock() {
           const data = await response.json();
           if (data?.error) message = data.error;
         } catch {}
+
+        // ✅ Sempre atualizar contexto de geolocalização, mesmo em caso de erro
+        if (locationData && setLastCaptureLocation) {
+          setLastCaptureLocation({
+            latitude: locationData.latitude,
+            longitude: locationData.longitude,
+            accuracy: locationData.accuracy,
+            address: locationData.address,
+            wifiName: locationData.wifiName,
+            timestamp: new Date()
+          });
+        }
 
         if (response.status === 409) {
           // Duplicidade do mesmo tipo no dia
@@ -518,6 +679,19 @@ export default function TimeClock() {
 
       const result = await response.json();
       setLastCaptureStatus && setLastCaptureStatus({ pending: false, approved: true, imprecise: false, serverRecordId: result?.data?.id });
+      
+      // ✅ Atualizar contexto de geolocalização com dados do registro
+      if (locationData && setLastCaptureLocation) {
+        setLastCaptureLocation({
+          latitude: locationData.latitude,
+          longitude: locationData.longitude,
+          accuracy: locationData.accuracy,
+          address: locationData.address,
+          wifiName: locationData.wifiName,
+          timestamp: new Date()
+        });
+      }
+      
       const now = new Date();
       const timeString = now.toLocaleTimeString('pt-BR', {
         hour: '2-digit',
@@ -545,11 +719,9 @@ export default function TimeClock() {
         if (refresh.ok) {
           const server = await refresh.json();
           const now = new Date();
-          const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-          const end = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
           const todays: any[] = (server.data as any[])
             .map(r => ({ ...r, dt: new Date(r.dataHora) }))
-            .filter(r => r.dt >= start && r.dt < end)
+            .filter(r => r.dt.toDateString() === now.toDateString())
             .sort((a, b) => a.dt.getTime() - b.dt.getTime());
           const formatted: TimeRecord[] = todays.map((record: any) => ({
             id: record.id,
@@ -569,7 +741,7 @@ export default function TimeClock() {
         autoClose: 3000,
       });
     }
-  };
+  }, [currentUser, setLastCaptureStatus, setLastCaptureLocation, networkAnalysis, networkDetection.realSSID, networkDetection.ssidPlatform, networkFingerprint]);
 
   // Handler para solicitar hora extra (POST)
   const handleOvertimeRequest = async (request: OvertimeRequest) => {
@@ -642,6 +814,68 @@ export default function TimeClock() {
     // Simular transferência
     await new Promise(resolve => setTimeout(resolve, 2000));
     toast.success('Dados transferidos para folha de pagamento com sucesso!');
+  };
+
+  // Handlers para modal de geofencing
+  const handleGeofencingApprove = async (justificativa: string) => {
+    try {
+      // Registrar ponto com justificativa de geofencing
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      
+      const response = await fetch('/api/time-clock/registrar', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tipo: 'ENTRADA', // ou determinar tipo baseado nos registros existentes
+          latitude: geofencingData?.coordenadas.latitude,
+          longitude: geofencingData?.coordenadas.longitude,
+          precisao: geofencingData?.coordenadas.precisao,
+          endereco: geofencingData?.endereco || 'Endereço indisponível',
+          wifiName: networkDetection.realSSID || 'WiFi não detectado',
+          justificativaGeofencing: justificativa,
+          requerAprovacao: true
+        }),
+      });
+
+      if (response.ok) {
+        toast.success(`Ponto registrado com justificativa: ${timeString}`, {
+          position: 'top-center',
+          autoClose: 3000,
+        });
+        
+        // Recarregar registros
+        const refresh = await fetch('/api/time-clock/records');
+        if (refresh.ok) {
+          const server = await refresh.json();
+          const now = new Date();
+          const todays: any[] = (server.data as any[])
+            .map(r => ({ ...r, dt: new Date(r.dataHora) }))
+            .filter(r => r.dt.toDateString() === now.toDateString())
+            .sort((a, b) => a.dt.getTime() - b.dt.getTime());
+          const formatted: TimeRecord[] = todays.map((record: any) => ({
+            id: record.id,
+            type: record.tipo,
+            time: record.dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            location: record.enderecoCompleto || record.endereco || 'Local não informado',
+            wifi: record.nomeRedeWiFi || 'WiFi não detectado',
+            timestamp: record.dt,
+          }));
+          setTimeRecords(formatted);
+        }
+      } else {
+        throw new Error('Erro ao registrar ponto');
+      }
+    } catch (error: any) {
+      toast.error('Erro ao registrar ponto com justificativa: ' + (error?.message || 'Erro desconhecido'));
+    }
+  };
+
+  const handleGeofencingClose = () => {
+    setGeofencingModalOpen(false);
+    setGeofencingData(null);
   };
 
   // Dados para transferência de folha (agora carregados do banco via estado payrollData)
@@ -742,7 +976,57 @@ export default function TimeClock() {
     },
   ];
 
-  const nextAvailableRecord = getNextAvailableRecord();
+  const nextAvailableRecord = useMemo(() => getNextAvailableRecord(), [getNextAvailableRecord]);
+
+  // Memoizar os cards de registro para evitar re-renders desnecessários
+  const timeRecordCards = useMemo(() => (
+    <>
+      <TimeRecordCard
+        record={{ id: 'entrada', type: 'entrada', time: timeRecords.find(r => r.type === 'entrada')?.time }}
+        theme={theme}
+        onClick={(locationData) => handleTimeRecord(locationData, 'entrada')}
+        isDisabled={nextAvailableRecord !== 'entrada'}
+      />
+      
+      <TimeRecordCard
+        record={{ id: 'saida_almoco', type: 'saida_almoco', time: timeRecords.find(r => r.type === 'saida_almoco')?.time }}
+        theme={theme}
+        onClick={(locationData) => handleTimeRecord(locationData, 'saida_almoco')}
+        isDisabled={nextAvailableRecord !== 'saida_almoco'}
+      />
+      
+      <TimeRecordCard
+        record={{ id: 'retorno_almoco', type: 'retorno_almoco', time: timeRecords.find(r => r.type === 'retorno_almoco')?.time }}
+        theme={theme}
+        onClick={(locationData) => handleTimeRecord(locationData, 'retorno_almoco')}
+        isDisabled={nextAvailableRecord !== 'retorno_almoco'}
+      />
+      
+      <TimeRecordCard
+        record={{ id: 'saida', type: 'saida', time: timeRecords.find(r => r.type === 'saida')?.time }}
+        theme={theme}
+        onClick={(locationData) => handleTimeRecord(locationData, 'saida')}
+        isDisabled={nextAvailableRecord !== 'saida'}
+      />
+      
+      <TimeRecordCard
+        record={{ id: 'inicio_extra', type: 'inicio_extra', time: timeRecords.find(r => r.type === 'inicio_extra')?.time }}
+        theme={theme}
+        onClick={() => {
+          setModalType('overtime');
+          setModalOpen(true);
+        }}
+        isDisabled={!canRequestOvertime()}
+      />
+      
+      <TimeRecordCard
+        record={{ id: 'fim_extra', type: 'fim_extra', time: timeRecords.find(r => r.type === 'fim_extra')?.time }}
+        theme={theme}
+        onClick={(locationData) => handleTimeRecord(locationData, 'fim_extra')}
+        isDisabled={nextAvailableRecord !== 'fim_extra'}
+      />
+    </>
+  ), [timeRecords, theme, handleTimeRecord, nextAvailableRecord, canRequestOvertime]);
 
   return (
     <PageContainer $theme={theme} sidebarCollapsed={sidebarCollapsed}>
@@ -758,11 +1042,26 @@ export default function TimeClock() {
           userAvatar={currentUser?.avatar || 'U'}
           userName={currentUser?.nomeCompleto || 'Usuário'}
           userRole={currentUser?.role || 'Usuário'}
-          notificationCount={overtimeRequests.filter(r => r.status === 'pending').length}
+          notificationCount={unreadCount}
           onNotificationClick={() =>
             toast.info('Notificações em desenvolvimento')
           }
         />
+
+        {/* Ícone de Aprovação de Registros Pendentes */}
+        {pendingApprovalCount > 0 && (
+          <PendingApprovalContainer>
+            <PendingActionIcon
+              count={pendingApprovalCount}
+              variant="warning"
+              size="large"
+              onClick={() => setPendingApprovalOpen(true)}
+              title={`Aprovar Registros Pendentes (${pendingApprovalCount})`}
+              icon="⏳"
+              badgeVariant="error"
+            />
+          </PendingApprovalContainer>
+        )}
       </TopBar>
 
       <PageHeader
@@ -793,50 +1092,7 @@ export default function TimeClock() {
 
         {/* Cards de Registro de Horários */}
         <TimeRecordsGrid>
-          <TimeRecordCard
-            record={{ id: 'entrada', type: 'entrada', time: timeRecords.find(r => r.type === 'entrada')?.time }}
-            theme={theme}
-            onClick={(locationData) => handleTimeRecord(locationData, 'entrada')}
-            isDisabled={nextAvailableRecord !== 'entrada'}
-          />
-          
-          <TimeRecordCard
-            record={{ id: 'saida_almoco', type: 'saida_almoco', time: timeRecords.find(r => r.type === 'saida_almoco')?.time }}
-            theme={theme}
-            onClick={(locationData) => handleTimeRecord(locationData, 'saida_almoco')}
-            isDisabled={nextAvailableRecord !== 'saida_almoco'}
-          />
-          
-          <TimeRecordCard
-            record={{ id: 'retorno_almoco', type: 'retorno_almoco', time: timeRecords.find(r => r.type === 'retorno_almoco')?.time }}
-            theme={theme}
-            onClick={(locationData) => handleTimeRecord(locationData, 'retorno_almoco')}
-            isDisabled={nextAvailableRecord !== 'retorno_almoco'}
-          />
-          
-          <TimeRecordCard
-            record={{ id: 'saida', type: 'saida', time: timeRecords.find(r => r.type === 'saida')?.time }}
-            theme={theme}
-            onClick={(locationData) => handleTimeRecord(locationData, 'saida')}
-            isDisabled={nextAvailableRecord !== 'saida'}
-          />
-          
-          <TimeRecordCard
-            record={{ id: 'inicio_extra', type: 'inicio_extra', time: timeRecords.find(r => r.type === 'inicio_extra')?.time }}
-            theme={theme}
-            onClick={() => {
-              setModalType('overtime');
-              setModalOpen(true);
-            }}
-            isDisabled={!canRequestOvertime()}
-          />
-          
-          <TimeRecordCard
-            record={{ id: 'fim_extra', type: 'fim_extra', time: timeRecords.find(r => r.type === 'fim_extra')?.time }}
-            theme={theme}
-            onClick={(locationData) => handleTimeRecord(locationData, 'fim_extra')}
-            isDisabled={nextAvailableRecord !== 'fim_extra'}
-          />
+          {timeRecordCards}
         </TimeRecordsGrid>
       </TimeClockSection>
 
@@ -935,7 +1191,7 @@ export default function TimeClock() {
             <Select
               $theme={theme}
               id='filter-type'
-              title="Selecione o tipo de registro"
+              title='Selecionar tipo de registro'
               value={filters.type}
               onChange={(e) =>
                 setFilters(prev => ({ ...prev, type: e.target.value }))
@@ -988,33 +1244,11 @@ export default function TimeClock() {
         )}
       </HistorySection>
 
-      {/* Pendências de Aprovação */}
-      <HistorySection $theme={theme}>
-        <SectionTitle>
-          <AccessibleEmoji emoji="🕒" label="Pendências" />
-          Registros Pendentes para Aprovação ({pendingCount})
-        </SectionTitle>
-        {pendingItems.length === 0 ? (
-          <EmptyState>
-            <div className="empty-icon">
-              <AccessibleEmoji emoji="✅" label="Vazio" />
-            </div>
-            <div className="empty-title">Sem pendências no momento</div>
-          </EmptyState>
-        ) : (
-          <DataList
-            theme={theme}
-            items={pendingItems}
-            columns={pendingColumns}
-            actions={[]}
-            emptyMessage="Nenhuma pendência encontrada."
-            variant="detailed"
-            showHeader={true}
-            striped={true}
-            hoverable={true}
-          />
-        )}
-      </HistorySection>
+      {/* DEBUG: Dados de Rede Capturados Automaticamente */}
+      <NetworkDebugInfo />
+
+      {/* Lista de Registros Pendentes */}
+      <PendingRecordsList theme={theme} />
 
       {/* Solicitações de Hora Extra */}
       <HistorySection $theme={theme}>
@@ -1088,6 +1322,19 @@ export default function TimeClock() {
         theme={theme}
       />
 
+      {/* Modal de Geofencing */}
+      {geofencingData && (
+        <GeofencingModal
+          isOpen={geofencingModalOpen}
+          onClose={handleGeofencingClose}
+          onApprove={handleGeofencingApprove}
+          coordenadas={geofencingData.coordenadas}
+          localMaisProximo={geofencingData.localMaisProximo}
+          distanciaMinima={geofencingData.distanciaMinima}
+          endereco={geofencingData.endereco}
+        />
+      )}
+
       <ToastContainer
         position='top-center'
         autoClose={3000}
@@ -1099,6 +1346,19 @@ export default function TimeClock() {
         draggable
         pauseOnHover
         theme='light'
+      />
+
+      {/* Modal de Aprovação de Registros Pendentes */}
+      <PendingApprovalModal
+        isOpen={pendingApprovalOpen}
+        onClose={() => setPendingApprovalOpen(false)}
+        onApprovalComplete={() => {
+          // ✅ Recarregar notificações após aprovação
+          refreshNotifications();
+          // Recarregar registros se necessário
+          // loadTimeRecords(); // Função não implementada
+        }}
+        theme={theme}
       />
     </PageContainer>
   );

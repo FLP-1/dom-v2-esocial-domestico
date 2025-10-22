@@ -1,6 +1,6 @@
 # ============================================
 # 🌱 SCRIPT PARA POPULAR O BANCO DE DADOS
-# Sistema DOM v2.2.1
+# Sistema DOM
 # ============================================
 
 Write-Host ""
@@ -19,6 +19,7 @@ Write-Host ""
 
 # Executar o seed
 $env:DATABASE_URL = "postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public"
+Write-Host "   🔗 DATABASE_URL: $env:DATABASE_URL" -ForegroundColor Gray
 npx tsx prisma/seed.ts
 
 if ($LASTEXITCODE -eq 0) {

@@ -272,6 +272,6 @@ psql -h localhost -p 5433 -U postgres -d dom -c "\dt" 2>&1 | Select-String "usua
 ---
 
 **Última atualização:** 02/10/2025  
-**Versão:** DOM v2.2.1  
+**Versão:** DOM v1.0.0  
 **Banco:** PostgreSQL 18 - Porta 5433
 

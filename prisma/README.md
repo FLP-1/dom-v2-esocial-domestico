@@ -1,4 +1,4 @@
-# 🗄️ Prisma - Sistema DOM v2.2.1
+# 🗄️ Prisma - Sistema DOM
 
 Estrutura de dados robusta para PostgreSQL com compliance total à LGPD.
 
@@ -437,7 +437,7 @@ const usuarios = await prisma.usuario.findMany()
 
 ---
 
-**Versão:** 2.2.1  
+**Versão:** 1.0.0  
 **Última Atualização:** 2024  
 **Autor:** Sistema DOM
 

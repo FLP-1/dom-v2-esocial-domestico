@@ -675,7 +675,7 @@ export default function DocumentManagement() {
               <option value=''>Todas as categorias</option>
               {categories.map(category => (
                 <option key={category.id} value={category.name}>
-                  {category.icon} {category.name}
+                  {category.name}
                 </option>
               ))}
             </Select>
@@ -821,7 +821,7 @@ export default function DocumentManagement() {
                   <option value=''>Selecionar categoria</option>
                   {categories.map(category => (
                     <option key={category.id} value={category.name}>
-                      {category.icon} {category.name}
+                      {category.name}
                     </option>
                   ))}
                 </Select>

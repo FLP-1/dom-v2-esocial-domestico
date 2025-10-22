@@ -20,6 +20,8 @@ import TopBar from '../components/TopBar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
+import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import {
   UnifiedButton,
   UnifiedModal,
@@ -37,26 +39,26 @@ const EmptyIcon = styled.div`
 `;
 
 const EmptyTitle = styled.h3`
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
 `;
 
 const EmptyDescription = styled.p`
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   font-size: 0.9rem;
   margin: 0;
 `;
 
 const SectionTitle = styled.h3`
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
 `;
 
 const SectionText = styled.p`
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   font-size: 0.9rem;
   margin: 0.25rem 0;
 `;
@@ -159,7 +161,7 @@ const SummarySection = styled.section<{ $theme: any }>`
 const SummaryTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -203,7 +205,7 @@ const SummaryCard = styled.div<{
         case 'info':
           return 'rgba(52, 152, 219, 0.3)';
         default:
-          return '#e0e0e0';
+          return props.theme?.colors?.border || '#e0e0e0';
       }
     }};
   transition: all 0.3s ease;
@@ -217,7 +219,7 @@ const SummaryCard = styled.div<{
 const SummaryCardTitle = styled.h3`
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 0.75rem 0;
   display: flex;
   align-items: center;
@@ -227,14 +229,14 @@ const SummaryCardTitle = styled.h3`
 const SummaryValue = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-family: 'Montserrat', sans-serif;
 `;
 
 const SummaryDetails = styled.div`
   margin-top: 0.75rem;
   font-size: 0.85rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
 `;
 
 const ChartSection = styled.div<{ $theme: any }>`
@@ -249,7 +251,7 @@ const ChartSection = styled.div<{ $theme: any }>`
 const ChartTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -300,7 +302,7 @@ const LegendItem = styled.div`
   gap: 0.75rem;
   margin-bottom: 0.75rem;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
 `;
 
 const LegendColor = styled.div<{ $color: string }>`
@@ -323,7 +325,7 @@ const DocumentsSection = styled.section<{ $theme: any }>`
 const DocumentsTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -345,13 +347,13 @@ const DocumentCard = styled.div<{
     ${props => {
       switch (props.$status) {
         case 'available':
-          return '#2ecc71';
+          return props.theme?.colors?.success || '#2ecc71';
         case 'processing':
-          return '#f39c12';
+          return props.theme?.colors?.warning || '#f39c12';
         case 'error':
-          return '#e74c3c';
+          return props.theme?.colors?.error || '#e74c3c';
         default:
-          return '#e0e0e0';
+          return props.theme?.colors?.border || '#e0e0e0';
       }
     }};
   transition: all 0.3s ease;
@@ -437,20 +439,20 @@ const DocumentInfo = styled.div`
 const DocumentTitle = styled.h3`
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 0.5rem 0;
 `;
 
 const DocumentPeriod = styled.div`
   font-size: 0.85rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   margin-bottom: 0.25rem;
 `;
 
 const DocumentAmount = styled.div`
   font-size: 1.1rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-family: 'Montserrat', sans-serif;
 `;
 
@@ -516,7 +518,7 @@ const PaymentSection = styled.section<{ $theme: any }>`
 const PaymentTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -564,13 +566,13 @@ const EmployeeInfo = styled.div`
 const EmployeeName = styled.div`
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin-bottom: 0.25rem;
 `;
 
 const EmployeeDetails = styled.div`
   font-size: 0.85rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
 `;
 
 const FormRow = styled.div`
@@ -583,7 +585,7 @@ const FormRow = styled.div`
 const EmptyState = styled.div`
   text-align: center;
   padding: 3rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
 
   .empty-icon {
     font-size: 4rem;
@@ -593,7 +595,7 @@ const EmptyState = styled.div`
   .empty-title {
     margin: 0 0 0.5rem 0;
     font-size: 1.25rem;
-    color: #2c3e50;
+    color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   }
 
   .empty-description {
@@ -613,12 +615,14 @@ const PDFViewer = styled.div<{ $theme: any }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   font-size: 0.9rem;
 `;
 
 export default function PayrollManagement() {
   const router = useRouter();
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setUnifiedModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] =

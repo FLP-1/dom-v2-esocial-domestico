@@ -1,30 +1,27 @@
+import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../../lib/prisma';
 import { generateToken } from '../../../lib/auth';
 import bcrypt from 'bcryptjs';
-import { logger } from '../../../utils/logger';
 
-export default async function handler(req, res) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
+      // Login iniciado
+      
       const { cpf, senha, locationData } = req.body;
+      // Dados recebidos para login
 
       if (!cpf || !senha) {
+        // CPF ou senha ausentes
         return res.status(400).json({ message: 'CPF e senha são obrigatórios' });
       }
 
       // Log da geolocalização recebida no login
       if (locationData) {
-        logger.auth('📍 Geolocalização recebida no login:', {
-          latitude: locationData.latitude,
-          longitude: locationData.longitude,
-          accuracy: locationData.accuracy,
-          address: locationData.address,
-          wifiName: locationData.wifiName,
-          timestamp: locationData.timestamp
-        });
+        // Geolocalização recebida no login
       }
 
-      // Buscar usuário pelo CPF
+      // Buscar usuário pelo CPF no banco
       const user = await prisma.usuario.findUnique({
         where: { cpf },
         include: {
@@ -33,35 +30,47 @@ export default async function handler(req, res) {
               perfil: true,
             },
           },
+          gruposUsuario: {
+            include: {
+              grupo: true,
+            },
+          },
         },
       });
 
       if (!user) {
+        // Usuário não encontrado
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
+      
+      // Usuário encontrado
 
-      // Verificar senha (está hasheada no banco com bcrypt)
+      // Verificar senha
+      // Verificando senha
       const isValidPassword = await bcrypt.compare(senha, user.senhaHash || '');
 
       if (!isValidPassword) {
+        // Senha inválida
         return res.status(401).json({ message: 'Credenciais inválidas' });
       }
-
-      // Determinar o perfil principal
-      const primaryProfile = user.perfis?.find(p => p.principal)?.perfil || user.perfis?.[0]?.perfil;
+      
+      // Senha válida
 
       // Validar se o usuário tem perfis
-      if (!primaryProfile) {
+      if (!user.perfis || user.perfis.length === 0) {
+        // Usuário sem perfis
         return res.status(400).json({ 
           message: 'Usuário sem perfis associados. Entre em contato com o administrador.' 
         });
       }
 
-      // Gerar token JWT
+      // Usuário tem perfis
+
+      // Gerar token JWT real
       const token = generateToken({
         userId: user.id,
         email: user.email,
-        role: primaryProfile.codigo,
+        role: 'LOGIN' // Role temporário até escolher perfil
       });
 
       // Definir cookie seguro
@@ -69,7 +78,7 @@ export default async function handler(req, res) {
         `token=${token}; HttpOnly; Path=/; Max-Age=86400; SameSite=Strict; ${process.env.NODE_ENV === 'production' ? 'Secure' : ''}`,
       ]);
 
-      // Preparar dados do usuário com perfis no formato esperado pelo frontend
+      // Preparar dados do usuário com perfis para o modal
       const userProfiles = user.perfis?.map(up => ({
         id: up.id,
         usuarioId: up.usuarioId,
@@ -95,22 +104,39 @@ export default async function handler(req, res) {
         }
       })) || [];
 
+      // Preparar dados dos grupos do usuário
+      const userGroups = user.gruposUsuario?.map(ug => ({
+        id: ug.grupo.id,
+        nome: ug.grupo.nome,
+        descricao: ug.grupo.descricao,
+        cor: ug.grupo.cor,
+        icone: ug.grupo.icone,
+        tipo: ug.grupo.tipo,
+        privado: ug.grupo.privado,
+        ativo: ug.grupo.ativo,
+        papel: ug.papel
+      })) || [];
+
+
       res.status(200).json({
         success: true,
         message: 'Login realizado com sucesso',
-        data: userProfiles,
+        data: {
+          userProfiles,
+          userGroups
+        },
         user: {
           id: user.id,
           email: user.email,
           nomeCompleto: user.nomeCompleto,
           apelido: user.apelido,
-          role: primaryProfile.codigo,
           avatar: user.apelido?.substring(0, 2).toUpperCase() || user.nomeCompleto?.substring(0, 2).toUpperCase() || 'U',
         },
         token,
       });
+
     } catch (error) {
-      console.error('Erro no login:', error);
+      console.error('❌ Erro no login:', error);
       res.status(500).json({ message: 'Erro interno do servidor' });
     }
   } else {

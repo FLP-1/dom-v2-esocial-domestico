@@ -1,4 +1,4 @@
-# 🌱 MASSA DE DADOS DE TESTE - Sistema DOM v2.2.1
+# 🌱 MASSA DE DADOS DE TESTE - Sistema DOM v1.0.0
 
 ## ✅ SEED CRIADO COM SUCESSO!
 
@@ -318,6 +318,6 @@ Se retornar 0, execute o seed novamente.
 ---
 
 **Criado em:** 02/10/2025  
-**Versão do Sistema:** DOM v2.2.1  
+**Versão do Sistema:** DOM v1.0.0  
 **PostgreSQL:** Versão 18 - Porta 5433
 

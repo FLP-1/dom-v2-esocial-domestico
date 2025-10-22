@@ -1,6 +1,4 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
 
 export type ConfigType = 'string' | 'number' | 'boolean' | 'json';
 export type ConfigCategory = 'documento' | 'usuario' | 'sistema' | 'empresa';

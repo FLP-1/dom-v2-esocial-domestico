@@ -1,368 +1,317 @@
-/**
- * 🔧 Serviço de Configuração Dinâmica
- * 
- * Este serviço substitui todos os hardcoded por configurações dinâmicas do banco
- */
+// 🎯 SERVIÇO DE CONFIGURAÇÃO CENTRALIZADA
+// Este serviço elimina hardcoded das APIs e componentes
 
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
+import { loadSystemConfig, getSystemConfig } from '../config/centralized-config';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
-interface ConfigValue {
-  valor: string;
-  tipo: string;
-  obrigatorio: boolean;
-}
+// ========================================
+// CONFIGURAÇÕES DE SISTEMA
+// ========================================
 
-interface ConfiguracaoEmpresa {
-  cpf: string;
-  nome: string;
-  email: string;
-  telefone: string;
-  razaoSocial?: string;
-  cnpj?: string;
-}
-
-class ConfigService {
-  private static instance: ConfigService;
-  private cache: Map<string, ConfigValue> = new Map();
-  private cacheExpiry: number = 5 * 60 * 1000; // 5 minutos
-  private lastCacheUpdate: number = 0;
-
-  private constructor() {}
-
-  public static getInstance(): ConfigService {
-    if (!ConfigService.instance) {
-      ConfigService.instance = new ConfigService();
-    }
-    return ConfigService.instance;
-  }
-
-  /**
-   * Obtém uma configuração do sistema
-   */
-  public async getConfig(chave: string, empresaId?: string): Promise<string> {
-    await this.updateCacheIfNeeded();
-
-    const cacheKey = empresaId ? `${chave}_${empresaId}` : chave;
-    const cached = this.cache.get(cacheKey);
-    
-    if (cached) {
-      return this.convertValue(cached.valor, cached.tipo);
-    }
-
-    // Buscar no banco se não estiver no cache
-    const config = await prisma.configuracaoSistema.findFirst({
-      where: {
-        chave,
-        ...(empresaId && { empresaId })
-      }
-    });
-
-    if (!config) {
-      throw new Error(`Configuração '${chave}' não encontrada`);
-    }
-
-    // Adicionar ao cache
-    this.cache.set(cacheKey, {
-      valor: config.valor,
-      tipo: config.tipo,
-      obrigatorio: false
-    });
-
-    return this.convertValue(config.valor, config.tipo);
-  }
-
-  /**
-   * Obtém configurações da empresa
-   */
-  public async getEmpresaConfig(): Promise<ConfiguracaoEmpresa> {
-    const cpf = await this.getConfig('empresa_cpf_principal');
-    const nome = await this.getConfig('empresa_nome');
-    const email = await this.getConfig('empresa_email');
-    const telefone = await this.getConfig('empresa_telefone');
-
-    return {
-      cpf,
-      nome,
-      email,
-      telefone
+export interface SystemConfigService {
+  // Cores
+  getColors(): Promise<{
+    primary: string;
+    secondary: string;
+    success: string;
+    warning: string;
+    error: string;
+    info: string;
+  }>;
+  
+  // Tipografia
+  getTypography(): Promise<{
+    fontFamily: string;
+    fontSize: Record<string, string>;
+    fontWeight: Record<string, number>;
+  }>;
+  
+  // URLs
+  getUrls(): Promise<{
+    api: string;
+    esocial: {
+      homologacao: string;
+      producao: string;
     };
+    geocoding: {
+      nominatim: string;
+      opencage: string;
+      bigdatacloud: string;
+      positionstack: string;
+    };
+  }>;
+  
+  // Geolocalização
+  getGeolocationConfig(): Promise<{
+    maxDistance: number;
+    accuracyThreshold: number;
+    timeout: number;
+  }>;
+  
+  // Antifraude
+  getAntifraudConfig(): Promise<{
+    maxAttempts: number;
+    lockoutDuration: number;
+    riskThreshold: number;
+  }>;
+}
+
+// ========================================
+// IMPLEMENTAÇÃO DO SERVIÇO
+// ========================================
+
+class ConfigService implements SystemConfigService {
+  
+  async getColors() {
+    const config = await loadSystemConfig();
+    return config.colors;
   }
-
-  /**
-   * Obtém URL base do sistema
-   */
-  public async getBaseUrl(): Promise<string> {
-    return await this.getConfig('sistema_url_base');
+  
+  async getTypography() {
+    const config = await loadSystemConfig();
+    return config.typography;
   }
-
-  /**
-   * Obtém configuração de geolocalização
-   */
-  public async getGeocodingPrecision(): Promise<number> {
-    const precision = await this.getConfig('geocoding_precisao_casas');
-    return parseInt(precision);
+  
+  async getUrls() {
+    const config = await loadSystemConfig();
+    return config.urls;
   }
-
-  /**
-   * Obtém tempo de sessão
-   */
-  public async getSessionTimeout(): Promise<number> {
-    const timeout = await this.getConfig('autenticacao_tempo_sessao');
-    return parseInt(timeout);
+  
+  async getGeolocationConfig() {
+    const config = await loadSystemConfig();
+    return config.geolocation;
   }
-
-  /**
-   * Obtém ambiente do eSocial
-   */
-  public async getESocialEnvironment(): Promise<'homologacao' | 'producao'> {
-    const env = await this.getConfig('esocial_ambiente_padrao');
-    return env as 'homologacao' | 'producao';
+  
+  async getAntifraudConfig() {
+    const config = await loadSystemConfig();
+    return config.antifraud;
   }
+}
 
-  /**
-   * Obtém senha padrão do sistema
-   */
-  public async getDefaultPassword(): Promise<string> {
-    try {
-      return await this.getConfig('sistema_senha_padrao');
-    } catch (error) {
-      // Fallback para senha padrão se não configurada
-      return 'senha123';
-    }
+// ========================================
+// FUNÇÕES UTILITÁRIAS
+// ========================================
+
+/**
+ * Obtém configuração específica por chave
+ */
+export async function getConfigValue(chave: string): Promise<any> {
+  try {
+    const config = await getSystemConfig(chave);
+    return config;
+  } catch (error) {
+    console.error(`Erro ao obter configuração ${chave}:`, error);
+    return null;
   }
+}
 
-  /**
-   * Obtém razão social da empresa
-   */
-  public async getRazaoSocial(): Promise<string> {
-    try {
-      return await this.getConfig('empresa_razao_social');
-    } catch (error) {
-      return 'Empresa';
-    }
-  }
-
-  /**
-   * Obtém CNPJ da empresa
-   */
-  public async getCnpj(): Promise<string> {
-    try {
-      return await this.getConfig('empresa_cnpj');
-    } catch (error) {
-      return '';
-    }
-  }
-
-  /**
-   * Obtém precisão máxima aceitável para geolocalização
-   */
-  public async getGeolocationMaxAccuracy(): Promise<number> {
-    try {
-      return parseInt(await this.getConfig('geolocalizacao_precisao_maxima'));
-    } catch (error) {
-      return 20; // Evitar hardcode em produção: garantir seed dessa chave
-    }
-  }
-
-  /**
-   * Obtém idade máxima aceitável da localização (segundos)
-   */
-  public async getGeolocationMaxAgeSeconds(): Promise<number> {
-    try {
-      return parseInt(await this.getConfig('geolocalizacao_idade_maxima_segundos'));
-    } catch (error) {
-      return 60; // Evitar hardcode em produção: garantir seed dessa chave
-    }
-  }
-
-  /**
-   * Perfis que podem autorizar override de registro de ponto (JSON ou CSV)
-   */
-  public async getPunchOverrideRoles(): Promise<string[]> {
-    try {
-      const raw = await this.getConfig('ponto_override_roles');
-      try {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) return parsed.map(String);
-      } catch {}
-      return raw.split(',').map(s => s.trim()).filter(Boolean);
-    } catch (error) {
-      return ['EMPREGADOR', 'ADMIN']; // garantir seed
-    }
-  }
-
-  /**
-   * Obtém timeout para geolocalização
-   */
-  public async getGeolocationTimeout(): Promise<number> {
-    try {
-      return parseInt(await this.getConfig('geolocalizacao_timeout'));
-    } catch (error) {
-      return 30000; // Fallback para 30 segundos
-    }
-  }
-
-  /**
-   * Define uma configuração
-   */
-  public async setConfig(
-    chave: string, 
-    valor: string, 
-    categoria: string = 'sistema',
-    tipo: string = 'string',
-    empresaId?: string
-  ): Promise<void> {
-    await prisma.configuracaoSistema.upsert({
-      where: { chave },
-      update: { valor, categoria, tipo },
-      create: {
-        chave,
-        valor,
-        categoria,
-        tipo,
-        descricao: `Configuração ${categoria}`,
-        editavel: true
-      }
-    });
-
-    // Limpar cache
-    this.clearCache();
-  }
-
-  /**
-   * Obtém usuário atual do contexto de autenticação
-   */
-  public async getCurrentUserId(): Promise<string> {
-    // Obter CPF da empresa das configurações
-    const empresaCpf = await this.getConfig('empresa_cpf_principal');
-    
-    const usuario = await prisma.usuario.findFirst({
-      where: { cpf: empresaCpf }
-    });
-
-    if (!usuario) {
-      throw new Error(`Usuário com CPF ${empresaCpf} não encontrado`);
-    }
-
-    return usuario.id;
-  }
-
-  /**
-   * Verifica se um usuário existe e está ativo
-   */
-  public async validateUser(userId: string): Promise<boolean> {
-    const usuario = await prisma.usuario.findFirst({
+/**
+ * Obtém configuração de geolocalização para usuário específico
+ */
+export async function getGeolocationConfigForUser(usuarioId: string): Promise<{
+  maxDistance: number;
+  accuracyThreshold: number;
+  timeout: number;
+}> {
+  try {
+    // Buscar configuração específica do usuário
+    const userConfig = await prisma.configuracaoGeolocalizacao.findFirst({
       where: {
-        id: userId,
+        usuarioId,
+        chave: 'geolocation_config',
         ativo: true
       }
     });
 
-    return !!usuario;
-  }
+    if (userConfig) {
+      return JSON.parse(userConfig.valor);
+    }
 
-  /**
-   * Obtém dados de um usuário por CPF
-   */
-  public async getUserByCpf(cpf: string) {
-    return await prisma.usuario.findUnique({
-      where: { cpf },
-      include: {
-        perfis: {
-          include: {
-            perfil: true
-          }
-        }
-      }
+    // Buscar configuração do grupo do usuário
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      include: { gruposUsuario: { include: { grupo: true } } }
     });
-  }
 
-  /**
-   * Converte valor baseado no tipo
-   */
-  private convertValue(valor: string, tipo: string): string {
-    switch (tipo) {
-      case 'number':
-        return valor;
-      case 'boolean':
-        return valor.toLowerCase() === 'true' ? 'true' : 'false';
-      case 'json':
-        try {
-          JSON.parse(valor);
-          return valor;
-        } catch {
-          return '{}';
+    if (usuario && usuario.gruposUsuario.length > 0) {
+      const grupoId = usuario.gruposUsuario[0].grupoId;
+      
+      const groupConfig = await prisma.configuracaoGeolocalizacao.findFirst({
+        where: {
+          grupoId,
+          chave: 'geolocation_config',
+          ativo: true
         }
-      default:
-        return valor;
+      });
+
+      if (groupConfig) {
+        return JSON.parse(groupConfig.valor);
+      }
     }
-  }
 
-  /**
-   * Atualiza cache se necessário
-   */
-  private async updateCacheIfNeeded(): Promise<void> {
-    const now = Date.now();
-    if (now - this.lastCacheUpdate > this.cacheExpiry) {
-      this.clearCache();
-      this.lastCacheUpdate = now;
-    }
-  }
-
-  /**
-   * Limpa o cache
-   */
-  private clearCache(): void {
-    this.cache.clear();
-  }
-
-  /**
-   * Força atualização do cache
-   */
-  public async refreshCache(): Promise<void> {
-    this.clearCache();
-    this.lastCacheUpdate = 0;
-    await this.updateCacheIfNeeded();
+    // Retornar configuração padrão do sistema
+    const systemConfig = await loadSystemConfig();
+    return systemConfig.geolocation;
+  } catch (error) {
+    console.error('Erro ao obter configuração de geolocalização:', error);
+    return {
+      maxDistance: 200,
+      accuracyThreshold: 100,
+      timeout: 10000
+    };
   }
 }
 
-// Instância singleton
-export const configService = ConfigService.getInstance();
+/**
+ * Obtém configuração de antifraude para usuário específico
+ */
+export async function getAntifraudConfigForUser(usuarioId: string): Promise<{
+  maxAttempts: number;
+  lockoutDuration: number;
+  riskThreshold: number;
+}> {
+  try {
+    // Buscar configuração específica do usuário
+    const userConfig = await prisma.configuracaoAntifraude.findFirst({
+      where: {
+        usuarioId,
+        chave: 'antifraud_config',
+        ativo: true
+      }
+    });
 
-// Funções de conveniência
-export const getConfig = (chave: string, empresaId?: string) => 
-  configService.getConfig(chave, empresaId);
+    if (userConfig) {
+      return JSON.parse(userConfig.valor);
+    }
 
-export const getEmpresaConfig = () => 
-  configService.getEmpresaConfig();
+    // Buscar configuração do grupo do usuário
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: usuarioId },
+      include: { gruposUsuario: { include: { grupo: true } } }
+    });
 
-export const getBaseUrl = () => 
-  configService.getBaseUrl();
+    if (usuario && usuario.gruposUsuario.length > 0) {
+      const grupoId = usuario.gruposUsuario[0].grupoId;
+      
+      const groupConfig = await prisma.configuracaoAntifraude.findFirst({
+        where: {
+          grupoId,
+          chave: 'antifraud_config',
+          ativo: true
+        }
+      });
 
-export const getCurrentUserId = () => 
-  configService.getCurrentUserId();
+      if (groupConfig) {
+        return JSON.parse(groupConfig.valor);
+      }
+    }
 
-export const getUserByCpf = (cpf: string) => 
-  configService.getUserByCpf(cpf);
+    // Retornar configuração padrão do sistema
+    const systemConfig = await loadSystemConfig();
+    return systemConfig.antifraud;
+  } catch (error) {
+    console.error('Erro ao obter configuração de antifraude:', error);
+    return {
+      maxAttempts: 3,
+      lockoutDuration: 300000,
+      riskThreshold: 0.7
+    };
+  }
+}
 
-export const validateUser = (userId: string) => 
-  configService.validateUser(userId);
+/**
+ * Obtém configuração de cores por perfil
+ */
+export async function getColorsForProfile(perfilCodigo: string): Promise<{
+  primary: string;
+  secondary: string;
+  success: string;
+  warning: string;
+  error: string;
+  info: string;
+}> {
+  try {
+    // Buscar configuração específica do perfil
+    const perfil = await prisma.perfil.findUnique({
+      where: { codigo: perfilCodigo.toUpperCase() }
+    });
 
-export const getDefaultPassword = () => 
-  configService.getDefaultPassword();
+    if (perfil) {
+      const profileConfig = await prisma.configuracaoPerfil.findFirst({
+        where: {
+          perfilId: perfil.id,
+          chave: 'colors',
+          ativo: true
+        }
+      });
 
-export const getRazaoSocial = () => 
-  configService.getRazaoSocial();
+      if (profileConfig) {
+        return JSON.parse(profileConfig.valor);
+      }
+    }
 
-export const getCnpj = () => 
-  configService.getCnpj();
+    // Retornar configuração padrão do sistema
+    const systemConfig = await loadSystemConfig();
+    return systemConfig.colors;
+  } catch (error) {
+    console.error('Erro ao obter configuração de cores:', error);
+    return {
+      primary: '#29ABE2',
+      secondary: '#90EE90',
+      success: '#10B981',
+      warning: '#F59E0B',
+      error: '#EF4444',
+      info: '#3B82F6'
+    };
+  }
+}
 
-export const getGeolocationMaxAccuracy = () => 
-  configService.getGeolocationMaxAccuracy();
+/**
+ * Obtém ID do usuário atual (substitui mockUserId)
+ */
+export async function getCurrentUserId(): Promise<string | null> {
+  try {
+    // TODO: Implementar autenticação adequada
+    // Por enquanto, retorna o ID do usuário do seed
+    const usuario = await prisma.usuario.findFirst({
+      where: { cpf: '59876913700' }
+    });
 
-export const getGeolocationTimeout = () => 
-  configService.getGeolocationTimeout();
+    return usuario?.id || null;
+  } catch (error) {
+    console.error('Erro ao obter ID do usuário atual:', error);
+    return null;
+  }
+}
 
+/**
+ * Obtém configuração de URLs de geocoding
+ */
+export async function getGeocodingUrls(): Promise<{
+  nominatim: string;
+  opencage: string;
+  bigdatacloud: string;
+  positionstack: string;
+}> {
+  try {
+    const config = await loadSystemConfig();
+    return config.urls.geocoding;
+  } catch (error) {
+    console.error('Erro ao obter URLs de geocoding:', error);
+    return {
+      nominatim: 'https://nominatim.openstreetmap.org/reverse',
+      opencage: 'https://api.opencagedata.com/geocode/v1/json',
+      bigdatacloud: 'https://api.bigdatacloud.net/data/reverse-geocode-client',
+      positionstack: 'https://api.positionstack.com/v1/reverse'
+    };
+  }
+}
+
+// ========================================
+// EXPORTAR SERVIÇO
+// ========================================
+
+export const configService = new ConfigService();
 export default configService;

@@ -215,7 +215,7 @@ npm run dev
 ---
 
 **Criado em:** 02/10/2025  
-**Sistema:** DOM v2.2.1  
+**Sistema:** DOM v1.0.0  
 **Banco:** PostgreSQL 18 - Porta 5433  
 **CPFs:** ✅ Todos validados e corretos!
 

@@ -1,10 +1,22 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { useGeolocation } from '../hooks/useGeolocation';
 
 export interface GeolocationData {
   latitude: number;
   longitude: number;
   accuracy: number;
   address?: string;
+  addressComponents?: {
+    street?: string;
+    road?: string;
+    number?: string;
+    house_number?: string;
+    neighborhood?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    postalCode?: string;
+  };
   wifiName?: string;
   networkInfo?: {
     connectionType?: string;
@@ -53,8 +65,11 @@ export const GeolocationProvider = ({ children }: { children: ReactNode }) => {
   const [lastLocation, setLastLocation] = useState<GeolocationData | null>(null);
   const [lastCaptureLocation, setLastCaptureLocation] = useState<GeolocationData | null>(null);
   const [lastCaptureStatus, setLastCaptureStatus] = useState<CaptureStatusMeta | null>(null);
+  
+  // ✅ Usar o novo hook de geolocalização
+  const { getCurrentPosition, location: currentLocation } = useGeolocation();
 
-  const updateLastLocationIfBetter = (location: GeolocationData) => {
+  const updateLastLocationIfBetter = useCallback((location: GeolocationData) => {
     // Não substituir se a nova precisão for pior que a atual
     if (lastLocation) {
       const isNewer = location.timestamp.getTime() >= lastLocation.timestamp.getTime();
@@ -71,7 +86,31 @@ export const GeolocationProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setLastLocation(location);
-  };
+  }, [lastLocation]);
+
+  // ✅ Geolocalização automática desabilitada - será solicitada apenas quando necessário
+  // useEffect(() => {
+  //   const captureLocation = async () => {
+  //     try {
+  //       await getCurrentPosition({
+  //         enableHighAccuracy: true,
+  //         timeout: 15000,
+  //         maximumAge: 300000
+  //       });
+  //     } catch (error) {
+  //       console.warn('Erro ao capturar localização inicial:', error);
+  //     }
+  //   };
+
+  //   captureLocation();
+  // }, [getCurrentPosition]);
+
+  // ✅ Atualizar lastLocation quando currentLocation mudar
+  useEffect(() => {
+    if (currentLocation) {
+      updateLastLocationIfBetter(currentLocation);
+    }
+  }, [currentLocation, updateLastLocationIfBetter]);
 
   return (
     <GeolocationContext.Provider value={{ lastLocation, setLastLocation, updateLastLocationIfBetter, lastCaptureLocation, setLastCaptureLocation, lastCaptureStatus, setLastCaptureStatus }}>

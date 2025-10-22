@@ -1,5 +1,4 @@
 import { createGlobalStyle } from 'styled-components';
-import { theme } from './theme';
 
 export const GlobalStyle = createGlobalStyle`
   *, *::before, *::after {
@@ -14,9 +13,9 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   body {
-    font-family: ${theme.fonts.body};
-    background: ${theme.colors.background};
-    color: ${theme.colors.text};
+    font-family: 'Roboto', sans-serif;
+    background: white;
+    color: #30475E;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -29,6 +28,13 @@ export const GlobalStyle = createGlobalStyle`
   /* Garantir que os estilos sejam aplicados corretamente */
   #__next {
     height: 100%;
+  }
+
+  /* Estilo inicial para evitar flash de tela branca */
+  .initial-load {
+    opacity: 1;
+    background: white;
+    min-height: 100vh;
   }
 
   /* Forçar re-aplicação de estilos em navegação */

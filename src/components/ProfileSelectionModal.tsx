@@ -2,6 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 import { UserProfile } from '../contexts/UserProfileContext';
 import { Icons } from './Icons';
+import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
 
 interface ProfileSelectionModalProps {
   isOpen: boolean;
@@ -23,6 +25,12 @@ const ProfileModal = styled.div<{ $isOpen: boolean }>`
   justify-content: center;
   z-index: 2000;
   animation: fadeIn 0.3s ease-out;
+  
+  /* CSS inline para evitar FOUC */
+  &[style*="display: flex"] {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+  }
 `;
 
 const ProfileModalContent = styled.div`
@@ -63,14 +71,14 @@ const ProfileModalContent = styled.div`
     align-items: flex-start;
     justify-content: space-between;
     margin-bottom: 2rem;
-    border-bottom: 2px solid #f1f3f4;
+    border-bottom: 2px solid ${props => props.$theme?.colors?.border?.light || '#f1f3f4'};
     padding-bottom: 1.5rem;
 
     .title {
       font-family: 'Montserrat', sans-serif;
       font-size: 1.75rem;
       font-weight: 700;
-      color: #2c3e50;
+      color: ${props => props.$theme?.colors?.text?.dark || '#2c3e50'};
       margin: 0;
       display: flex;
       align-items: center;
@@ -81,9 +89,9 @@ const ProfileModalContent = styled.div`
       font-family: 'Montserrat', sans-serif;
       font-size: 1.5rem;
       font-weight: 800;
-      color: #29abe2;
+      color: ${props => props.$theme?.colors?.navigation?.primary || '#29abe2'};
       margin: 0.5rem 0 0.25rem 0;
-      background: linear-gradient(135deg, #29abe2, #90ee90);
+      background: linear-gradient(135deg, ${props => props.$theme?.colors?.navigation?.primary || '#29abe2'}, ${props => props.$theme?.colors?.accent?.green || '#90ee90'});
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -93,16 +101,16 @@ const ProfileModalContent = styled.div`
     .user-name {
       font-family: 'Roboto', sans-serif;
       font-size: 1rem;
-      color: #6c757d;
+      color: ${props => props.$theme?.colors?.text?.secondary || '#6c757d'};
       margin: 0;
       font-weight: 500;
     }
 
     .close-button {
-      background: #f8f9fa;
+      background: ${props => props.$theme?.colors?.background?.secondary || '#f8f9fa'};
       border: none;
       font-size: 1.25rem;
-      color: #6c757d;
+      color: ${props => props.$theme?.colors?.text?.secondary || '#6c757d'};
       cursor: pointer;
       padding: 0.75rem;
       border-radius: 12px;
@@ -112,8 +120,8 @@ const ProfileModalContent = styled.div`
       justify-content: center;
 
       &:hover {
-        background: #e9ecef;
-        color: #495057;
+        background: ${props => props.$theme?.colors?.background?.tertiary || '#e9ecef'};
+        color: ${props => props.$theme?.colors?.text?.primary || '#495057'};
         transform: scale(1.05);
       }
     }
@@ -239,13 +247,18 @@ const ProfileItem = styled.div<{ $isSelected: boolean; $color: string }>`
 const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
   isOpen,
   onClose,
-  profiles,
+  profiles = [],
   onProfileSelect,
   currentProfile,
 }) => {
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
+  // Validação robusta: garantir que profiles seja um array
+  const safeProfiles = Array.isArray(profiles) ? profiles : [];
+  
   // Pega o nome e apelido do usuário do primeiro perfil (todos têm o mesmo nome)
-  const userName = profiles.length > 0 ? profiles[0].name : 'Usuário';
-  const userNickname = profiles.length > 0 ? profiles[0].nickname || 'Usuário' : 'Usuário';
+  const userName = safeProfiles.length > 0 ? safeProfiles[0].name : 'Usuário';
+  const userNickname = safeProfiles.length > 0 ? safeProfiles[0].nickname || 'Usuário' : 'Usuário';
 
   return (
     <ProfileModal $isOpen={isOpen}>
@@ -273,7 +286,7 @@ const ProfileSelectionModal: React.FC<ProfileSelectionModalProps> = ({
         </ModalSubtitle>
 
         <ProfileList>
-          {profiles.map(profile => (
+          {safeProfiles.map(profile => (
             <ProfileItem
               key={profile.id}
               $isSelected={currentProfile?.id === profile.id}

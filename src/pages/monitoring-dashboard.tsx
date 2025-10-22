@@ -7,6 +7,8 @@ import Sidebar from '../components/Sidebar';
 import WelcomeSection from '../components/WelcomeSection';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useTheme } from '../hooks/useTheme';
+import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { getAuditService } from '../services/auditService';
 import { getBackupService } from '../services/backupService';
 import { getWebhookService } from '../services/webhookService';
@@ -73,7 +75,7 @@ const FlexContainer = styled.div`
 const Container = styled.div`
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, ${props => props.theme?.background?.secondary || '#f5f7fa'} 0%, ${props => props.theme?.background?.tertiary || '#c3cfe2'} 100%);
   animation: ${fadeIn} 0.6s ease-out;
 `;
 
@@ -108,7 +110,7 @@ const Title = styled.h1`
 
 const Subtitle = styled.p`
   font-size: 1.1rem;
-  color: ${props => props.theme?.colors?.text || '#666'};
+  color: ${props => props.theme?.colors?.text?.secondary || '#666'};
   margin: 0.5rem 0 0 0;
   opacity: 0.8;
 `;
@@ -125,11 +127,11 @@ const StatusIndicator = styled.div<{ $status: string; $theme: any }>`
       case 'online':
         return props.$theme?.colors?.success || '#90EE90';
       case 'warning':
-        return '#f39c12';
+        return props.theme?.colors?.warning || '#f39c12';
       case 'error':
-        return '#e74c3c';
+        return props.theme?.colors?.error || '#e74c3c';
       default:
-        return '#95a5a6';
+        return props.theme?.colors?.info || '#95a5a6';
     }
   }};
   color: white;
@@ -162,7 +164,7 @@ const MetricCard = styled.div<{ $theme: any }>`
 const MetricTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.text?.dark || '#2c3e50'};
   margin: 0 0 1rem 0;
   display: flex;
   align-items: center;
@@ -193,7 +195,7 @@ const ChartContainer = styled.div`
 const ChartTitle = styled.h3`
   font-size: 1.3rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.text?.dark || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   display: flex;
   align-items: center;
@@ -253,7 +255,7 @@ const ActivityContent = styled.div`
 
 const ActivityTitle = styled.div`
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.text?.dark || '#2c3e50'};
   margin-bottom: 0.25rem;
 `;
 
@@ -312,7 +314,7 @@ const AlertIcon = styled.span`
 
 const AlertText = styled.div`
   flex: 1;
-  color: #2c3e50;
+  color: ${props => props.theme?.text?.dark || '#2c3e50'};
   font-weight: 500;
 `;
 
@@ -334,10 +336,12 @@ const RefreshButton = styled(UnifiedButton)<{ $theme: any }>`
 
 const MonitoringDashboard: React.FC = () => {
   const router = useRouter();
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
 
   // Hook do contexto de perfil
   const { currentProfile } = useUserProfile();
-  const { theme } = useTheme(currentProfile?.role.toLowerCase());
+  const { theme: themeData } = useTheme(currentProfile?.role.toLowerCase());
   const [collapsed, setCollapsed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [systemStatus, setSystemStatus] = useState<'success' | 'warning' | 'error' | 'info'>('success');

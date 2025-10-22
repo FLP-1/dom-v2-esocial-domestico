@@ -813,7 +813,7 @@ export default function AlertManagement() {
                 <option value=''>Selecionar tipo</option>
                 {alertTypes.map(type => (
                   <option key={type.id} value={type.id}>
-                    {type.icon} {type.name}
+                    {type.name}
                   </option>
                 ))}
               </Select>
@@ -1029,7 +1029,7 @@ export default function AlertManagement() {
               <option value=''>Todos os tipos</option>
               {alertTypes.map(type => (
                 <option key={type.id} value={type.id}>
-                  {type.icon} {type.name}
+                  {type.name}
                 </option>
               ))}
             </Select>
@@ -1190,7 +1190,7 @@ export default function AlertManagement() {
                 >
                   {alertTypes.map(type => (
                     <option key={type.id} value={type.id}>
-                      {type.icon} {type.name}
+                      {type.name}
                     </option>
                   ))}
                 </Select>

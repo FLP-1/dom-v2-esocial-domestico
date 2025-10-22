@@ -57,7 +57,7 @@
 ### **Validação de Funcionalidade**
 
 - [ ] Funcionalidade está na documentação?
-- [ ] Segue padrões do projeto DOM v2?
+- [ ] Segue padrões do projeto DOM?
 - [ ] Usa dados mocados (não backend real)?
 - [ ] Interface responsiva?
 

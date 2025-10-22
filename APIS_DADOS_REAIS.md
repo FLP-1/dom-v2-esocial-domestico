@@ -1,4 +1,4 @@
-# 🔄 APIs de Dados Reais - Sistema DOM v2.2.1
+# 🔄 APIs de Dados Reais - Sistema DOM v1.0.0
 
 ## ✅ DADOS MOCKADOS SUBSTITUÍDOS POR DADOS REAIS
 
@@ -428,7 +428,7 @@ if (loading) return <LoadingSpinner />;
 ---
 
 **Data:** 02/10/2025  
-**Versão:** DOM v2.2.1  
+**Versão:** DOM v1.0.0  
 **Banco:** PostgreSQL 18 - Porta 5433  
 **ORM:** Prisma v6.16.3
 

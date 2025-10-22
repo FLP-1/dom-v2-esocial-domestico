@@ -8,7 +8,7 @@ import logger from '../utils/logger';
  * Elimina brechas de fraude capturando localização em cada ação importante
  */
 export const useGeolocationCapture = () => {
-  const { captureRealTimeLocation } = useGeolocation();
+  const { getCurrentPosition } = useGeolocation();
   const { updateLastLocationIfBetter, setLastCaptureLocation, setLastCaptureStatus } = useGeolocationContext();
 
   /**
@@ -49,7 +49,7 @@ export const useGeolocationCapture = () => {
         // O timeout já está configurado no captureRealTimeLocation (via banco de dados)
         let locationData;
         try {
-          locationData = await captureRealTimeLocation();
+          locationData = await getCurrentPosition();
         } catch (error) {
           logger.warn(`⚠️ Captura de geolocalização falhou para ${actionName}, continuando sem localização`);
           locationData = null;
@@ -107,6 +107,8 @@ export const useGeolocationCapture = () => {
             longitude: locationData.longitude,
             accuracy: locationData.accuracy,
             address: locationData.address,
+            addressComponents: locationData.addressComponents,
+            hasNumber: locationData.hasNumber,
             wifiName: locationData.wifiName,
             networkInfo: locationData.networkInfo,
             actionName,
@@ -135,7 +137,7 @@ export const useGeolocationCapture = () => {
         }
       }
     },
-    [captureRealTimeLocation, isMobileDevice, updateLastLocationIfBetter, setLastCaptureLocation, setLastCaptureStatus]
+    [getCurrentPosition, isMobileDevice, updateLastLocationIfBetter, setLastCaptureLocation, setLastCaptureStatus]
   );
 
   /**

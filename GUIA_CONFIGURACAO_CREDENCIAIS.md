@@ -1,4 +1,4 @@
-# 🔐 Guia de Configuração de Credenciais - DOM v2.2.0
+# 🔐 Guia de Configuração de Credenciais - DOM v1.0.0
 
 ## 📋 **CREDENCIAIS RECUPERADAS**
 

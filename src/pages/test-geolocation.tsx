@@ -3,6 +3,8 @@ import { logger } from '../utils/logger';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
 
 const Container = styled.div`
   padding: 20px;
@@ -12,12 +14,12 @@ const Container = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #333;
+  color: ${props => props.theme?.text?.primary || '#333'};
   margin-bottom: 20px;
 `;
 
 const Button = styled.button`
-  background: #007bff;
+  background: ${props => props.theme?.navigation?.primary || '#007bff'};
   color: white;
   border: none;
   padding: 12px 24px;
@@ -27,18 +29,18 @@ const Button = styled.button`
   margin: 10px 5px;
   
   &:hover {
-    background: #0056b3;
+    background: ${props => props.theme?.navigation?.primary || '#0056b3'};
   }
   
   &:disabled {
-    background: #6c757d;
+    background: ${props => props.theme?.text?.secondary || '#6c757d'};
     cursor: not-allowed;
   }
 `;
 
 const ResultBox = styled.div`
-  background: #f8f9fa;
-  border: 1px solid #dee2e6;
+  background: ${props => props.theme?.background?.secondary || '#f8f9fa'};
+  border: 1px solid ${props => props.theme?.border?.primary || '#dee2e6'};
   border-radius: 6px;
   padding: 15px;
   margin: 10px 0;
@@ -49,12 +51,12 @@ const ResultBox = styled.div`
 `;
 
 const ErrorBox = styled.div`
-  background: #f8d7da;
-  border: 1px solid #f5c6cb;
+  background: ${props => props.theme?.status?.error?.background || '#f8d7da'};
+  border: 1px solid ${props => props.theme?.status?.error?.border || '#f5c6cb'};
   border-radius: 6px;
   padding: 15px;
   margin: 10px 0;
-  color: #721c24;
+  color: ${props => props.theme?.status?.error?.text || '#721c24'};
 `;
 
 const SuccessBox = styled.div`
@@ -122,11 +124,13 @@ const LinkStyled = styled.a`
 `;
 
 export default function TestGeolocation() {
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  const { captureRealTimeLocation } = useGeolocation();
+  const { getCurrentPosition } = useGeolocation();
 
   const testGeolocation = async () => {
     setLoading(true);
@@ -146,7 +150,7 @@ export default function TestGeolocation() {
       // Teste 2: Verificar se Windows Location está ativo
       logger.geo('💻 Windows Location Service: Verifique em Configurações → Privacidade → Localização');
       
-      const locationData = await captureRealTimeLocation();
+      const locationData = await getCurrentPosition();
       
       logger.geo('✅ Localização capturada com sucesso:', locationData);
       logger.geo('📍 Cole as coordenadas no Google Maps para comparar:', 

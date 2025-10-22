@@ -1,4 +1,4 @@
-# 📊 Estrutura de Banco de Dados - Sistema DOM v2.2.1
+# 📊 Estrutura de Banco de Dados - Sistema DOM v1.0.0
 
 ## 🎯 Resumo Executivo
 

@@ -8,6 +8,11 @@ export {
   UnifiedModal,
 } from '../UnifiedModal';
 
+// ✅ Centralized Reusable Components
+export { default as ActionIcon } from '../ActionIcon';
+export { default as NotificationBadge } from '../NotificationBadge';
+export { default as PendingActionIcon } from '../PendingActionIcon';
+
 // Shared styles and utilities
 export * from '../shared/styles';
 

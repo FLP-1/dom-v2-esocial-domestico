@@ -456,6 +456,6 @@ ORDER BY h.criado_em DESC;
 
 **Versão**: 1.0.0  
 **Data**: 2025-10-02  
-**Projeto**: DOM v2.2.1-final  
+**Projeto**: DOM v1.0.0-final  
 **Status**: ✅ **IMPLEMENTADO E CONFORME LGPD**
 

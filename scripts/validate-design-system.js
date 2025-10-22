@@ -217,7 +217,7 @@ class DesignSystemValidator {
    * Executa a validação completa
    */
   run() {
-    console.log('🎨 Validador do Design System DOM v2.1.0\n');
+    console.log('🎨 Validador do Design System DOM\n');
     
     this.scanFiles();
     this.generateReport();

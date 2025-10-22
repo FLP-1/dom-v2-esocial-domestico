@@ -145,12 +145,50 @@ async function main() {
   // ASSOCIAR PERFIL
   // ============================================
   console.log('🔗 Associando perfil de Empregado (idempotente)...');
-  await prisma.usuarioPerfil.upsert({
+  const novoUsuarioPerfil = await prisma.usuarioPerfil.upsert({
     where: { usuarioId_perfilId: { usuarioId: novoUsuario.id, perfilId: perfilEmpregado.id } },
     update: { ativo: true, principal: true },
     create: { usuarioId: novoUsuario.id, perfilId: perfilEmpregado.id, ativo: true, principal: true }
   });
   console.log('✅ Perfil associado\n');
+
+  // ============================================
+  // GARANTIR GRUPOS E ASSOCIAR USUÁRIO
+  // ============================================
+  console.log('🏢 Garantindo grupos (idempotente)...');
+  
+  const grupoEmpresarial = await prisma.grupo.upsert({
+    where: { id: 'grupo-empresarial-001' },
+    update: {},
+    create: {
+      id: 'grupo-empresarial-001',
+      nome: 'Empresa Principal',
+      descricao: 'Grupo principal da empresa',
+      cor: '#3498db',
+      icone: 'building',
+      tipo: 'empresa',
+      privado: false,
+      ativo: true
+    }
+  });
+
+  await prisma.usuarioGrupo.upsert({
+    where: {
+      usuarioId_grupoId: {
+        usuarioId: novoUsuario.id,
+        grupoId: grupoEmpresarial.id
+      }
+    },
+    update: { papel: 'membro', ativo: true },
+    create: {
+      usuarioId: novoUsuario.id,
+      grupoId: grupoEmpresarial.id,
+      papel: 'membro',
+      ativo: true
+    }
+  });
+
+  console.log('✅ Usuário associado ao grupo\n');
 
   // ============================================
   // CRIAR VÍNCULO COM EMPREGADOR (MEMBRO FAMÍLIA)
@@ -258,7 +296,9 @@ async function main() {
           aprovadoPor: empregador.id,
           aprovadoEm: entrada1,
           observacao: 'Entrada normal',
-          hashIntegridade: `hash_${Date.now()}_entrada1`
+          hashIntegridade: `hash_${Date.now()}_entrada1`,
+          grupoId: grupoEmpresarial.id,
+          usuarioPerfilId: novoUsuarioPerfil.id
         }
       });
     }
@@ -281,7 +321,9 @@ async function main() {
           aprovadoPor: empregador.id,
           aprovadoEm: saida1,
           observacao: 'Saída para almoço',
-          hashIntegridade: `hash_${Date.now()}_saida_almoco`
+          hashIntegridade: `hash_${Date.now()}_saida_almoco`,
+          grupoId: grupoEmpresarial.id,
+          usuarioPerfilId: novoUsuarioPerfil.id
         }
       });
     }
@@ -304,7 +346,9 @@ async function main() {
           aprovadoPor: empregador.id,
           aprovadoEm: entrada2,
           observacao: 'Retorno do almoço',
-          hashIntegridade: `hash_${Date.now()}_retorno_almoco`
+          hashIntegridade: `hash_${Date.now()}_retorno_almoco`,
+          grupoId: grupoEmpresarial.id,
+          usuarioPerfilId: novoUsuarioPerfil.id
         }
       });
     }
@@ -327,7 +371,9 @@ async function main() {
           aprovadoPor: empregador.id,
           aprovadoEm: saida2,
           observacao: 'Saída normal',
-          hashIntegridade: `hash_${Date.now()}_saida`
+          hashIntegridade: `hash_${Date.now()}_saida`,
+          grupoId: grupoEmpresarial.id,
+          usuarioPerfilId: novoUsuarioPerfil.id
         }
       });
     }

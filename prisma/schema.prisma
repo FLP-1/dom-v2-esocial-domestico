@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Usuario {
   id                       String                         @id @default(uuid())
   cpf                      String                         @unique @db.VarChar(11)
@@ -55,40 +54,121 @@ model Usuario {
   alertas                  Alerta[]
   assinaturas              Assinatura[]
   atividadeRecente         AtividadeRecente[]
+  analisesComportamento    BehaviorAnalysis[]
   conversasParticipante    ConversaParticipante[]
   convites                 Convite[]
+  deviceFingerprints       DeviceFingerprint[]
   dispositivos             Dispositivo[]
   documentos               Documento[]
   documentosCompartilhados DocumentoCompartilhamento[]
-  emprestimosAprovados     Emprestimo[]               @relation("EmprestimosEmpregador")
-  emprestimosSolicitados   Emprestimo[]               @relation("EmprestimosEmpregado")
+  emprestimosSolicitados   Emprestimo[]                   @relation("EmprestimosEmpregado")
+  emprestimosAprovados     Emprestimo[]                   @relation("EmprestimosEmpregador")
   folhaPagamento           FolhaPagamento[]
+  geofencingLogs           GeofencingLog[]
+  geofencingValidacoes     GeofencingValidacao[]
+  geolocalizacoesHistorico GeolocationHistory[]
   guiasImpostos            GuiaImposto[]
   historicosLogin          HistoricoLogin[]
   listasCompras            ListaCompras[]
   listasCompartilhadas     ListaComprasCompartilhamento[]
+  locaisAtualizados        LocalTrabalho[]                @relation("LocaisAtualizados")
+  locaisCriados            LocalTrabalho[]                @relation("LocaisCriados")
+  locaisEmpregador         LocalTrabalho[]                @relation("LocaisEmpregador")
   logs                     LogAuditoria[]
-  membrosFamilia           MembroFamilia[]            @relation("MembrosFamiliaPrincipal")
-  membrosFamiliaVinculados MembroFamilia[]            @relation("MembrosFamiliaVinculados")
+  membrosFamilia           MembroFamilia[]                @relation("MembrosFamiliaPrincipal")
+  membrosFamiliaVinculados MembroFamilia[]                @relation("MembrosFamiliaVinculados")
   mensagens                Mensagem[]
   mensagensLidas           MensagemLeitura[]
   mensagensReacoes         MensagemReacao[]
+  networkFingerprints      NetworkFingerprint[]
   notificacoes             Notificacao[]
   onboarding               Onboarding?
   pontosRegistrados        RegistroPonto[]
+  analisesRisco            RiskAnalysis[]
   sessoes                  Sessao[]
+  solicitacoesHoraExtra    SolicitacaoHoraExtra[]
   tarefas                  Tarefa[]                       @relation("TarefasAtribuidas")
   tarefasCriadas           Tarefa[]                       @relation("TarefasCriadas")
   tarefasComentarios       TarefaComentario[]
   gruposUsuario            UsuarioGrupo[]
   perfis                   UsuarioPerfil[]
   validacoesContato        ValidacaoContato[]
-  solicitacoesHoraExtra    SolicitacaoHoraExtra[]
+  configuracoesGeolocalizacao ConfiguracaoGeolocalizacao[]
+  configuracoesAntifraude  ConfiguracaoAntifraude[]
 
   @@index([cpf])
   @@index([email])
   @@index([telefone])
   @@map("usuarios")
+}
+
+model LocalTrabalho {
+  id            String                @id @default(uuid())
+  nome          String                @db.VarChar(255)
+  endereco      String                @db.VarChar(500)
+  latitude      Float
+  longitude     Float
+  raio          Int                   @default(200)
+  ativo         Boolean               @default(true)
+  grupoId       String
+  empregadorId  String
+  criadoPor     String
+  criadoEm      DateTime              @default(now())
+  atualizadoPor String?
+  atualizadoEm  DateTime              @updatedAt
+  logs          GeofencingLog[]
+  validacoes    GeofencingValidacao[]
+  atualizador   Usuario?              @relation("LocaisAtualizados", fields: [atualizadoPor], references: [id])
+  criador       Usuario               @relation("LocaisCriados", fields: [criadoPor], references: [id])
+  empregador    Usuario               @relation("LocaisEmpregador", fields: [empregadorId], references: [id])
+  grupo         Grupo                 @relation(fields: [grupoId], references: [id])
+
+  @@index([grupoId])
+  @@index([empregadorId])
+  @@index([ativo])
+  @@map("locais_trabalho")
+}
+
+model GeofencingLog {
+  id              String        @id @default(uuid())
+  localTrabalhoId String
+  acao            String        @db.VarChar(50)
+  dadosAnteriores Json?
+  dadosNovos      Json?
+  ip              String        @db.VarChar(45)
+  userAgent       String        @db.VarChar(500)
+  usuarioId       String
+  timestamp       DateTime      @default(now())
+  localTrabalho   LocalTrabalho @relation(fields: [localTrabalhoId], references: [id])
+  usuario         Usuario       @relation(fields: [usuarioId], references: [id])
+
+  @@index([localTrabalhoId])
+  @@index([usuarioId])
+  @@index([timestamp])
+  @@map("geofencing_logs")
+}
+
+model GeofencingValidacao {
+  id              String        @id @default(uuid())
+  localTrabalhoId String
+  usuarioId       String
+  latitude        Float
+  longitude       Float
+  distancia       Float
+  dentroGeofence  Boolean
+  precisao        Float
+  endereco        String?       @db.VarChar(500)
+  wifiName        String?       @db.VarChar(255)
+  ip              String        @db.VarChar(45)
+  userAgent       String        @db.VarChar(500)
+  timestamp       DateTime      @default(now())
+  localTrabalho   LocalTrabalho @relation(fields: [localTrabalhoId], references: [id])
+  usuario         Usuario       @relation(fields: [usuarioId], references: [id])
+
+  @@index([localTrabalhoId])
+  @@index([usuarioId])
+  @@index([timestamp])
+  @@map("geofencing_validacoes")
 }
 
 model Perfil {
@@ -103,22 +183,25 @@ model Perfil {
   atualizadoEm DateTime               @updatedAt
   permissoes   PerfilFuncionalidade[]
   usuarios     UsuarioPerfil[]
+  configuracoes ConfiguracaoPerfil[]
 
   @@map("perfis")
 }
 
 model UsuarioPerfil {
-  id           String   @id @default(uuid())
-  usuarioId    String
-  perfilId     String
-  avatar       String?  @db.VarChar(10)
-  apelido      String?  @db.VarChar(100)
-  ativo        Boolean  @default(true)
-  principal    Boolean  @default(false)
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
-  perfil       Perfil   @relation(fields: [perfilId], references: [id])
-  usuario      Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  id                   String                 @id @default(uuid())
+  usuarioId            String
+  perfilId             String
+  avatar               String?                @db.VarChar(10)
+  apelido              String?                @db.VarChar(100)
+  ativo                Boolean                @default(true)
+  principal            Boolean                @default(false)
+  criadoEm             DateTime               @default(now())
+  atualizadoEm         DateTime               @updatedAt
+  RegistroPonto        RegistroPonto[]
+  SolicitacaoHoraExtra SolicitacaoHoraExtra[]
+  perfil               Perfil                 @relation(fields: [perfilId], references: [id])
+  usuario              Usuario                @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@unique([usuarioId, perfilId])
   @@index([usuarioId])
@@ -162,17 +245,22 @@ model PerfilFuncionalidade {
 }
 
 model Grupo {
-  id           String         @id @default(uuid())
-  nome         String         @db.VarChar(255)
-  descricao    String?
-  cor          String?        @db.VarChar(7)
-  icone        String?        @db.VarChar(50)
-  tipo         String         @db.VarChar(50)
-  privado      Boolean        @default(false)
-  ativo        Boolean        @default(true)
-  criadoEm     DateTime       @default(now())
-  atualizadoEm DateTime       @updatedAt
-  membros      UsuarioGrupo[]
+  id                   String                 @id @default(uuid())
+  nome                 String                 @db.VarChar(255)
+  descricao            String?
+  cor                  String?                @db.VarChar(7)
+  icone                String?                @db.VarChar(50)
+  tipo                 String                 @db.VarChar(50)
+  privado              Boolean                @default(false)
+  ativo                Boolean                @default(true)
+  criadoEm             DateTime               @default(now())
+  atualizadoEm         DateTime               @updatedAt
+  locaisTrabalho       LocalTrabalho[]
+  RegistroPonto        RegistroPonto[]
+  SolicitacaoHoraExtra SolicitacaoHoraExtra[]
+  membros              UsuarioGrupo[]
+  configuracoesGeolocalizacao ConfiguracaoGeolocalizacao[]
+  configuracoesAntifraude ConfiguracaoAntifraude[]
 
   @@map("grupos")
 }
@@ -609,51 +697,67 @@ model TarefaDependencia {
 }
 
 model RegistroPonto {
-  id              String      @id @default(uuid())
+  id              String         @id @default(uuid())
   usuarioId       String
   dispositivoId   String
-  dataHora        DateTime    @default(now()) @db.Timestamptz(6)
-  tipo            String      @db.VarChar(50)
+  dataHora        DateTime       @default(now()) @db.Timestamptz(6)
+  tipo            String         @db.VarChar(50)
   latitude        Float
   longitude       Float
   precisao        Float
-  dentroGeofence  Boolean     @default(false)
-  enderecoIP      String      @db.VarChar(45)
-  nomeRedeWiFi    String?     @db.VarChar(255)
-  aprovado        Boolean     @default(false)
-  aprovadoPor     String?     @db.VarChar(255)
+  dentroGeofence  Boolean        @default(false)
+  enderecoIP      String         @db.VarChar(45)
+  nomeRedeWiFi    String?        @db.VarChar(255)
+  aprovado        Boolean        @default(false)
+  aprovadoPor     String?        @db.VarChar(255)
   aprovadoEm      DateTime?
   observacao      String?
-  hashIntegridade String      @db.VarChar(255)
-  criadoEm        DateTime    @default(now())
-  dispositivo     Dispositivo @relation(fields: [dispositivoId], references: [id])
-  usuario         Usuario     @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  hashIntegridade String         @db.VarChar(255)
+  criadoEm        DateTime       @default(now())
+  /// Escopo de contexto
+  grupoId         String?
+  usuarioPerfilId String?
+  endereco        String?
+  numeroEndereco  String?        @db.VarChar(20)
+  dispositivo     Dispositivo    @relation(fields: [dispositivoId], references: [id])
+  grupo           Grupo?         @relation(fields: [grupoId], references: [id])
+  usuario         Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioPerfil   UsuarioPerfil? @relation(fields: [usuarioPerfilId], references: [id])
 
   @@index([usuarioId])
   @@index([dataHora])
   @@index([tipo])
+  @@index([grupoId])
+  @@index([usuarioPerfilId])
   @@map("registros_ponto")
 }
 
 /// @description Solicitações de Hora Extra para aprovação
 model SolicitacaoHoraExtra {
-  id            String   @id @default(uuid())
-  usuarioId     String
-  data          DateTime @db.Date
-  inicio        String   @db.VarChar(5)   // HH:MM
-  fim           String   @db.VarChar(5)   // HH:MM
-  justificativa String?  @db.VarChar(500)
-  status        String   @default("PENDENTE") @db.VarChar(20) // PENDENTE, APROVADA, REJEITADA
-  revisadaPor   String?  @db.VarChar(255)
-  revisadaEm    DateTime?
-  observacao    String?  @db.VarChar(500)
-  criadoEm      DateTime @default(now())
-  atualizadoEm  DateTime @updatedAt
-  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  id              String         @id @default(uuid())
+  usuarioId       String
+  data            DateTime       @db.Date
+  inicio          String         @db.VarChar(5)
+  fim             String         @db.VarChar(5)
+  justificativa   String?        @db.VarChar(500)
+  status          String         @default("PENDENTE") @db.VarChar(20)
+  revisadaPor     String?        @db.VarChar(255)
+  revisadaEm      DateTime?
+  observacao      String?        @db.VarChar(500)
+  criadoEm        DateTime       @default(now())
+  atualizadoEm    DateTime       @updatedAt
+  /// Escopo de contexto
+  grupoId         String?
+  usuarioPerfilId String?
+  grupo           Grupo?         @relation(fields: [grupoId], references: [id])
+  usuario         Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  usuarioPerfil   UsuarioPerfil? @relation(fields: [usuarioPerfilId], references: [id])
 
   @@index([usuarioId])
   @@index([data])
   @@index([status])
+  @@index([grupoId])
+  @@index([usuarioPerfilId])
   @@map("solicitacoes_hora_extra")
 }
 
@@ -802,13 +906,13 @@ model Emprestimo {
   dataAprovacao      DateTime?
   status             String    @db.VarChar(50)
   observacao         String?
-  justificativa      String?   @db.Text
+  justificativa      String?
   aprovadoPor        String?   @db.VarChar(255)
-  motivoRejeicao     String?   @db.Text
+  motivoRejeicao     String?
   criadoEm           DateTime  @default(now())
   atualizadoEm       DateTime  @updatedAt
-  usuario            Usuario   @relation("EmprestimosEmpregador", fields: [usuarioId], references: [id], onDelete: Cascade)
   empregado          Usuario?  @relation("EmprestimosEmpregado", fields: [empregadoId], references: [id], onDelete: Cascade)
+  usuario            Usuario   @relation("EmprestimosEmpregador", fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@index([usuarioId])
   @@index([empregadoId])
@@ -1109,7 +1213,7 @@ model MembroFamilia {
   criadoEm              DateTime  @default(now())
   atualizadoEm          DateTime  @updatedAt
   usuario               Usuario   @relation("MembrosFamiliaPrincipal", fields: [usuarioId], references: [id], onDelete: Cascade)
-  usuarioRef            Usuario?  @relation("MembrosFamiliaVinculados", fields: [usuarioVinculado], references: [id], onDelete: SetNull)
+  usuarioRef            Usuario?  @relation("MembrosFamiliaVinculados", fields: [usuarioVinculado], references: [id])
 
   @@index([usuarioId])
   @@index([parentesco])
@@ -1294,4 +1398,310 @@ model TemplateComunicacao {
   @@index([tipo])
   @@index([ativo])
   @@map("template_comunicacao")
+}
+
+/// @description Fingerprint de Dispositivo (Antifraude)
+model DeviceFingerprint {
+  id                 String               @id @default(uuid())
+  usuarioId          String?
+  fingerprintHash    String               @unique @db.VarChar(255)
+  canvasFingerprint  String?
+  webglFingerprint   String?
+  audioFingerprint   String?
+  platform           String?              @db.VarChar(100)
+  cpuCores           Int?
+  memoria            Int?
+  telaResolucao      String?              @db.VarChar(50)
+  telaColorDepth     Int?
+  timezone           String?              @db.VarChar(100)
+  idioma             String?              @db.VarChar(20)
+  fontesDetectadas   String[]
+  userAgent          String?
+  plugins            Json?
+  navegador          String?              @db.VarChar(100)
+  navegadorVersao    String?              @db.VarChar(50)
+  sistemaOperacional String?              @db.VarChar(100)
+  dispositivoTipo    String?              @db.VarChar(50)
+  touchSupport       Boolean              @default(false)
+  webglVendor        String?              @db.VarChar(100)
+  webglRenderer      String?              @db.VarChar(100)
+  confiavel          Boolean              @default(false)
+  vezesVisto         Int                  @default(1)
+  primeiraVez        DateTime             @default(now())
+  ultimaVez          DateTime             @default(now())
+  bloqueado          Boolean              @default(false)
+  motivoBloqueio     String?
+  criadoEm           DateTime             @default(now())
+  atualizadoEm       DateTime             @updatedAt
+  usuario            Usuario?             @relation(fields: [usuarioId], references: [id])
+  geolocalizacoes    GeolocationHistory[]
+  analisesRisco      RiskAnalysis[]
+
+  @@index([usuarioId])
+  @@index([fingerprintHash])
+  @@index([confiavel])
+  @@index([primeiraVez])
+  @@map("device_fingerprints")
+}
+
+/// @description Fingerprint de Rede (Antifraude)
+model NetworkFingerprint {
+  id                String   @id @default(uuid())
+  usuarioId         String?
+  connectionType    String?  @db.VarChar(50)
+  effectiveType     String?  @db.VarChar(50)
+  downlink          Float?
+  rtt               Int?
+  ipAddress         String?  @db.VarChar(45)
+  timezone          String?  @db.VarChar(100)
+  language          String?  @db.VarChar(20)
+  userAgent         String?
+  platform          String?  @db.VarChar(100)
+  screenResolution  String?  @db.VarChar(50)
+  connectionSpeed   String?  @db.VarChar(50)
+  connectionQuality String?  @db.VarChar(50)
+  networkLatency    Int?
+  bandwidthEstimate Float?
+  timestamp         DateTime @default(now())
+  sessionId         String?  @db.VarChar(100)
+  riskScore         Int?
+  confidence        Int?
+  anomalies         String?
+  isFraud           Boolean  @default(false)
+  fraudReasons      String?
+  fraudConfidence   Int?
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
+  usuario           Usuario? @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([ipAddress])
+  @@index([sessionId])
+  @@index([timestamp])
+  @@index([isFraud])
+  @@index([riskScore])
+  @@map("network_fingerprints")
+}
+
+/// @description Análise de Risco (Antifraude)
+model RiskAnalysis {
+  id                   String              @id @default(uuid())
+  usuarioId            String?
+  fingerprintId        String?
+  sessionId            String?
+  ipAddress            String              @db.VarChar(45)
+  ipAnaliseId          String?
+  geolocalizacaoId     String?
+  comportamentoId      String?
+  tipoEvento           String              @db.VarChar(50)
+  scoreFinal           Decimal             @db.Decimal(5, 4)
+  nivelRisco           String              @db.VarChar(20)
+  scoreFingerprint     Decimal?            @db.Decimal(5, 4)
+  scoreIP              Decimal?            @db.Decimal(5, 4)
+  scoreGeolocalizacao  Decimal?            @db.Decimal(5, 4)
+  scoreComportamento   Decimal?            @db.Decimal(5, 4)
+  scoreTemporal        Decimal?            @db.Decimal(5, 4)
+  sinaisAlerta         String[]
+  dispositivoNovo      Boolean             @default(false)
+  ipNovo               Boolean             @default(false)
+  localizacaoNova      Boolean             @default(false)
+  velocidadeImpossivel Boolean             @default(false)
+  horaAtipica          Boolean             @default(false)
+  vpnDetectado         Boolean             @default(false)
+  proxyDetectado       Boolean             @default(false)
+  datacenterDetectado  Boolean             @default(false)
+  botDetectado         Boolean             @default(false)
+  acaoTomada           String?             @db.VarChar(100)
+  bloqueado            Boolean             @default(false)
+  notificadoUsuario    Boolean             @default(false)
+  dadosCompletos       Json?
+  criadoEm             DateTime            @default(now())
+  comportamento        BehaviorAnalysis?   @relation(fields: [comportamentoId], references: [id])
+  fingerprint          DeviceFingerprint?  @relation(fields: [fingerprintId], references: [id])
+  geolocalizacao       GeolocationHistory? @relation(fields: [geolocalizacaoId], references: [id])
+  ipAnalise            IPAnalysis?         @relation(fields: [ipAnaliseId], references: [id])
+  usuario              Usuario?            @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+  @@index([fingerprintId])
+  @@index([ipAddress])
+  @@index([nivelRisco])
+  @@index([tipoEvento])
+  @@index([criadoEm])
+  @@index([scoreFinal])
+  @@map("risk_analysis")
+}
+
+/// @description Histórico de Geolocalizações (Antifraude)
+model GeolocationHistory {
+  id                     String             @id @default(uuid())
+  usuarioId              String?
+  fingerprintId          String?
+  latitude               Float
+  longitude              Float
+  precisao               Float?
+  altitude               Float?
+  altitudePrecisao       Float?
+  velocidade             Float?
+  direcao                Float?
+  cidade                 String?            @db.VarChar(100)
+  estado                 String?            @db.VarChar(100)
+  pais                   String?            @db.VarChar(100)
+  codigoPais             String?            @db.VarChar(2)
+  cep                    String?            @db.VarChar(20)
+  enderecoCompleto       String?
+  distanciaUltimaKm      Float?
+  tempoDecorridoMin      Float?
+  velocidadeCalculadaKmH Float?
+  suspeita               Boolean            @default(false)
+  motivoSuspeita         String?
+  criadoEm               DateTime           @default(now())
+  fingerprint            DeviceFingerprint? @relation(fields: [fingerprintId], references: [id])
+  usuario                Usuario?           @relation(fields: [usuarioId], references: [id])
+  analisesRisco          RiskAnalysis[]
+
+  @@index([usuarioId])
+  @@index([fingerprintId])
+  @@index([criadoEm])
+  @@index([suspeita])
+  @@map("geolocation_history")
+}
+
+/// @description Análise de Endereço IP (Antifraude)
+model IPAnalysis {
+  id             String         @id @default(uuid())
+  ipAddress      String         @unique @db.VarChar(45)
+  tipo           String?        @db.VarChar(20)
+  versaoIP       String?        @db.VarChar(10)
+  hostname       String?        @db.VarChar(255)
+  isp            String?        @db.VarChar(255)
+  asn            String?        @db.VarChar(50)
+  asnOrganizacao String?        @db.VarChar(255)
+  cidade         String?        @db.VarChar(100)
+  regiao         String?        @db.VarChar(100)
+  pais           String?        @db.VarChar(100)
+  codigoPais     String?        @db.VarChar(2)
+  continente     String?        @db.VarChar(50)
+  latitude       Float?
+  longitude      Float?
+  timezone       String?        @db.VarChar(100)
+  isVPN          Boolean        @default(false)
+  isProxy        Boolean        @default(false)
+  isTor          Boolean        @default(false)
+  isDatacenter   Boolean        @default(false)
+  isRelay        Boolean        @default(false)
+  isMobile       Boolean        @default(false)
+  scoreAbuso     Decimal?       @db.Decimal(5, 4)
+  scoreRisco     Decimal?       @db.Decimal(5, 4)
+  vezesVisto     Int            @default(1)
+  primeiraVez    DateTime       @default(now())
+  ultimaVez      DateTime       @default(now())
+  bloqueado      Boolean        @default(false)
+  motivoBloqueio String?
+  dadosCompletos Json?
+  criadoEm       DateTime       @default(now())
+  atualizadoEm   DateTime       @updatedAt
+  analisesRisco  RiskAnalysis[]
+
+  @@index([ipAddress])
+  @@index([isVPN])
+  @@index([isProxy])
+  @@index([isDatacenter])
+  @@index([scoreRisco])
+  @@index([bloqueado])
+  @@map("ip_analysis")
+}
+
+/// @description Análise Comportamental (Antifraude)
+model BehaviorAnalysis {
+  id                        String         @id @default(uuid())
+  usuarioId                 String?
+  sessionId                 String?
+  fingerprintId             String?
+  tipoAnalise               String         @db.VarChar(50)
+  velocidadeDigitacaoMed    Int?
+  velocidadeDigitacaoDesvio Int?
+  velocidadeMouseMed        Float?
+  padraoCliques             Json?
+  tempoEntreAcoes           Json?
+  sequenciaEventos          Json?
+  eventosTotais             Int            @default(0)
+  tempoSessaoSegundos       Int?
+  paginasVisitadas          Int?
+  acionamentosTeclas        Json?
+  movimentosMouse           Int?
+  scrollsRealizados         Int?
+  regularidadeExcessiva     Boolean        @default(false)
+  acoesMuitoRapidas         Boolean        @default(false)
+  padraoHumano              Boolean        @default(true)
+  scoreBotProbabilidade     Decimal?       @db.Decimal(5, 4)
+  scoreNormalidade          Decimal?       @db.Decimal(5, 4)
+  criadoEm                  DateTime       @default(now())
+  atualizadoEm              DateTime       @updatedAt
+  usuario                   Usuario?       @relation(fields: [usuarioId], references: [id])
+  analisesRisco             RiskAnalysis[]
+
+  @@index([usuarioId])
+  @@index([sessionId])
+  @@index([fingerprintId])
+  @@index([scoreBotProbabilidade])
+  @@index([criadoEm])
+  @@map("behavior_analysis")
+}
+
+// ========================================
+// TABELAS DE CONFIGURAÇÃO DINÂMICA
+// ========================================
+// Nota: ConfiguracaoSistema já existe no schema
+
+model ConfiguracaoPerfil {
+  id          String    @id @default(uuid())
+  perfilId    String
+  chave       String
+  categoria   String
+  valor       String
+  descricao   String?
+  ativo       Boolean   @default(true)
+  prioridade  Int       @default(1)
+  criadoEm    DateTime  @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  perfil      Perfil    @relation(fields: [perfilId], references: [id], onDelete: Cascade)
+  
+  @@unique([perfilId, chave])
+  @@map("configuracao_perfil")
+}
+
+model ConfiguracaoGeolocalizacao {
+  id          String    @id @default(uuid())
+  usuarioId   String?
+  grupoId     String?
+  chave       String
+  valor       String
+  descricao   String?
+  ativo       Boolean   @default(true)
+  criadoEm    DateTime  @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  usuario     Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  grupo       Grupo?    @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  
+  @@map("configuracao_geolocalizacao")
+}
+
+model ConfiguracaoAntifraude {
+  id          String    @id @default(uuid())
+  usuarioId   String?
+  grupoId     String?
+  chave       String
+  valor       String
+  descricao   String?
+  ativo       Boolean   @default(true)
+  criadoEm    DateTime  @default(now())
+  atualizadoEm DateTime @updatedAt
+  
+  usuario     Usuario?  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  grupo       Grupo?    @relation(fields: [grupoId], references: [id], onDelete: Cascade)
+  
+  @@map("configuracao_antifraude")
 }

@@ -11,8 +11,8 @@ const Container = styled.div<{ $theme: any }>`
   min-height: 100vh;
   background: linear-gradient(
     135deg,
-    ${props => props.$theme.colors.surface} 0%,
-    ${props => props.$theme.colors.border} 100%
+    ${props => props.$theme?.colors?.surface || '#f9fafb'} 0%,
+    ${props => props.$theme?.colors?.border || '#e5e7eb'} 100%
   );
   display: flex;
   font-family: 'Roboto', sans-serif;

@@ -278,7 +278,7 @@ Todas as páginas (contexto com dados reais)
 
 **Status:** ✅ **Implementado e Testado**  
 **Data:** 2025-10-02  
-**Versão:** DOM v2.2.1-final
+**Versão:** DOM v1.0.0-final
 
 Agora todos os dados exibidos no sistema vêm do banco de dados PostgreSQL! 🎉
 

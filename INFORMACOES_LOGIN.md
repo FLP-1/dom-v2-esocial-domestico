@@ -1,4 +1,4 @@
-# 🔑 Informações de Login - DOM v2.2.1
+# 🔑 Informações de Login - DOM v1.0.0
 
 ## ✅ Problema Resolvido
 
@@ -158,6 +158,6 @@ curl "http://localhost:3000/api/auth/profiles?cpf=598.769.137-00"
 
 **Status**: ✅ **CORRIGIDO**  
 **Data**: 2025-10-02  
-**Versão**: DOM v2.2.1-final
+**Versão**: DOM v1.0.0-final
 
 Agora o login funciona com CPF com ou sem máscara! 🎉

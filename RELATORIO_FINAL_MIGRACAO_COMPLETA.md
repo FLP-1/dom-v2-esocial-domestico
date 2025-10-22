@@ -133,7 +133,7 @@ src/data/centralized/
 - **Preparação para backend** ✅
 
 ### **🚀 RESULTADO:**
-**Sistema DOM v2.2.0 com dados centralizados, pronto para a fase de criação do backend real!**
+**Sistema DOM v1.0.0 com dados centralizados, pronto para a fase de criação do backend real!**
 
 ---
 

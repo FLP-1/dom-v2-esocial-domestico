@@ -1,5 +1,6 @@
 import AccessibleEmoji from '../components/AccessibleEmoji';
 import { EmployerModalNew } from '../components/EmployerModalNew';
+import { LoginPageStyles } from '../components/LoginPageStyles';
 // src/pages/login-biometric.tsx
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
@@ -8,9 +9,11 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import styled, { keyframes } from 'styled-components';
 import { UserProfile, useUserProfile } from '../contexts/UserProfileContext';
+import { useGroup } from '../contexts/GroupContext';
 import { useAlertManager } from '../hooks/useAlertManager';
 import { useGeolocation } from '../hooks/useGeolocation';
 import { useGeolocationContext } from '../contexts/GeolocationContext';
+import { useSystemConfig } from '../hooks/useSystemConfig';
 import { validateCpf } from '../utils/cpfValidator';
 import { applyCpfMask, removeCpfMask } from '../utils/cpfMask';
 import {
@@ -24,6 +27,19 @@ const MotivationCarousel = dynamic(
   () => import('../components/MotivationCarousel'),
   { ssr: false }
 );
+
+// CSS inline removido - agora usando LoginPageStyles dinâmico
+
+// Styled Components
+const LoadingContainer = styled.div`
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.2rem;
+`;
 
 // Animações
 const fadeInUp = keyframes`
@@ -49,7 +65,7 @@ const shimmer = keyframes`
 // Styled Components
 const PageContainer = styled.div`
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #1d4ed8 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -108,7 +124,7 @@ const Title = styled.h1`
   font-family: 'Montserrat', sans-serif;
   font-size: 2rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.$theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 0.5rem 0;
   background: linear-gradient(135deg, #29abe2, #90ee90);
   -webkit-background-clip: text;
@@ -187,7 +203,7 @@ const PasswordToggle = styled.button`
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #7f8c8d;
+  color: ${props => props.$theme?.colors?.text?.secondary || '#7f8c8d'};
   cursor: pointer;
   font-size: 1.2rem;
   transition: color 0.3s ease;
@@ -300,7 +316,7 @@ const BiometricSection = styled.div`
 const BiometricTitle = styled.h3`
   font-family: 'Roboto', sans-serif;
   font-size: 0.9rem;
-  color: #7f8c8d;
+  color: ${props => props.$theme?.colors?.text?.secondary || '#7f8c8d'};
   margin: 0 0 0.5rem 0;
   font-weight: 500;
 `;
@@ -378,8 +394,9 @@ const ErrorMessage = styled.div`
 export default function LoginBiometric() {
   const router = useRouter();
   const alertManager = useAlertManager();
-  const { captureRealTimeLocation } = useGeolocation();
+  const { getCurrentPosition } = useGeolocation();
   const { setLastLocation } = useGeolocationContext();
+  const { config, loading: configLoading } = useSystemConfig();
   const [cpf, setCpf] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -401,6 +418,13 @@ export default function LoginBiometric() {
     handleProfileSelection,
     setShowProfileModal,
   } = useUserProfile();
+
+  // Hook do contexto de grupo
+  const {
+    setAvailableGroups,
+    selectGroup,
+    setShowGroupModal,
+  } = useGroup();
 
   const motivationalPhrases = [
     'Transforme sua casa em um lar organizado e acolhedor',
@@ -518,14 +542,14 @@ export default function LoginBiometric() {
         async () => {
           // Permissão concedida; capturar localização manual com maior precisão e salvar no contexto
           try {
-            const data = await captureRealTimeLocation();
+            const data = await getCurrentPosition();
             setLastLocation({
               latitude: data.latitude,
               longitude: data.longitude,
               accuracy: data.accuracy,
-              address: data.address,
-              wifiName: data.wifiName,
-              networkInfo: data.networkInfo,
+              address: '', // Será preenchido posteriormente
+              wifiName: '', // Será preenchido posteriormente
+              networkInfo: {}, // Será preenchido posteriormente
               timestamp: new Date()
             });
           } catch {}
@@ -590,21 +614,41 @@ export default function LoginBiometric() {
           // Popup aparece aqui (primeira vez) para que não apareça nos registros de ponto
           requestGeolocationPermission();
           
-          const userProfiles: UserProfile[] = result.data;
+          const { userProfiles, userGroups } = result.data;
           
           // Define os perfis disponíveis no contexto
-          setAvailableProfiles(userProfiles);
+          setAvailableProfiles(userProfiles || []);
+          
+          // Define os grupos disponíveis no contexto
+          setAvailableGroups(userGroups || []);
 
-          // Se há apenas um perfil, seleciona automaticamente
-          if (userProfiles.length === 1) {
-            const profile = userProfiles[0];
-            if (profile) {
-              handleProfileSelection(profile);
+          // FLUXO DE SELEÇÃO: Grupo -> Perfil -> Dashboard
+          
+          // 1. Seleção de Grupo
+          if (userGroups && userGroups.length > 1) {
+            // Múltiplos grupos: mostrar modal de seleção
+            setShowGroupModal(true);
+          } else if (userGroups && userGroups.length === 1) {
+            // Um grupo: selecionar automaticamente
+            selectGroup(userGroups[0]);
+            
+            // 2. Seleção de Perfil
+            if (userProfiles && userProfiles.length === 1) {
+              // Um perfil: selecionar automaticamente
+              handleProfileSelection(userProfiles[0]);
               router.push('/dashboard');
+            } else if (userProfiles && userProfiles.length > 1) {
+              // Múltiplos perfis: mostrar modal de seleção
+              setShowProfileModal(true);
             }
           } else {
-            // Se há múltiplos perfis, mostra o modal de seleção
-            setShowProfileModal(true);
+            // Sem grupos: ir direto para perfis
+            if (userProfiles && userProfiles.length === 1) {
+              handleProfileSelection(userProfiles[0]);
+              router.push('/dashboard');
+            } else if (userProfiles && userProfiles.length > 1) {
+              setShowProfileModal(true);
+            }
           }
         } else {
           alertManager.showError(result.error || 'Erro ao fazer login');
@@ -691,8 +735,19 @@ export default function LoginBiometric() {
     }
   };
 
+  // Mostrar loading enquanto carrega as configurações
+  if (configLoading || !config) {
+    return (
+      <LoadingContainer>
+        Carregando...
+      </LoadingContainer>
+    );
+  }
+
   return (
-    <PageContainer>
+    <>
+      <LoginPageStyles config={config} />
+      <PageContainer data-page-container>
       <LoginCard>
         <LogoSection>
           <Logo src='/logo.png' alt='Logo DOM' />
@@ -782,7 +837,15 @@ export default function LoginBiometric() {
               id='terms'
               type='checkbox'
               checked={acceptedTerms}
-              onChange={e => setAcceptedTerms(e.target.checked)}
+              onChange={async e => {
+                const checked = e.target.checked;
+                setAcceptedTerms(checked);
+                if (checked) {
+                  try {
+                    await requestGeolocationPermission();
+                  } catch {}
+                }
+              }}
             />
             <CheckboxLabel htmlFor='terms'>
               Li e aceito os{' '}
@@ -874,5 +937,6 @@ export default function LoginBiometric() {
         theme='light'
       />
     </PageContainer>
+    </>
   );
 }

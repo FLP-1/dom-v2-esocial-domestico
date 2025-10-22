@@ -1,5 +1,5 @@
 /**
- * 🌱 Seed do Banco de Dados - Sistema DOM v2.2.1
+ * 🌱 Seed do Banco de Dados - Sistema DOM
  * 
  * Este arquivo popula o banco com dados iniciais
  */

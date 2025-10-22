@@ -1,7 +1,7 @@
-﻿# 🏠 Sistema DOM v2.1.0 - Gestão Doméstica Completa
+﻿# 🏠 Sistema DOM - Gestão Doméstica Completa
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/seu-usuario/sistema-dom)
-[![Version](https://img.shields.io/badge/version-2.1.0-blue)](https://github.com/seu-usuario/sistema-dom/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue)](https://github.com/seu-usuario/sistema-dom/releases)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 ## 🚀 Sobre o Projeto
@@ -179,7 +179,7 @@ O sistema suporta múltiplos temas baseados no perfil do usuário:
 
 ## 📝 Changelog
 
-### v2.0.0 (2024-01-XX)
+### v1.0.0 (2024-01-XX)
 
 - 🎉 Release inicial
 - ✅ Dashboard inteligente

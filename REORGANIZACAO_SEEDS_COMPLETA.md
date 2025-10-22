@@ -224,7 +224,7 @@ A reorganização dos seeds foi executada com **sucesso total**, seguindo princ�
 
 ---
 
-**Responsável:** Sistema DOM v2 - AI Agent  
+**Responsável:** Sistema DOM - AI Agent  
 **Aprovado por:** Usuário (Decisão fundamentada)  
 **Próxima Revisão:** 2025-11-08 (30 dias)
 

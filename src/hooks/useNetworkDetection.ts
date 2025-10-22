@@ -43,6 +43,21 @@ export const useNetworkDetection = (options: UseNetworkDetectionOptions = {}) =>
 
   const detectNetworkInfo = useCallback((): NetworkInfo => {
     try {
+      // APIs do navegador só devem ser usadas no cliente
+      if (typeof window === 'undefined') {
+        return {
+          wifiName: 'WiFi não detectado',
+          connectionType: 'unknown',
+          effectiveType: 'unknown',
+          downlink: 0,
+          isOnline: true,
+          realSSID: undefined,
+          ssidPlatform: undefined,
+          ssidLoading: false,
+          ssidError: null
+        };
+      }
+
       const isOnline = navigator.onLine;
       let wifiName = 'WiFi não detectado';
       let connectionType = 'unknown';
@@ -210,11 +225,15 @@ export const useNetworkDetection = (options: UseNetworkDetectionOptions = {}) =>
       // console.error removido para evitar warnings de linting
       
       return {
-        wifiName: navigator.onLine ? 'WiFi: Conectado' : 'WiFi não detectado',
+        wifiName: 'WiFi não detectado',
         connectionType: 'error',
         effectiveType: 'error',
         downlink: 0,
-        isOnline: navigator.onLine
+        isOnline: typeof window !== 'undefined' ? navigator.onLine : true,
+        realSSID: undefined,
+        ssidPlatform: undefined,
+        ssidLoading: false,
+        ssidError: null
       };
     }
   }, []);
@@ -254,18 +273,18 @@ export const useNetworkDetection = (options: UseNetworkDetectionOptions = {}) =>
   const updateNetworkInfo = useCallback(async () => {
     // ✅ Proteção 1: Evitar múltiplas chamadas simultâneas
     if (isUpdating) {
-      if (enableLogging) {
-        console.log('🔄 Atualização já em andamento, pulando...');
-      }
+               // if (enableLogging) {
+               //   console.log('🔄 Atualização já em andamento, pulando...');
+               // }
       return;
     }
     
     // ✅ Proteção 2: Rate limiting - máximo 1 chamada por segundo
     const now = Date.now();
     if (now - lastUpdateTime < 1000) {
-      if (enableLogging) {
-        console.log('⏱️ Rate limiting ativo, aguardando...');
-      }
+             // if (enableLogging) {
+             //   console.log('⏱️ Rate limiting ativo, aguardando...');
+             // }
       return;
     }
     
@@ -273,9 +292,9 @@ export const useNetworkDetection = (options: UseNetworkDetectionOptions = {}) =>
     if (consecutiveErrors > 3) {
       const backoffTime = Math.min(30000, 1000 * Math.pow(2, consecutiveErrors - 3));
       if (now - lastUpdateTime < backoffTime) {
-        if (enableLogging) {
-          console.log(`🚫 Backoff ativo por ${backoffTime}ms devido a ${consecutiveErrors} erros consecutivos`);
-        }
+               // if (enableLogging) {
+               //   console.log(`🚫 Backoff ativo por ${backoffTime}ms devido a ${consecutiveErrors} erros consecutivos`);
+               // }
         return;
       }
     }
@@ -333,7 +352,7 @@ export const useNetworkDetection = (options: UseNetworkDetectionOptions = {}) =>
     }, 2000); // 2 segundos de debounce para maior estabilidade
     
     setDebounceTimeout(timeout);
-  }, [enableRealSSID, debounceTimeout, isUpdating, lastUpdateTime, consecutiveErrors]); // ✅ Todas as dependências necessárias
+  }, [enableRealSSID, debounceTimeout, isUpdating, lastUpdateTime, consecutiveErrors]); // ✅ Dependências essenciais apenas
 
   // Configurar listeners e atualizações periódicas
   useEffect(() => {
@@ -404,7 +423,7 @@ export const useNetworkDetection = (options: UseNetworkDetectionOptions = {}) =>
         clearTimeout(debounceTimeout);
       }
     };
-  }, [updateInterval, enableRealSSID]); // ✅ Removido updateNetworkInfo para evitar loop
+  }, [updateInterval, enableRealSSID]); // ✅ Dependências essenciais apenas
 
   return {
     ...networkInfo,

@@ -226,26 +226,13 @@ export class DocumentService {
       // Simular busca no banco
       await new Promise(resolve => setTimeout(resolve, 300));
 
-      // Em um cenário real, aqui você faria uma query no banco
-      const mockDocuments: DocumentMetadata[] = [
-        {
-          id: 'DOC-CERT-001',
-          name: 'Certificado Digital A1',
-          category: 'certificado_digital',
-          description: 'Certificado para assinatura digital',
-          userId,
-          fileType: 'application/x-pkcs12',
-          fileSize: 2048576,
-          uploadDate: new Date().toISOString(),
-          isValidated: true,
-          permissions: 'private',
-          tags: ['certificado', 'digital', 'a1'],
-        },
-      ];
-
-      const filteredDocs = category
-        ? mockDocuments.filter(doc => doc.category === category)
-        : mockDocuments;
+      // Buscar documentos reais do banco de dados
+      const response = await fetch(`/api/documents?userId=${userId}&category=${category || ''}`);
+      if (!response.ok) {
+        throw new Error('Erro ao buscar documentos');
+      }
+      
+      const filteredDocs = await response.json();
 
       return filteredDocs;
     } catch (error) {

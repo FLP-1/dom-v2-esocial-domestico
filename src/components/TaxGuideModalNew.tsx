@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import AccessibleEmoji from './AccessibleEmoji';
+import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import { Form, FormGroup, Input } from './FormComponents';
 import { UnifiedButton, UnifiedModal } from './unified';
 import {
@@ -37,18 +39,18 @@ const SectionTitle = styled.h3`
   font-family: 'Montserrat', sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.text?.dark || '#2c3e50'};
   margin: 0 0 1rem 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding-bottom: 0.5rem;
-  border-bottom: 2px solid #29abe2;
+  border-bottom: 2px solid ${props => props.theme?.navigation?.primary || '#29abe2'};
 `;
 
 const Label = styled.label`
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.text?.dark || '#2c3e50'};
   font-size: 0.85rem;
   margin-bottom: 0.4rem;
   display: block;
@@ -57,7 +59,7 @@ const Label = styled.label`
 const InputStyled = styled(Input)<{ $hasError?: boolean }>`
   width: 100%;
   padding: 0.6rem;
-  border: 2px solid ${props => (props.$hasError ? '#e74c3c' : '#e9ecef')};
+  border: 2px solid ${props => (props.$hasError ? (props.theme?.status?.error?.color || '#e74c3c') : (props.theme?.border?.light || '#e9ecef'))};
   border-radius: 8px;
   font-size: 0.9rem;
   transition: all 0.3s ease;
@@ -65,21 +67,21 @@ const InputStyled = styled(Input)<{ $hasError?: boolean }>`
 
   &:focus {
     outline: none;
-    border-color: #29abe2;
+    border-color: ${props => props.theme?.navigation?.primary || '#29abe2'};
     box-shadow: 0 0 0 3px rgba(41, 171, 226, 0.1);
   }
 `;
 
 
 const ErrorMessage = styled.div`
-  color: #e74c3c;
+  color: ${props => props.theme?.status?.error?.color || '#e74c3c'};
   font-size: 0.75rem;
   margin-top: 0.2rem;
   font-weight: 500;
 `;
 
 const HelpText = styled.div`
-  color: #7f8c8d;
+  color: ${props => props.theme?.text?.muted || '#7f8c8d'};
   font-size: 0.7rem;
   margin-top: 0.2rem;
   font-style: italic;
@@ -125,7 +127,7 @@ const CheckboxItem = styled.label`
 
   &:hover {
     background: rgba(41, 171, 226, 0.1);
-    border-color: #29abe2;
+    border-color: ${props => props.theme?.navigation?.primary || '#29abe2'};
   }
 
   input[type='checkbox'] {
@@ -140,14 +142,14 @@ const CheckboxContent = styled.div`
 
 const CheckboxLabel = styled.div`
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.text?.dark || '#2c3e50'};
   margin-bottom: 0.25rem;
   font-size: 0.85rem;
 `;
 
 const CheckboxDescription = styled.div`
   font-size: 0.75rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.text?.muted || '#7f8c8d'};
   line-height: 1.3;
 `;
 
@@ -174,6 +176,8 @@ const TaxGuideModalNew: React.FC<TaxGuideModalProps> = ({
   onSave,
   $theme,
 }) => {
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
   const [formData, setFormData] = useState({
     mes: '',
     ano: new Date().getFullYear().toString(),
@@ -352,7 +356,7 @@ const TaxGuideModalNew: React.FC<TaxGuideModalProps> = ({
           </OptimizedSectionTitle>
 
           <OptimizedCheckboxContainer>
-            {availableGuides.map(guide => (
+            {(availableGuides || []).map(guide => (
               <OptimizedCheckboxItem key={guide.id}>
                 <input
                   type='checkbox'

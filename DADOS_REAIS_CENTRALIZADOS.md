@@ -279,7 +279,7 @@ Já foi criada `/api/alerts` mas ainda não integrada ao `dataService`
 ---
 
 **Data:** 02/10/2025  
-**Versão:** DOM v2.2.1  
+**Versão:** DOM v1.0.0  
 **Banco:** PostgreSQL 18 - Porta 5433  
 **CPFs:** Todos válidos com dígitos verificadores corretos ✅
 

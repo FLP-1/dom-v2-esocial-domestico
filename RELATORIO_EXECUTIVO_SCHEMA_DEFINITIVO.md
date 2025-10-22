@@ -1,4 +1,4 @@
-# 📊 RELATÓRIO EXECUTIVO - SCHEMA DEFINITIVO DOM v2.2.1
+# 📊 RELATÓRIO EXECUTIVO - SCHEMA DEFINITIVO DOM v1.0.0
 
 ## 🎯 SUMÁRIO EXECUTIVO
 
@@ -585,7 +585,7 @@ npm run db:validate
 
 ## 🎯 CONCLUSÃO
 
-O **Schema Definitivo DOM v2.2.1** representa uma evolução completa da estrutura de dados do sistema, atendendo:
+O **Schema Definitivo DOM v1.0.0** representa uma evolução completa da estrutura de dados do sistema, atendendo:
 
 ✅ **100% dos requisitos iniciais**  
 ✅ **100% das necessidades das telas**  

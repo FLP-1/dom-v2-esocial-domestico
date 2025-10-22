@@ -2,7 +2,7 @@
 
 ## 📊 **RESUMO EXECUTIVO**
 
-✅ **Massa de teste completa criada** para o usuário empregador **59876913700** com 2 empregados e todos os dados necessários para testar todas as funcionalidades do sistema DOM v2.
+✅ **Massa de teste completa criada** para o usuário empregador **59876913700** com 2 empregados e todos os dados necessários para testar todas as funcionalidades do sistema DOM.
 
 ---
 
@@ -191,4 +191,4 @@
 - ✅ **16 arquivos** de upload simulados
 - ✅ **Todas as funcionalidades** prontas para teste
 
-**🚀 Sistema DOM v2 totalmente funcional para testes completos!**
+**🚀 Sistema DOM totalmente funcional para testes completos!**

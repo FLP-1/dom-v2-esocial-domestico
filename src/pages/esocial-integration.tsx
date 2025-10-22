@@ -14,6 +14,8 @@ import { ESOCIAL_CONFIG } from '../config/esocial';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useAlertManager } from '../hooks/useAlertManager';
 import { useTheme } from '../hooks/useTheme';
+import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
 import type {
   CertificateInfo,
   ESocialConfig,
@@ -50,23 +52,23 @@ const pulse = keyframes`
 // Styled Components para substituir estilos inline
 const CenterText = styled.div`
   text-align: center;
-  color: #7f8c8d;
+  color: ${props => props.theme?.text?.muted || '#7f8c8d'};
   margin-top: 0.5rem;
 `;
 
 const ErrorText = styled.div`
-  color: #e74c3c;
+  color: ${props => props.theme?.status?.error?.color || '#e74c3c'};
   font-weight: 600;
   margin-bottom: 0.5rem;
 `;
 
 const SmallText = styled.div`
   font-size: 0.8rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.text?.muted || '#7f8c8d'};
 `;
 
 const ApiStatusIndicator = styled.span<{ $isReal: boolean }>`
-  color: ${props => (props.$isReal ? '#27ae60' : '#f39c12')};
+  color: ${props => (props.$isReal ? (props.theme?.status?.success?.color || '#27ae60') : (props.theme?.status?.warning?.color || '#f39c12'))};
   font-weight: bold;
 `;
 
@@ -77,7 +79,7 @@ const FlexContainer = styled.div`
 `;
 
 const SSLWarningText = styled.div`
-  color: #ff6b35;
+  color: ${props => props.theme?.accent?.orange || '#ff6b35'};
   font-weight: bold;
 `;
 
@@ -88,18 +90,18 @@ const SSLWarningDescription = styled.div`
 
 const DataSourceIndicator = styled.span<{ $isReal: boolean }>`
   font-size: 0.8rem;
-  color: ${props => (props.$isReal ? '#27ae60' : '#f39c12')};
+  color: ${props => (props.$isReal ? (props.theme?.status?.success?.color || '#27ae60') : (props.theme?.status?.warning?.color || '#f39c12'))};
   margin-left: 10px;
   font-weight: bold;
 `;
 
 const SuccessText = styled.span`
-  color: #90ee90;
+  color: ${props => props.theme?.accent?.green || '#90ee90'};
   font-weight: 600;
 `;
 
 const ErrorSpan = styled.span`
-  color: #e74c3c;
+  color: ${props => props.theme?.status?.error?.color || '#e74c3c'};
 `;
 
 const SelectWrapper = styled.div`
@@ -110,7 +112,7 @@ const SelectWrapper = styled.div`
 const Container = styled.div`
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, ${props => props.theme?.background?.secondary || '#f5f7fa'} 0%, ${props => props.theme?.background?.tertiary || '#c3cfe2'} 100%);
   animation: ${fadeIn} 0.6s ease-out;
 `;
 
@@ -259,14 +261,14 @@ const SelectStyled = styled(Select)<{ $theme: any; $hasError?: boolean }>`
 `;
 
 const ErrorMessage = styled.div`
-  color: #e74c3c;
+  color: ${props => props.theme?.status?.error?.color || '#e74c3c'};
   font-size: 0.8rem;
   margin-top: 0.25rem;
   font-weight: 500;
 `;
 
 const HelpText = styled.div`
-  color: #7f8c8d;
+  color: ${props => props.theme?.text?.muted || '#7f8c8d'};
   font-size: 0.8rem;
   margin-top: 0.25rem;
   font-style: italic;
@@ -343,7 +345,7 @@ const EventStatus = styled.span<{ $status: string; $theme: any }>`
 `;
 
 const EventDescription = styled.div`
-  color: #7f8c8d;
+  color: ${props => props.theme?.text?.muted || '#7f8c8d'};
   font-size: 0.9rem;
   margin: 0 0 1rem 0;
   line-height: 1.4;
@@ -482,7 +484,7 @@ const ConfigLabel = styled.div`
 `;
 
 const ConfigValue = styled.div`
-  color: #7f8c8d;
+  color: ${props => props.theme?.text?.muted || '#7f8c8d'};
   font-size: 0.9rem;
 `;
 
@@ -587,16 +589,14 @@ interface ESocialEvent {
   protocolo?: string;
 }
 
-// Dados mock locais (centralized não existe)
-const MOCK_EVENTOS_ESOCIAL = [];
-const MOCK_EMPREGADOS = [];
-
-// Usar dados centralizados
-const mockEvents: ESocialEvent[] = MOCK_EVENTOS_ESOCIAL;
+// Dados serão carregados dinamicamente via API
+const initialEvents: ESocialEvent[] = [];
 
 const ESocialIntegration: React.FC = () => {
   const router = useRouter();
   const alertManager = useAlertManager();
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
 
   // Hook do contexto de perfil
   const { currentProfile } = useUserProfile();
@@ -611,7 +611,7 @@ const ESocialIntegration: React.FC = () => {
 
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [events, setEvents] = useState<ESocialEvent[]>(mockEvents);
+  const [events, setEvents] = useState<ESocialEvent[]>(initialEvents);
   const [selectedEvent, setSelectedEvent] = useState<ESocialEvent | null>(null);
 
   // Estados para dados carregados
@@ -1063,8 +1063,8 @@ const ESocialIntegration: React.FC = () => {
       // const esocialApi = getESocialApiService(esocialConfig);
       // dadosEmpregados = await esocialApi.consultarDadosEmpregados();
 
-      // Usar dados centralizados
-      const dadosEmpregados = MOCK_EMPREGADOS;
+      // Carregar dados dinamicamente via API
+      const dadosEmpregados = loadedEmployeesData;
 
       // Armazenar dados carregados
       setLoadedEmployeesData(dadosEmpregados);
@@ -1405,13 +1405,13 @@ const ESocialIntegration: React.FC = () => {
                   <OptimizedLabel htmlFor='employer-uf'>UF *</OptimizedLabel>
                   <OptimizedSelectStyled
                     id='employer-uf'
+                    aria-label="Selecionar UF"
                     value={employerData.endereco.uf}
                     onChange={e =>
                       handleEmployerDataChange('endereco.uf', e.target.value)
                     }
                     $theme={theme}
                     $hasError={!!errors['uf']}
-                    aria-label='Selecionar UF'
                     title='Selecionar UF'
                   >
                     <option value=''>Selecione</option>
@@ -1737,6 +1737,7 @@ const ESocialIntegration: React.FC = () => {
               </ConfigValue>
               <SelectWrapper>
                 <OptimizedSelectStyled
+                  aria-label="Selecionar ambiente"
                   value={esocialConfig.environment}
                   onChange={e =>
                     setEsocialConfig(prev => ({
@@ -1745,7 +1746,6 @@ const ESocialIntegration: React.FC = () => {
                     }))
                   }
                   $theme={theme}
-                  aria-label='Selecionar ambiente'
                   title='Selecionar ambiente'
                 >
                   <option value='homologacao'>Homologação</option>

@@ -1,4 +1,4 @@
-# 🚀 Configuração do GitHub - Sistema DOM v2.0.0
+# 🚀 Configuração do GitHub - Sistema DOM
 
 ## 📋 Instruções para Upload no GitHub
 
@@ -7,7 +7,7 @@
 1. Acesse [GitHub.com](https://github.com)
 2. Clique em "New repository"
 3. Nome do repositório: `sistema-dom` ou `dom-v2`
-4. Descrição: "Sistema DOM v2.0.0 - Gestão Doméstica Completa"
+4. Descrição: "Sistema DOM - Gestão Doméstica Completa"
 5. Marque como **Público** ou **Privado** (sua escolha)
 6. **NÃO** marque "Add a README file" (já temos um)
 7. **NÃO** marque "Add .gitignore" (já temos um)
@@ -59,11 +59,11 @@ Após o upload, verifique:
 1. Vá para a aba "Releases" no seu repositório
 2. Clique em "Create a new release"
 3. Tag version: `v2.0.0`
-4. Release title: `Sistema DOM v2.0.0 - Release Inicial`
+4. Release title: `Sistema DOM - Release Inicial`
 5. Descrição:
 
 ```markdown
-## 🎉 Sistema DOM v2.0.0 - Release Inicial
+## 🎉 Sistema DOM - Release Inicial
 
 ### ✨ Funcionalidades Principais
 
@@ -143,4 +143,4 @@ Após o upload:
 
 ---
 
-**Sistema DOM v2.0.0** está pronto para o GitHub! 🚀
+**Sistema DOM** está pronto para o GitHub! 🚀

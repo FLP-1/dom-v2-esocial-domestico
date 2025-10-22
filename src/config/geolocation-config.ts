@@ -53,9 +53,9 @@ export const GEOLOCATION_CONFIG: GeolocationConfig = {
   
   // WelcomeSection - Atualização frequente para UX
   welcomeSection: {
-    updateIntervalMinutes: 5,
-    minAccuracy: 50, // Precisão mais alta
-    maxAge: 2 * 60 * 1000, // 2 minutos - dados mais frescos
+    updateIntervalMinutes: 2, // Atualização mais frequente
+    minAccuracy: 20, // Precisão muito mais alta (20 metros)
+    maxAge: 1 * 60 * 1000, // 1 minuto - dados mais frescos
     enablePageLoadUpdate: true,
     enablePeriodicUpdate: true,
   },
@@ -78,9 +78,9 @@ export const GEOLOCATION_CONFIG: GeolocationConfig = {
   
   // Configurações de rede
   networkDetection: {
-    updateInterval: 30000, // 30 segundos
+    updateInterval: 10000, // 10 segundos (reduzido para evitar rate limiting)
     enableRealSSID: true, // ✅ Reativado com proteções robustas
-    enableLogging: false,
+    enableLogging: false, // ✅ Desabilitado para reduzir chamadas
   },
 };
 
@@ -96,7 +96,7 @@ export function getGeolocationConfig(context: 'welcomeSection' | 'timeRecordCard
         maxAge: GEOLOCATION_CONFIG.welcomeSection.maxAge,
         enablePageLoadUpdate: GEOLOCATION_CONFIG.welcomeSection.enablePageLoadUpdate,
         enablePeriodicUpdate: GEOLOCATION_CONFIG.welcomeSection.enablePeriodicUpdate,
-        enableLogging: false,
+        enableLogging: false, // ✅ Desabilitado para produção
       };
     
     case 'timeRecordCard':

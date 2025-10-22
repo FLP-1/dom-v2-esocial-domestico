@@ -56,15 +56,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       error = execError instanceof Error ? execError.message : 'Erro ao executar comando';
     }
 
-    // ✅ Rate limiting simples
+    // ✅ Rate limiting ajustado
     const now = Date.now();
     const lastCall = global.lastSSIDCall || 0;
     const timeDiff = now - lastCall;
     
-    if (timeDiff < 2000) { // 2 segundos entre chamadas
+    if (timeDiff < 1000) { // 1 segundo entre chamadas (reduzido)
       return res.status(429).json({ 
         success: false, 
-        error: 'Rate limit: aguarde 2 segundos entre chamadas',
+        error: 'Rate limit: aguarde 1 segundo entre chamadas',
         ssid: 'Rate limited',
         platform: platform
       });

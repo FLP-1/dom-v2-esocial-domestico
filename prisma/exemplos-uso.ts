@@ -1,6 +1,6 @@
 /**
  * 📚 Exemplos de Uso - Prisma ORM
- * Sistema DOM v2.2.1
+ * Sistema DOM
  * 
  * Este arquivo contém exemplos práticos de uso do Prisma
  */
@@ -47,7 +47,7 @@ async function criarUsuarioCompleto() {
         consentimentoLGPD: true,
         dataConsentimento: new Date(),
         termosAceitos: true,
-        versaoTermos: 'v2.1.0',
+        versaoTermos: 'v1.0.0',
         
         // Relações - Criar perfil junto
         perfis: {
@@ -614,7 +614,7 @@ async function exportarDadosUsuario(usuarioId: string) {
     return {
       exportacao: {
         data: new Date().toISOString(),
-        versao: '2.2.1',
+        versao: '1.0.0',
         usuario,
       }
     }

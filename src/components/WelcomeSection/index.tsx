@@ -1,9 +1,15 @@
 import AccessibleEmoji from '../AccessibleEmoji';
 // src/components/WelcomeSection/index.tsx
 import styled from 'styled-components';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useUserProfile } from '../../contexts/UserProfileContext';
+import { useUserGroup } from '../../contexts/UserGroupContext';
 import { useGeolocationContext } from '../../contexts/GeolocationContext';
+import { useNetworkDetection } from '../../hooks/useNetworkDetection';
+import { useSmartGeolocation } from '../../hooks/useSmartGeolocation';
+import { useTheme } from '../../hooks/useTheme';
+import { getGeolocationConfig, getNetworkDetectionConfig } from '../../config/geolocation-config';
+// Removido: configuração manual quebra antifraude
 // Hook de geolocalização removido - solicitação manual apenas
 
 interface WelcomeSectionProps {
@@ -44,13 +50,13 @@ const WelcomeText = styled.div`
     font-family: 'Montserrat', sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
-    color: #2c3e50;
+    color: ${props => props.$theme?.colors?.text?.primary || '#2c3e50'};
     margin: 0 0 0.25rem 0;
   }
 
   p {
     font-size: 0.9rem;
-    color: #7f8c8d;
+    color: ${props => props.$theme?.colors?.text?.secondary || '#7f8c8d'};
     margin: 0;
   }
 `;
@@ -61,24 +67,29 @@ const InfoContainer = styled.div`
   gap: 0.25rem;
 `;
 
-const InfoRow = styled.div`
+const InfoRow = styled.div<{ $theme: any }>`
   display: flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 0.85rem;
-  color: #6c757d;
+  color: ${props => props.$theme?.colors?.text?.secondary || '#6c757d'};
   
   .icon {
     font-size: 0.9rem;
     opacity: 0.8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
   }
 `;
 
-const TimeDisplay = styled.span`
+const TimeDisplay = styled.span<{ $theme: any }>`
   font-family: 'Montserrat', sans-serif;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #495057;
+  color: ${props => props.$theme?.colors?.text?.primary || '#495057'};
 `;
 
 const LocationInfo = styled.span`
@@ -90,12 +101,12 @@ const LocationInfo = styled.span`
   }
 `;
 
-const WifiInfo = styled.span`
-  color: #28a745;
+const WifiInfo = styled.span<{ $theme: any }>`
+  color: ${props => props.$theme?.colors?.success || '#28a745'};
   font-weight: 500;
 `;
 
-const StatusBadge = styled.span<{ $variant?: 'ok' | 'warn' | 'pending' }>`
+const StatusBadge = styled.span<{ $variant?: 'ok' | 'warn' | 'pending'; $theme: any }>`
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -103,9 +114,21 @@ const StatusBadge = styled.span<{ $variant?: 'ok' | 'warn' | 'pending' }>`
   border-radius: 9999px;
   font-size: 0.7rem;
   font-weight: 600;
-  color: ${({ $variant }) => ($variant === 'warn' ? '#a15c00' : $variant === 'pending' ? '#8a6d3b' : '#155724')};
-  background: ${({ $variant }) => ($variant === 'warn' ? '#fff3cd' : $variant === 'pending' ? '#ffeeba' : '#d4edda')};
-  border: 1px solid ${({ $variant }) => ($variant === 'warn' ? '#ffeeba' : $variant === 'pending' ? '#ffe8a1' : '#c3e6cb')};
+  color: ${({ $variant, $theme }) => ($variant === 'warn' ? $theme?.colors?.warning : $variant === 'pending' ? $theme?.colors?.warning : $theme?.colors?.success) || '#155724'};
+  background: ${({ $variant, $theme }) => ($variant === 'warn' ? $theme?.colors?.warning + '20' : $variant === 'pending' ? $theme?.colors?.warning + '20' : $theme?.colors?.success + '20') || '#d4edda'};
+  border: 1px solid ${({ $variant, $theme }) => ($variant === 'warn' ? $theme?.colors?.warning : $variant === 'pending' ? $theme?.colors?.warning : $theme?.colors?.success) || '#c3e6cb'};
+`;
+
+const LocationMessage = styled.span<{ $theme: any }>`
+  color: ${props => props.$theme?.colors?.text?.secondary || '#6c757d'};
+  font-style: italic;
+`;
+
+const GroupName = styled.span<{ $color?: string; $theme: any }>`
+  color: ${props => props.$color || props.$theme?.colors?.primary || '#29abe2'};
+  font-weight: 500;
+  font-size: 0.85rem;
+  line-height: 1.2;
 `;
 
 
@@ -134,7 +157,7 @@ const NotificationButton = styled.button<{ $theme: any }>`
     position: absolute;
     top: -5px;
     right: -5px;
-    background: #e74c3c;
+    background: ${props => props.$theme?.colors?.error || '#e74c3c'};
     color: white;
     border-radius: 50%;
     width: 20px;
@@ -147,7 +170,7 @@ const NotificationButton = styled.button<{ $theme: any }>`
   }
 `;
 
-export default function WelcomeSection({
+const WelcomeSection = memo(function WelcomeSection({
   $theme,
   userAvatar,
   userName,
@@ -156,66 +179,71 @@ export default function WelcomeSection({
   onNotificationClick,
 }: WelcomeSectionProps) {
   const { currentProfile } = useUserProfile();
-  const { lastLocation, lastCaptureLocation, lastCaptureStatus } = useGeolocationContext();
+  const { colors: centralizedTheme } = useTheme(currentProfile?.role.toLowerCase());
+  const { currentGroup, hasMultipleGroups } = useUserGroup();
+  // ✅ SEPARAÇÃO DE CONCEITOS: WelcomeSection mostra localização ATUAL
+  const { wifiName, realSSID, ssidLoading, ssidError } = useNetworkDetection(
+    getNetworkDetectionConfig()
+  );
+  
+  // ✅ Geolocalização inteligente para localização ATUAL (não registros antigos)
+  const { 
+    isCapturing, 
+    isDataRecent, 
+    isDataAccurate, 
+    canCapture,
+    captureLocation
+  } = useSmartGeolocation(getGeolocationConfig('welcomeSection'));
+  
+  // ✅ Localização atual do contexto (não de registros antigos)
+  const { lastLocation: currentLocation } = useGeolocationContext();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isClient, setIsClient] = useState(false);
-  
-  // Informações de WiFi detectadas sem solicitar permissão de geolocalização
-  const [wifiName, setWifiName] = useState<string>('WiFi não detectado');
+  const [wifiStatus, setWifiStatus] = useState('WiFi: Verificando...');
 
-  // Atualizar hora a cada segundo
+  // Atualizar hora a cada segundo (otimizado para evitar reflows)
   useEffect(() => {
     setIsClient(true);
     const timer = setInterval(() => {
-      setCurrentTime(new Date());
+      // Usar requestAnimationFrame para evitar forced reflow
+      requestAnimationFrame(() => {
+        setCurrentTime(new Date());
+      });
     }, 1000);
 
     return () => clearInterval(timer);
   }, []);
 
-  // Detectar informações de rede WiFi sem solicitar geolocalização
+  // Gerenciar status de WiFi no cliente
   useEffect(() => {
-    const updateConnectionInfo = () => {
-      if ('connection' in navigator) {
-        const connection = (navigator as any).connection;
-        if (connection) {
-          const effectiveType = connection.effectiveType;
-          const type = connection.type;
-          const downlink = connection.downlink;
-          
-          // Detectar se é WiFi ou conexão móvel
-          if (type === 'wifi' || type === 'ethernet') {
-            setWifiName('WiFi: Conectado');
-          } else if (type === 'cellular') {
-            setWifiName(`Dados Móveis: ${effectiveType || '4G'}`);
-          } else if (downlink && downlink > 10) {
-            setWifiName('WiFi: Conectado');
-          } else if (effectiveType === '4g' && type === undefined) {
-            setWifiName('WiFi: Conectado');
-          } else if (effectiveType && effectiveType !== '4g') {
-            setWifiName(`Conexão: ${effectiveType}`);
-          } else {
-            setWifiName('WiFi: Conectado');
-          }
-        } else {
-          setWifiName('WiFi: Conectado');
-        }
+    if (!isClient) return;
+
+    const updateWifiStatus = () => {
+      const displayWifi = currentLocation?.wifiName || wifiName;
+      
+      if (!displayWifi || displayWifi === 'WiFi não detectado') {
+        setWifiStatus(navigator.onLine ? 'WiFi: Conectado' : 'WiFi: Desconectado');
       } else {
-        setWifiName('WiFi: Conectado');
+        setWifiStatus(displayWifi);
       }
     };
 
-    updateConnectionInfo();
+    updateWifiStatus();
 
-    // Escutar mudanças na conexão
-    if ('connection' in navigator) {
-      const connection = (navigator as any).connection;
-      if (connection && connection.addEventListener) {
-        connection.addEventListener('change', updateConnectionInfo);
-        return () => connection.removeEventListener('change', updateConnectionInfo);
-      }
-    }
-  }, []);
+    // Listener para mudanças de conectividade
+    const handleOnline = () => setWifiStatus('WiFi: Conectado');
+    const handleOffline = () => setWifiStatus('WiFi: Desconectado');
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [isClient, currentLocation, wifiName]);
+
+  // ✅ WiFi detection agora é centralizado via useNetworkDetection hook
 
 
   // Usar nickname do contexto se disponível, senão usar o nome passado como prop
@@ -236,6 +264,14 @@ export default function WelcomeSection({
           <InfoRow>
             <span className="icon"><AccessibleEmoji emoji="👤" label="Usuário" /></span>
             <span>{userRole}</span>
+            {currentGroup && (
+              <>
+                <span className="icon"><AccessibleEmoji emoji="👥" label="Grupo" /></span>
+                <GroupName $color={currentGroup.cor}>
+                  {currentGroup.nome}
+                </GroupName>
+              </>
+            )}
           </InfoRow>
           <InfoRow>
             <span className="icon"><AccessibleEmoji emoji="📅" label="Data" /></span>
@@ -244,40 +280,59 @@ export default function WelcomeSection({
             <TimeDisplay suppressHydrationWarning>{isClient ? currentTimeString : ''}</TimeDisplay>
           </InfoRow>
           <InfoRow>
-            <span className="icon"><AccessibleEmoji emoji="📍" label="Localização" /></span>
+            <span className="icon"><AccessibleEmoji emoji="🏠" label="Casa" /></span>
             <LocationInfo>
-              {lastCaptureLocation ? (
-                <>
-                  {lastCaptureLocation.address || 'Endereço não disponível'}
-                  <br />
-                  <small className="location-details">
-                    Usada no registro • Precisão: {Math.round(lastCaptureLocation.accuracy)}m | {new Date(lastCaptureLocation.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </small>
-                  {' '}
-                  {lastCaptureStatus?.imprecise && (
-                    <StatusBadge $variant='warn'>Imprecisa</StatusBadge>
-                  )}
-                  {lastCaptureStatus?.pending && (
-                    <StatusBadge $variant='pending'>Pendente</StatusBadge>
-                  )}
-                </>
-              ) : lastLocation ? (
-                <>
-                  {lastLocation.address || 'Endereço não disponível'}
-                  <br />
-                  <small className="location-details">
-                    Melhor recente • Precisão: {Math.round(lastLocation.accuracy)}m | {new Date(lastLocation.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </small>
-                </>
-              ) : (
-                'Localização será exibida após registrar o ponto'
-              )}
+              {(() => {
+                // ✅ LOCALIZAÇÃO ATUAL: Não depende de registros de ponto antigos
+                // const currentLocation = lastCaptureLocation || lastLocation; // ❌ REMOVIDO
+                
+                if (!currentLocation) {
+                  return (
+                    <LocationMessage>
+                      {isCapturing ? 'Capturando localização atual...' : 'Localização atual não disponível'}
+                    </LocationMessage>
+                  );
+                }
+
+                // ✅ Debug: Log dos dados da localização atual
+                // console.log removido para evitar warnings de linting
+
+                // ✅ Informações da localização ATUAL (não de registros antigos)
+                
+                // ✅ Informações concatenadas em uma linha: número, rua, lat, lon
+                const streetName = currentLocation.addressComponents?.street || 
+                                  currentLocation.addressComponents?.road || 
+                                  'Rua não identificada';
+                const houseNumber = currentLocation.addressComponents?.number || 
+                                   currentLocation.addressComponents?.house_number || 
+                                   'N/A';
+                
+                return (
+                  <>
+                    <span>
+                      <AccessibleEmoji emoji="🏠" label="Casa" />
+                      {houseNumber} • {streetName} • Lat: {currentLocation.latitude.toFixed(6)}, Lon: {currentLocation.longitude.toFixed(6)}
+                    </span>
+                    {' '}
+                    {(() => {
+                      // ✅ Mostrar "Imprecisa" se precisão > 100m
+                      const isImprecise = currentLocation?.accuracy && currentLocation.accuracy > 100;
+                      return isImprecise ? (
+                        <StatusBadge $variant='warn'>Imprecisa</StatusBadge>
+                      ) : null;
+                    })()}
+                    {isCapturing && (
+                      <StatusBadge $variant='pending'>Capturando...</StatusBadge>
+                    )}
+                  </>
+                );
+              })()}
             </LocationInfo>
           </InfoRow>
           <InfoRow>
             <span className="icon"><AccessibleEmoji emoji="📶" label="WiFi" /></span>
             <WifiInfo>
-              {lastLocation?.wifiName || wifiName || 'WiFi não detectado'}
+              {wifiStatus}
             </WifiInfo>
           </InfoRow>
         </InfoContainer>
@@ -292,4 +347,16 @@ export default function WelcomeSection({
       )}
     </WelcomeContainer>
   );
-}
+}, (prevProps, nextProps) => {
+  // Comparação personalizada para evitar re-renders desnecessários
+  return (
+    prevProps.$theme === nextProps.$theme &&
+    prevProps.userAvatar === nextProps.userAvatar &&
+    prevProps.userName === nextProps.userName &&
+    prevProps.userRole === nextProps.userRole &&
+    prevProps.notificationCount === nextProps.notificationCount &&
+    prevProps.onNotificationClick === nextProps.onNotificationClick
+  );
+});
+
+export default WelcomeSection;

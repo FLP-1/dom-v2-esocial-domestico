@@ -260,5 +260,5 @@ npx prisma db execute --schema=prisma/schema.prisma --stdin
 ---
 
 **Última atualização:** 2025-10-08  
-**Responsável:** Sistema DOM v2 - AI Agent
+**Responsável:** Sistema DOM - AI Agent
 

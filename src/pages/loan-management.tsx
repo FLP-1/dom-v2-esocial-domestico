@@ -52,26 +52,26 @@ const EmptyIcon = styled.div`
 `;
 
 const EmptyTitle = styled.h3`
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-size: 1.25rem;
   margin-bottom: 0.5rem;
 `;
 
 const EmptyDescription = styled.p`
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   font-size: 0.9rem;
   margin: 0;
 `;
 
 const SectionTitle = styled.h3`
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
 `;
 
 const SectionText = styled.p`
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   font-size: 0.9rem;
   margin: 0.25rem 0;
 `;
@@ -129,7 +129,7 @@ const SummarySection = styled.section<{ $theme: any }>`
 const SummaryTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -172,7 +172,7 @@ const SummaryCard = styled.div<{
         case 'info':
           return 'rgba(52, 152, 219, 0.3)';
         default:
-          return '#e0e0e0';
+          return props.theme?.border?.muted || '#e0e0e0';
       }
     }};
   transition: all 0.3s ease;
@@ -186,7 +186,7 @@ const SummaryCard = styled.div<{
 const SummaryCardTitle = styled.h3`
   font-size: 0.9rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 0.75rem 0;
   display: flex;
   align-items: center;
@@ -196,14 +196,14 @@ const SummaryCardTitle = styled.h3`
 const SummaryValue = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-family: 'Montserrat', sans-serif;
 `;
 
 const SummaryDetails = styled.div`
   margin-top: 0.5rem;
   font-size: 0.8rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
 `;
 
 const RequestSection = styled.section<{ $theme: any }>`
@@ -218,7 +218,7 @@ const RequestSection = styled.section<{ $theme: any }>`
 const RequestSectionTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -258,7 +258,7 @@ const ConditionsSection = styled.div<{ $theme: any }>`
 const ConditionsTitle = styled.h3`
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1rem 0;
 `;
 
@@ -282,7 +282,7 @@ const ConditionLabel = styled.span`
 `;
 
 const ConditionValue = styled.span`
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-weight: 500;
 `;
 
@@ -298,7 +298,7 @@ const RequestsSection = styled.section<{ $theme: any }>`
 const RequestsTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -328,7 +328,7 @@ const RequestCard = styled.div<{
         case 'paid':
           return '#95a5a6';
         default:
-          return '#e0e0e0';
+          return props.theme?.border?.muted || '#e0e0e0';
       }
     }};
   transition: all 0.3s ease;
@@ -389,20 +389,20 @@ const RequestInfo = styled.div`
 const RequestTitle = styled.h3`
   font-size: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 0.5rem 0;
 `;
 
 const RequestDetails = styled.div`
   font-size: 0.85rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   margin-bottom: 0.25rem;
 `;
 
 const RequestAmount = styled.div`
   font-size: 1.1rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-family: 'Montserrat', sans-serif;
   margin-top: 0.5rem;
 `;
@@ -473,7 +473,7 @@ const ApprovalSection = styled.section<{ $theme: any }>`
 const ApprovalTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -481,7 +481,7 @@ const ApprovalTitle = styled.h2`
 const EmptyState = styled.div`
   text-align: center;
   padding: 3rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
 
   .empty-icon {
     font-size: 4rem;
@@ -491,7 +491,7 @@ const EmptyState = styled.div`
   .empty-title {
     margin: 0 0 0.5rem 0;
     font-size: 1.25rem;
-    color: #2c3e50;
+    color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   }
 
   .empty-description {
@@ -512,7 +512,7 @@ const TermsSection = styled.section<{ $theme: any }>`
 const TermsTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -523,7 +523,7 @@ const TermsContent = styled.div`
   line-height: 1.6;
 
   h3 {
-    color: #2c3e50;
+    color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
     margin: 1.5rem 0 0.75rem 0;
     font-size: 1rem;
     font-weight: 600;
@@ -541,6 +541,8 @@ const TermsContent = styled.div`
 
 export default function LoanManagement() {
   const router = useRouter();
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setUnifiedModalOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<LoanRequest | null>(

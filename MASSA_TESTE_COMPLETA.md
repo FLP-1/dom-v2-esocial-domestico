@@ -1,8 +1,8 @@
-# 🎯 MASSA DE TESTE COMPLETA - DOM v2
+# 🎯 MASSA DE TESTE COMPLETA - DOM v1.0.0
 
 ## 📋 **RESUMO EXECUTIVO**
 
-Massa de teste completa criada para validar todas as funcionalidades do sistema DOM v2, incluindo:
+Massa de teste completa criada para validar todas as funcionalidades do sistema DOM, incluindo:
 - **1 Empregador** com perfil administrativo
 - **2 Empregados** com perfis completos
 - **45 dias** de registros de ponto

@@ -4,6 +4,10 @@
 Write-Host "🚀 EXECUTANDO MASSA DE TESTE COMPLETA" -ForegroundColor Green
 Write-Host "======================================" -ForegroundColor Green
 
+# Garantir DATABASE_URL correto (banco 'dom')
+$env:DATABASE_URL = "postgresql://userdom:FLP*2025@localhost:5433/dom?schema=public"
+Write-Host "🔗 DATABASE_URL: $env:DATABASE_URL" -ForegroundColor Gray
+
 # Verificar se o Node.js está instalado
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
     Write-Host "❌ Node.js não encontrado. Instale o Node.js primeiro." -ForegroundColor Red

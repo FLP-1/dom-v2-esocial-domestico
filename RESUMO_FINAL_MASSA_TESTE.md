@@ -137,6 +137,6 @@
 - ✅ **Configurações atualizadas** com novos CPFs
 - ✅ **Sistema totalmente funcional** para testes
 
-### 🚀 **SISTEMA DOM v2 PRONTO PARA TESTES COMPLETOS!**
+### 🚀 **SISTEMA DOM PRONTO PARA TESTES COMPLETOS!**
 
 **🎯 Massa de teste 100% funcional com CPFs válidos e todos os dados necessários!**

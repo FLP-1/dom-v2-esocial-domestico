@@ -6,7 +6,7 @@
 
 ## 📊 Resumo da Implementação
 
-Foi criada uma **estrutura de dados completa, robusta e em total conformidade com LGPD** para o Sistema DOM v2.2.1, utilizando **Prisma ORM** e **PostgreSQL**.
+Foi criada uma **estrutura de dados completa, robusta e em total conformidade com LGPD** para o Sistema DOM v1.0.0, utilizando **Prisma ORM** e **PostgreSQL**.
 
 ---
 

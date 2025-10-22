@@ -14,6 +14,8 @@ import { UnifiedButton, UnifiedModal } from '../components/unified';
 import { useUserProfile } from '../contexts/UserProfileContext';
 import { useAlertManager } from '../hooks/useAlertManager';
 import { useTheme } from '../hooks/useTheme';
+import { useTheme } from '../hooks/useTheme';
+import { useUserProfile } from '../contexts/UserProfileContext';
 
 // Interfaces
 interface Plan {
@@ -48,20 +50,20 @@ interface Testimonial {
 }
 
 const SectionTitle = styled.h3`
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
 `;
 
 const SectionText = styled.p`
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   font-size: 0.9rem;
   margin: 0.25rem 0;
 `;
 
 const SectionSubtitle = styled.h4`
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-size: 1rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
@@ -75,12 +77,12 @@ const UnifiedModalSection = styled.div`
 const PriceText = styled.div`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
 `;
 
 const PriceUnit = styled.span`
   font-size: 1rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
 `;
 
 const FlexRow = styled.div`
@@ -117,8 +119,8 @@ const PlanCard = styled.div<{
   box-shadow: 0 8px 32px ${props => props.$theme.colors.shadow};
   border: 2px solid
     ${props => {
-      if (props.$isPopular) return '#90EE90';
-      if (props.$isRecommended) return '#ff6b35';
+      if (props.$isPopular) return props.theme?.colors?.success || '#90EE90';
+      if (props.$isRecommended) return props.theme?.colors?.warning || '#ff6b35';
       return 'transparent';
     }};
   position: relative;
@@ -136,7 +138,7 @@ const PopularBadge = styled.div<{ $theme: any }>`
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #90ee90, #32cd32);
+  background: linear-gradient(135deg, ${props => props.theme?.colors?.success || '#90ee90'}, ${props => props.theme?.colors?.success || '#32cd32'});
   color: white;
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
@@ -151,7 +153,7 @@ const RecommendedBadge = styled.div<{ $theme: any }>`
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: linear-gradient(135deg, ${props => props.theme?.colors?.warning || '#ff6b35'}, ${props => props.theme?.colors?.warning || '#f7931e'});
   color: white;
   padding: 0.5rem 1.5rem;
   border-radius: 20px;
@@ -171,14 +173,14 @@ const PlanHeader = styled.div`
 const PlanName = styled.h3`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 0.5rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
 
 const PlanTagline = styled.p`
   font-size: 0.9rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   margin: 0 0 1rem 0;
   font-style: italic;
   line-height: 1.4;
@@ -186,7 +188,7 @@ const PlanTagline = styled.p`
 
 const PlanDescription = styled.p`
   font-size: 0.85rem;
-  color: #5a6c7d;
+  color: ${props => props.$theme?.colors?.text?.secondary || '#5a6c7d'};
   margin: 0 0 1.5rem 0;
   line-height: 1.5;
 `;
@@ -199,21 +201,21 @@ const PriceSection = styled.div`
 const MonthlyPrice = styled.div`
   font-size: 2.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-family: 'Montserrat', sans-serif;
   margin-bottom: 0.5rem;
 `;
 
 const AnnualPrice = styled.div`
   font-size: 1.1rem;
-  color: #27ae60;
+  color: ${props => props.$theme?.colors?.success || '#27ae60'};
   font-weight: 600;
   margin-bottom: 0.25rem;
 `;
 
 const AnnualDiscount = styled.div`
   font-size: 0.8rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
   font-style: italic;
 `;
 
@@ -229,12 +231,12 @@ const FeatureItem = styled.li`
   gap: 0.75rem;
   margin-bottom: 0.75rem;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   line-height: 1.4;
 `;
 
 const FeatureIcon = styled.span`
-  color: #27ae60;
+  color: ${props => props.$theme?.colors?.success || '#27ae60'};
   font-size: 1.1rem;
   flex-shrink: 0;
 `;
@@ -256,7 +258,7 @@ const ComparisonTitle = styled.h2`
   text-align: center;
   font-size: 2rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 2rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -277,7 +279,7 @@ const TableHeader = styled.div`
 const TableHeaderCell = styled.div`
   padding: 1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   text-align: center;
   border-right: 1px solid #e0e0e0;
   font-size: 0.9rem;
@@ -302,7 +304,7 @@ const TableCell = styled.div`
   text-align: center;
   border-right: 1px solid #e0e0e0;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
 
   &:first-child {
     text-align: left;
@@ -315,7 +317,7 @@ const TableCell = styled.div`
 `;
 
 const CheckIcon = styled.span`
-  color: #27ae60;
+  color: ${props => props.$theme?.colors?.success || '#27ae60'};
   font-size: 1.2rem;
   font-weight: bold;
 `;
@@ -339,7 +341,7 @@ const FAQTitle = styled.h2`
   text-align: center;
   font-size: 2rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 2rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -366,13 +368,13 @@ const FAQItem = styled.div<{ $theme: any }>`
 const FAQQuestion = styled.h3`
   font-size: 1.1rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 0.75rem 0;
 `;
 
 const FAQAnswer = styled.p`
   font-size: 0.9rem;
-  color: #5a6c7d;
+  color: ${props => props.$theme?.colors?.text?.secondary || '#5a6c7d'};
   margin: 0;
   line-height: 1.5;
 `;
@@ -390,7 +392,7 @@ const TestimonialsTitle = styled.h2`
   text-align: center;
   font-size: 2rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 2rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
@@ -416,7 +418,7 @@ const TestimonialCard = styled.div<{ $theme: any }>`
 
 const TestimonialText = styled.p`
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1rem 0;
   line-height: 1.5;
   font-style: italic;
@@ -435,12 +437,12 @@ const AuthorInfo = styled.div`
 const AuthorName = styled.div`
   font-size: 0.9rem;
   font-weight: 600;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
 `;
 
 const AuthorRole = styled.div`
   font-size: 0.8rem;
-  color: #7f8c8d;
+  color: ${props => props.theme?.colors?.text?.secondary || '#7f8c8d'};
 `;
 
 const Rating = styled.div`
@@ -468,14 +470,14 @@ const GuaranteeSection = styled.section<{ $theme: any }>`
 const GuaranteeTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
 
 const GuaranteeText = styled.p`
   font-size: 1rem;
-  color: #5a6c7d;
+  color: ${props => props.$theme?.colors?.text?.secondary || '#5a6c7d'};
   margin: 0;
   line-height: 1.5;
 `;
@@ -492,14 +494,14 @@ const ContactSection = styled.section<{ $theme: any }>`
 const ContactTitle = styled.h2`
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0 0 1rem 0;
   font-family: 'Montserrat', sans-serif;
 `;
 
 const ContactText = styled.p`
   font-size: 1rem;
-  color: #5a6c7d;
+  color: ${props => props.$theme?.colors?.text?.secondary || '#5a6c7d'};
   margin: 0 0 1.5rem 0;
   line-height: 1.5;
 `;
@@ -507,6 +509,8 @@ const ContactText = styled.p`
 export default function SubscriptionPlans() {
   const router = useRouter();
   const alertManager = useAlertManager();
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [modalOpen, setUnifiedModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);

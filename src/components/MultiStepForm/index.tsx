@@ -286,7 +286,7 @@ export const MultiStepForm: React.FC<MultiStepFormProps> = ({
     <FormContainer className={className}>
       {/* Indicador de etapas */}
       <StepIndicator $theme={theme}>
-        {steps.map((step, index) => (
+        {(steps || []).map((step, index) => (
           <StepItem
             key={step.id}
             $active={index === currentStepIndex}

@@ -86,7 +86,7 @@ const ChatLayout = styled.div`
 
 const ConversationsSidebar = styled.div<{ $theme: any }>`
   width: 350px;
-  background: #f8f9fa;
+  background: ${props => props.theme?.colors?.background || '#f8f9fa'};
   border-right: 1px solid ${props => props.$theme.colors.border};
   display: flex;
   flex-direction: column;
@@ -105,7 +105,7 @@ const HeaderTitle = styled.h2`
   font-family: 'Montserrat', sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   margin: 0;
 `;
 
@@ -137,16 +137,16 @@ const ActionIcon = styled.button<{ $theme: any }>`
 const SearchContainer = styled.div`
   padding: 1rem 1.5rem;
   background: white;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid ${props => props.theme?.colors?.border || '#e0e0e0'};
 `;
 
 const SearchInput = styled.input<{ $theme: any }>`
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 2px solid #e0e0e0;
+  border: 2px solid ${props => props.theme?.colors?.border || '#e0e0e0'};
   border-radius: 25px;
   font-size: 0.9rem;
-  background: #f8f9fa;
+  background: ${props => props.theme?.colors?.background || '#f8f9fa'};
   transition: all 0.3s ease;
 
   &:focus {
@@ -156,7 +156,7 @@ const SearchInput = styled.input<{ $theme: any }>`
   }
 
   &::placeholder {
-    color: #7f8c8d;
+    color: ${props => props.theme?.text?.muted || '#7f8c8d'};
   }
 `;
 
@@ -213,11 +213,11 @@ const OnlineIndicator = styled.div<{ $status: string }>`
   background: ${props => {
     switch (props.$status) {
       case 'online':
-        return '#2ecc71';
+        return props.theme?.status?.success?.color || '#2ecc71';
       case 'away':
-        return '#f39c12';
+        return props.theme?.status?.warning?.color || '#f39c12';
       default:
-        return '#95a5a6';
+        return props.theme?.status?.info?.color || '#95a5a6';
     }
   }};
 `;
@@ -287,7 +287,7 @@ const ChatMessages = styled.div`
   flex: 1;
   padding: 1rem;
   overflow-y: auto;
-  background: #f8f9fa;
+  background: ${props => props.theme?.colors?.background || '#f8f9fa'};
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -326,7 +326,7 @@ const MessageTime = styled.span<{ $isOwn: boolean }>`
 
 const ConversationName = styled.h3`
   margin: 0;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
 `;
 
 const ConversationStatus = styled.p`
@@ -348,7 +348,7 @@ const InputContainer = styled.div`
   flex: 1;
   display: flex;
   align-items: center;
-  background: #f8f9fa;
+  background: ${props => props.theme?.colors?.background || '#f8f9fa'};
   border-radius: 25px;
   padding: 0.5rem 1rem;
   border: 2px solid transparent;
@@ -373,7 +373,7 @@ const MessageTextarea = styled.textarea`
   font-family: inherit;
 
   &::placeholder {
-    color: #7f8c8d;
+    color: ${props => props.theme?.text?.muted || '#7f8c8d'};
   }
 `;
 
@@ -488,7 +488,7 @@ const ContactInfo = styled.div`
 const ContactName = styled.h4`
   margin: 0 0 0.25rem 0;
   font-size: 0.9rem;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
 `;
 
 const ContactRole = styled.p`
@@ -522,7 +522,7 @@ const EmptyStateIcon = styled.div`
 
 const EmptyStateTitle = styled.h3`
   margin: 0 0 0.5rem 0;
-  color: #2c3e50;
+  color: ${props => props.theme?.colors?.text?.primary || '#2c3e50'};
   font-size: 1.2rem;
 `;
 
@@ -534,6 +534,8 @@ const EmptyStateDescription = styled.p`
 
 export default function Communication() {
   const router = useRouter();
+  const { currentProfile } = useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState<
     string | null

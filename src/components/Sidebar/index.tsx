@@ -1,7 +1,11 @@
 import { useRouter } from 'next/router';
 import styled from 'styled-components';
 import { useUserProfile } from '../../contexts/UserProfileContext';
+import { useUserGroup } from '../../contexts/UserGroupContext';
+import { useTheme } from '../../hooks/useTheme';
 import { Icons } from '../Icons';
+import { UnifiedModal } from '../../design-system/components/UnifiedModal';
+import SelectionModal from '../SelectionModal';
 
 // slideIn animation removed - not used
 
@@ -19,14 +23,14 @@ interface SidebarProps {
   currentPath: string;
 }
 
-const SidebarContainer = styled.aside<{ $collapsed: boolean }>`
+const SidebarContainer = styled.aside<{ $collapsed: boolean; $theme: any }>`
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
   width: ${props => (props.$collapsed ? '100px' : '280px')};
-  background: #ffffff;
-  border-right: 1px solid #dee2e6;
+  background: ${props => props.$theme?.colors?.background?.primary || '#ffffff'};
+  border-right: 1px solid ${props => props.$theme?.colors?.border?.light || '#e5e7eb'};
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1000;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
@@ -36,9 +40,9 @@ const SidebarContainer = styled.aside<{ $collapsed: boolean }>`
   flex-direction: column;
 `;
 
-const SidebarHeader = styled.div<{ $collapsed: boolean }>`
+const SidebarHeader = styled.div<{ $collapsed: boolean; $theme: any }>`
   padding: ${props => (props.$collapsed ? '1rem 0 1rem 1.5rem' : '1.5rem')};
-  border-bottom: 1px solid #dee2e6;
+  border-bottom: 1px solid ${props => props.$theme?.colors?.border?.light || '#dee2e6'};
   display: flex;
   align-items: center;
   justify-content: ${props =>
@@ -59,11 +63,11 @@ const Logo = styled.img<{ $collapsed: boolean }>`
   display: block;
 `;
 
-const SidebarTitle = styled.h2<{ $collapsed: boolean }>`
+const SidebarTitle = styled.h2<{ $collapsed: boolean; $theme: any }>`
   font-family: 'Montserrat', sans-serif;
   font-size: 1.25rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: ${props => props.$theme?.colors?.text?.dark || '#2c3e50'};
   margin: 0;
   opacity: ${props => (props.$collapsed ? 0 : 1)};
   transition: opacity 0.3s ease;
@@ -77,11 +81,11 @@ const LogoContainer = styled.div`
   gap: 1rem;
 `;
 
-const ToggleButton = styled.button`
+const ToggleButton = styled.button<{ $theme: any }>`
   background: none;
   border: none;
   font-size: 1.5rem;
-  color: #5a6c7d;
+  color: ${props => props.$theme?.colors?.text?.medium || '#5a6c7d'};
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 8px;
@@ -89,7 +93,7 @@ const ToggleButton = styled.button`
 
   &:hover {
     background: rgba(41, 171, 226, 0.1);
-    color: #29abe2;
+    color: ${props => props.$theme?.colors?.navigation?.primary || '#29abe2'};
   }
 `;
 
@@ -103,7 +107,7 @@ const HeaderActionsContainer = styled.div`
   gap: 0.5rem;
 `;
 
-const ProfileIconButton = styled.button<{ $collapsed: boolean }>`
+const ProfileIconButton = styled.button<{ $collapsed: boolean; $theme: any }>`
   background: none;
   border: none;
   cursor: pointer;
@@ -113,7 +117,7 @@ const ProfileIconButton = styled.button<{ $collapsed: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #5a6c7d;
+  color: ${props => props.$theme?.colors?.text?.medium || '#5a6c7d'};
   font-size: 1.2rem;
   margin-left: auto;
   width: 32px;
@@ -121,11 +125,40 @@ const ProfileIconButton = styled.button<{ $collapsed: boolean }>`
 
   &:hover {
     background: rgba(41, 171, 226, 0.1);
-    color: #29abe2;
+    color: ${props => props.$theme?.colors?.navigation?.primary || '#29abe2'};
     transform: scale(1.1);
   }
 
   .profile-icon {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+`;
+
+const GroupIconButton = styled.button<{ $collapsed: boolean; $theme: any }>`
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${props => props.$theme?.colors?.text?.medium || '#5a6c7d'};
+  font-size: 1.2rem;
+  width: 32px;
+  height: 32px;
+
+  &:hover {
+    background: rgba(41, 171, 226, 0.1);
+    color: ${props => props.$theme?.colors?.navigation?.primary || '#29abe2'};
+    transform: scale(1.1);
+  }
+
+  .group-icon {
     font-size: 1.2rem;
     display: flex;
     align-items: center;
@@ -150,7 +183,7 @@ const Navigation = styled.nav`
   overflow-y: auto;
 `;
 
-const NavItem = styled.div<{ $active?: boolean; $collapsed?: boolean }>`
+const NavItem = styled.div<{ $active?: boolean; $collapsed?: boolean; $theme?: any }>`
   display: flex;
   align-items: center;
   gap: ${props => (props.$collapsed ? '0' : '1rem')};
@@ -170,7 +203,7 @@ const NavItem = styled.div<{ $active?: boolean; $collapsed?: boolean }>`
 
   &:hover {
     background: rgba(41, 171, 226, 0.1);
-    color: #29abe2;
+    color: ${props => props.$theme?.colors?.navigation?.primary || '#29abe2'};
   }
 
   .icon {
@@ -197,10 +230,21 @@ export default function Sidebar({
   currentPath,
 }: SidebarProps) {
   const router = useRouter();
-
+  
   // Hook do contexto de perfil
-  const { currentProfile, availableProfiles, setShowProfileModal } =
+  const { currentProfile, availableProfiles, setShowProfileModal, setCurrentProfile, showProfileModal } =
     useUserProfile();
+  const { colors: theme } = useTheme(currentProfile?.role.toLowerCase());
+
+  // Hook do contexto de grupo
+  const { 
+    currentGroup, 
+    availableGroups, 
+    setShowGroupModal, 
+    hasMultipleGroups,
+    setCurrentGroup,
+    showGroupModal
+  } = useUserGroup();
 
   // Navegação centralizada - única fonte da verdade
   const navigationItems: NavigationItem[] = [
@@ -324,12 +368,13 @@ export default function Sidebar({
   };
 
   return (
-    <SidebarContainer $collapsed={collapsed}>
-      <SidebarHeader $collapsed={collapsed}>
+    <SidebarContainer $collapsed={collapsed} $theme={theme}>
+      <SidebarHeader $collapsed={collapsed} $theme={theme}>
         {collapsed ? (
           <>
             <Logo src='/logo.png' alt='Logo DOM' $collapsed={collapsed} />
             <CollapsedToggleButton
+              $theme={theme}
               onClick={onToggle}
               aria-label='Expandir sidebar'
             >
@@ -340,18 +385,30 @@ export default function Sidebar({
           <>
             <LogoContainer>
               <Logo src='/logo.png' alt='Logo DOM' $collapsed={collapsed} />
-              <SidebarTitle $collapsed={collapsed}>DOM</SidebarTitle>
+              <SidebarTitle $collapsed={collapsed} $theme={theme}>DOM</SidebarTitle>
             </LogoContainer>
             <HeaderActionsContainer>
               {availableProfiles.length > 1 && (
                 <ProfileIconButton
                   $collapsed={collapsed}
+                  $theme={theme}
                   onClick={() => setShowProfileModal(true)}
+                  title={`Perfil: ${currentProfile?.name || 'Usuário'}`}
                 >
                   <span className='profile-icon'>{Icons.profile}</span>
                 </ProfileIconButton>
               )}
-              <ToggleButton onClick={onToggle} aria-label='Recolher sidebar'>
+              {hasMultipleGroups && (
+                <GroupIconButton
+                  $collapsed={collapsed}
+                  $theme={theme}
+                  onClick={() => setShowGroupModal(true)}
+                  title={`Grupo: ${currentGroup?.nome || 'Grupo'}`}
+                >
+                  <span className='group-icon' role="img" aria-label="Grupo">👥</span>
+                </GroupIconButton>
+              )}
+              <ToggleButton $theme={theme} onClick={onToggle} aria-label='Recolher sidebar'>
                 {Icons.close}
               </ToggleButton>
             </HeaderActionsContainer>
@@ -365,6 +422,7 @@ export default function Sidebar({
             key={item.id}
             $active={isActive(item.path)}
             $collapsed={collapsed}
+            $theme={theme}
             onClick={() => handleNavigation(item.path)}
           >
             <span className='icon'>{item.icon}</span>
@@ -387,6 +445,75 @@ export default function Sidebar({
           </ProfileIconButton>
         </ProfileSection>
       )}
+
+      {/* Modais de Seleção */}
+      <SelectionModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        items={(Array.isArray(availableProfiles) ? availableProfiles : []).map(profile => ({
+          id: profile.id,
+          name: profile.role,
+          description: profile.name,
+          color: profile.color,
+          avatar: profile.avatar,
+          role: profile.role
+        }))}
+        onItemSelect={(item) => {
+          const profile = availableProfiles?.find(p => p.id === item.id);
+          if (profile) {
+            setCurrentProfile(profile);
+            setShowProfileModal(false);
+          }
+        }}
+        currentItem={currentProfile ? {
+          id: currentProfile.id,
+          name: currentProfile.role,
+          description: currentProfile.name,
+          color: currentProfile.color,
+          avatar: currentProfile.avatar,
+          role: currentProfile.role
+        } : null}
+        title="👤 Selecionar Perfil"
+        subtitle="Escolha o perfil que deseja usar"
+        icon="👤"
+        type="profile"
+      />
+
+      <SelectionModal
+        isOpen={showGroupModal}
+        onClose={() => setShowGroupModal(false)}
+        items={(Array.isArray(availableGroups) ? availableGroups : []).map(group => ({
+          id: group.id,
+          name: group.nome,
+          description: group.descricao,
+          color: group.cor,
+          icon: group.icone === 'building' ? '🏢' : 
+                group.icone === 'users' ? '👥' : 
+                group.icone === 'home' ? '🏠' : 
+                group.icone === 'briefcase' ? '💼' : '📁'
+        }))}
+        onItemSelect={(item) => {
+          const group = availableGroups?.find(g => g.id === item.id);
+          if (group) {
+            setCurrentGroup(group);
+            setShowGroupModal(false);
+          }
+        }}
+        currentItem={currentGroup ? {
+          id: currentGroup.id,
+          name: currentGroup.nome,
+          description: currentGroup.descricao,
+          color: currentGroup.cor,
+          icon: currentGroup.icone === 'building' ? '🏢' : 
+                currentGroup.icone === 'users' ? '👥' : 
+                currentGroup.icone === 'home' ? '🏠' : 
+                currentGroup.icone === 'briefcase' ? '💼' : '📁'
+        } : null}
+        title="👥 Selecionar Grupo"
+        subtitle="Escolha o grupo que deseja usar"
+        icon="👥"
+        type="group"
+      />
     </SidebarContainer>
   );
 }

@@ -87,14 +87,69 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Se Nominatim falhou, tentar BigDataCloud
-    const bigDataCloudUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=pt`;
+    // Se Nominatim falhou, tentar OpenCage (melhor precisão)
+    const openCageUrl = `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lon}&key=${process.env.OPENCAGE_API_KEY || 'demo'}&language=pt&pretty=1`;
     
     const controller2 = new AbortController();
     const timer2 = setTimeout(() => controller2.abort(), 5000);
-    const bigDataResponse = await fetch(bigDataCloudUrl, {
+    const openCageResponse = await fetch(openCageUrl, {
       signal: controller2.signal
     }).finally(() => clearTimeout(timer2));
+    
+    if (openCageResponse.ok) {
+      const data = await openCageResponse.json();
+      
+      if (data.results && data.results.length > 0) {
+        const result = data.results[0];
+        const components = result.components;
+        
+        let address = '';
+        
+        // Construir endereço mais preciso
+        if (components.road && components.house_number) {
+          address = `${components.road}, ${components.house_number}`;
+        } else if (components.road) {
+          address = components.road;
+        }
+        
+        if (components.suburb || components.neighbourhood) {
+          address += `, ${components.suburb || components.neighbourhood}`;
+        }
+        
+        if (components.city || components.town) {
+          address += `, ${components.city || components.town}`;
+        }
+        
+        if (components.state) {
+          address += `, ${components.state}`;
+        }
+        
+        if (components.country) {
+          address += `, ${components.country}`;
+        }
+        
+        if (components.postcode) {
+          address += ` - CEP: ${components.postcode}`;
+        }
+        
+        if (address.trim()) {
+          return res.status(200).json({ 
+            success: true, 
+            address: address.trim(),
+            source: 'opencage'
+          });
+        }
+      }
+    }
+    
+    // Se OpenCage falhou, tentar BigDataCloud
+    const bigDataCloudUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=pt`;
+    
+    const controller3 = new AbortController();
+    const timer3 = setTimeout(() => controller3.abort(), 5000);
+    const bigDataResponse = await fetch(bigDataCloudUrl, {
+      signal: controller3.signal
+    }).finally(() => clearTimeout(timer3));
     
     if (bigDataResponse.ok) {
       const data = await bigDataResponse.json();

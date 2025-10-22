@@ -5,11 +5,18 @@ declare global {
   var __prisma: PrismaClient | undefined
 }
 
-// Singleton pattern para Prisma Client no Next.js
-const prisma = globalThis.__prisma || new PrismaClient()
+// Singleton pattern para Prisma Client
+let prisma: PrismaClient
 
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.__prisma = prisma
+if (process.env.NODE_ENV === 'production') {
+  prisma = new PrismaClient()
+} else {
+  if (!globalThis.__prisma) {
+    globalThis.__prisma = new PrismaClient({
+      log: ['error']
+    })
+  }
+  prisma = globalThis.__prisma
 }
 
 export default prisma

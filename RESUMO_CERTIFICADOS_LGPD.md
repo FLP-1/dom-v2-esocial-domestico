@@ -248,6 +248,6 @@ psql -h localhost -p 5433 -U userdom -d dom -c "SELECT nome, tipo, data_validade
 **📚 Documentação Completa**: Ver `CERTIFICADOS_DIGITAIS_LGPD.md`
 
 **Data**: 2025-10-02  
-**Versão**: DOM v2.2.1-final  
+**Versão**: DOM v1.0.0-final  
 **Status**: ✅ **IMPLEMENTADO**
 

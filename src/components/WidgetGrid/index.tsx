@@ -39,7 +39,7 @@ export const WidgetGrid: React.FC<WidgetGridProps> = ({
       {...(columns && { $columns: columns })}
       {...(gap && { $gap: gap })}
     >
-      {widgets.map(widget => (
+      {(widgets || []).map(widget => (
         <Widget
           key={widget.id}
           {...widget}

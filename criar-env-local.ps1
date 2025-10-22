@@ -2,7 +2,7 @@
 # Execute este script para configurar o ambiente local
 
 $conteudo = @"
-# 🔐 Configurações do Sistema DOM v2.2.1
+# 🔐 Configurações do Sistema DOM
 # Arquivo de configuração local
 
 # ===========================================

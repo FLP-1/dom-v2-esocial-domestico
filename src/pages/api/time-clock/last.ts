@@ -9,19 +9,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   try {
-    const usuarioId = await getCurrentUserId();
+    // Se não estiver autenticado, retorna null (sem erro)
+    // Isso evita erros 500 quando o usuário ainda não fez login
+    let usuarioId;
+    try {
+      usuarioId = await getCurrentUserId();
+    } catch (error) {
+      return res.status(200).json({ success: true, data: null });
+    }
+
     if (!usuarioId) {
-      return res.status(401).json({ success: false, error: 'Não autenticado' });
+      return res.status(200).json({ success: true, data: null });
     }
 
     const last = await prisma.registroPonto.findFirst({
       where: { usuarioId },
       orderBy: { dataHora: 'desc' }
     });
-
-    if (!last) {
-      return res.status(200).json({ success: true, data: null });
-    }
 
     return res.status(200).json({ success: true, data: last });
   } catch (error) {

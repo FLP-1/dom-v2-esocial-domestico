@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "WiFi SSID Detector",
+  "version": "1.0",
+  "description": "Captura SSID real para sistema DOM",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://localhost:*/*", "*://127.0.0.1:*/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  }
+}

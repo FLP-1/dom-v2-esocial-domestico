@@ -1,4 +1,4 @@
-# Script de Rollback Seguro para Experimentos DOM v2
+# Script de Rollback Seguro para Experimentos DOM
 # Criado para facilitar o retorno ao estado anterior
 
 param(
@@ -9,7 +9,7 @@ param(
 )
 
 function Show-Help {
-    Write-Host "=== SCRIPT DE ROLLBACK SEGURO DOM v2 ===" -ForegroundColor Cyan
+    Write-Host "=== SCRIPT DE ROLLBACK SEGURO DOM ===" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Uso:" -ForegroundColor Yellow
     Write-Host "  .\rollback-seguro.ps1 -Status     # Ver status atual"

@@ -4,6 +4,24 @@ import { useNetworkDetection } from './useNetworkDetection';
 import { logger } from '../utils/logger';
 import { getGeocodingConfig } from '../config/geolocation-config';
 
+// Função para calcular distância entre duas coordenadas (em metros)
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Raio da Terra em metros
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c; // Distância em metros
+}
+
+// 🚫 COORDENADAS HARDCODED REMOVIDAS - SISTEMA DINÂMICO
+
 interface SmartGeolocationOptions {
   updateIntervalMinutes?: number; // Intervalo para atualização periódica
   enablePageLoadUpdate?: boolean; // Atualizar ao carregar página
@@ -76,7 +94,7 @@ export const useSmartGeolocation = (options: SmartGeolocationOptions = {}) => {
       // 🎯 TENTATIVAS MÚLTIPLAS para melhorar precisão
       let bestPosition: GeolocationPosition | null = null;
       let bestAccuracy = Infinity;
-      const maxAttempts = 3;
+      const maxAttempts = 5; // Mais tentativas para melhor precisão
       
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         if (enableLogging) {
@@ -87,7 +105,7 @@ export const useSmartGeolocation = (options: SmartGeolocationOptions = {}) => {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             const timeout = setTimeout(() => {
               reject(new Error('Timeout na captura de geolocalização'));
-            }, 10000); // 10 segundos por tentativa
+            }, 15000); // 15 segundos por tentativa para melhor precisão
 
             navigator.geolocation.getCurrentPosition(
               (pos) => {
@@ -100,7 +118,7 @@ export const useSmartGeolocation = (options: SmartGeolocationOptions = {}) => {
               },
               {
                 enableHighAccuracy: true,
-                timeout: 10000,
+                timeout: 15000, // Mais tempo para GPS de alta precisão
                 maximumAge: 0 // Forçar nova captura sempre
               }
             );
@@ -172,6 +190,81 @@ export const useSmartGeolocation = (options: SmartGeolocationOptions = {}) => {
         } else {
           return;
         }
+      }
+
+      // 🎯 VALIDAÇÃO DINÂMICA DE 50M COM MODAL
+      // Validar se está dentro do raio de 50m dos locais cadastrados
+      let dentroDoRaio = false;
+      let localMaisProximo = null;
+      let distanciaMinima = Infinity;
+
+      try {
+        const geofencingResponse = await fetch('/api/geofencing/validar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            precisao: position.coords.accuracy,
+            endereco: 'Endereço indisponível na captura',
+            wifiName: realSSID || wifiName
+          })
+        });
+
+        if (geofencingResponse.ok) {
+          const geofencingData = await geofencingResponse.json();
+          dentroDoRaio = geofencingData.dentroGeofence;
+          localMaisProximo = geofencingData.localMaisProximo;
+          distanciaMinima = geofencingData.distanciaMinima || Infinity;
+
+          if (enableLogging) {
+            logger.log(`🎯 Validação geofencing: ${dentroDoRaio ? 'DENTRO' : 'FORA'} do raio`);
+            if (localMaisProximo) {
+              logger.log(`📏 Local mais próximo: ${localMaisProximo.nome} (${localMaisProximo.distancia}m)`);
+            }
+          }
+        } else {
+          if (enableLogging) {
+            logger.log(`⚠️ Validação geofencing indisponível - aceitando coordenadas`);
+          }
+          dentroDoRaio = true; // Aceitar se API falhar
+        }
+      } catch (error) {
+        if (enableLogging) {
+          logger.log(`⚠️ Erro na validação geofencing: ${error.message} - aceitando coordenadas`);
+        }
+        dentroDoRaio = true; // Aceitar se houver erro
+      }
+
+      // 🚫 SE FORA DO RAIO DE 50M, REJEITAR E ABRIR MODAL
+      if (!dentroDoRaio) {
+        if (enableLogging) {
+          logger.log(`🚫 Coordenadas fora do raio autorizado - modal de aprovação será aberto`);
+        }
+        
+        // Disparar evento para abrir modal de aprovação
+        const eventoAprovacao = new CustomEvent('geofencing-requer-aprovacao', {
+          detail: {
+            coordenadas: {
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+              precisao: position.coords.accuracy
+            },
+            localMaisProximo: localMaisProximo,
+            distanciaMinima: distanciaMinima,
+            endereco: 'Endereço indisponível na captura'
+          }
+        });
+        
+        window.dispatchEvent(eventoAprovacao);
+        return; // Rejeitar coordenadas fora do raio
+      }
+
+      if (enableLogging) {
+        logger.log(`✅ Coordenadas aprovadas: ${position.coords.latitude}, ${position.coords.longitude}`);
+        logger.log(`📏 Precisão: ${Math.round(position.coords.accuracy)}m`);
       }
 
       // Obter endereço via geocoding com máxima precisão

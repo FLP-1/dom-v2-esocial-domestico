@@ -1,0 +1,97 @@
+// Schema para sistema de geofencing e locais de trabalho
+// Adicionar ao schema.prisma principal
+
+model LocalTrabalho {
+  id                String   @id @default(uuid())
+  nome              String   @db.VarChar(255)
+  endereco          String   @db.VarChar(500)
+  latitude          Float
+  longitude         Float
+  raio              Int      @default(200) // Raio em metros
+  ativo             Boolean  @default(true)
+  grupoId           String
+  empregadorId      String
+  criadoPor         String
+  criadoEm          DateTime @default(now())
+  atualizadoPor     String?
+  atualizadoEm      DateTime @updatedAt
+  
+  // Relacionamentos
+  grupo             UsuarioGrupo @relation(fields: [grupoId], references: [id])
+  empregador        Usuario      @relation(fields: [empregadorId], references: [id])
+  criador           Usuario      @relation("LocaisCriados", fields: [criadoPor], references: [id])
+  atualizador       Usuario?     @relation("LocaisAtualizados", fields: [atualizadoPor], references: [id])
+  
+  // Auditoria
+  logs              GeofencingLog[]
+  validacoes        GeofencingValidacao[]
+  
+  @@index([grupoId])
+  @@index([empregadorId])
+  @@index([ativo])
+  @@map("locais_trabalho")
+}
+
+model GeofencingLog {
+  id                String   @id @default(uuid())
+  localTrabalhoId   String
+  acao              String   @db.VarChar(50) // CREATE, UPDATE, DELETE, VALIDATE
+  dadosAnteriores   Json?
+  dadosNovos        Json?
+  ip                String   @db.VarChar(45)
+  userAgent         String   @db.VarChar(500)
+  usuarioId         String
+  timestamp         DateTime @default(now())
+  
+  // Relacionamentos
+  localTrabalho     LocalTrabalho @relation(fields: [localTrabalhoId], references: [id])
+  usuario           Usuario       @relation(fields: [usuarioId], references: [id])
+  
+  @@index([localTrabalhoId])
+  @@index([usuarioId])
+  @@index([timestamp])
+  @@map("geofencing_logs")
+}
+
+model GeofencingValidacao {
+  id                String   @id @default(uuid())
+  localTrabalhoId   String
+  usuarioId         String
+  latitude          Float
+  longitude         Float
+  distancia         Float    // Distância em metros
+  dentroGeofence    Boolean
+  precisao          Float
+  endereco          String?  @db.VarChar(500)
+  wifiName          String?  @db.VarChar(255)
+  ip                String   @db.VarChar(45)
+  userAgent         String   @db.VarChar(500)
+  timestamp         DateTime @default(now())
+  
+  // Relacionamentos
+  localTrabalho     LocalTrabalho @relation(fields: [localTrabalhoId], references: [id])
+  usuario           Usuario       @relation(fields: [usuarioId], references: [id])
+  
+  @@index([localTrabalhoId])
+  @@index([usuarioId])
+  @@index([timestamp])
+  @@map("geofencing_validacoes")
+}
+
+// Adicionar aos modelos existentes
+model Usuario {
+  // ... campos existentes ...
+  
+  // Novos relacionamentos
+  locaisCriados     LocalTrabalho[] @relation("LocaisCriados")
+  locaisAtualizados LocalTrabalho[] @relation("LocaisAtualizados")
+  geofencingLogs    GeofencingLog[]
+  geofencingValidacoes GeofencingValidacao[]
+}
+
+model UsuarioGrupo {
+  // ... campos existentes ...
+  
+  // Novo relacionamento
+  locaisTrabalho    LocalTrabalho[]
+}

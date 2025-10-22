@@ -306,7 +306,14 @@ export async function reverseGeocodeFree(
 ): Promise<GeocodingResult> {
   logger.geo('🆓 Iniciando geocodificação com APIs gratuitas...');
 
-  // 1. Tentar OpenCage (melhor qualidade, 2.500 req/dia)
+  // 1. Tentar BigDataCloud PRIMEIRO (ilimitado, boa qualidade, sem chave)
+  const bigDataResult = await reverseGeocodeBigDataCloud(latitude, longitude);
+  if (bigDataResult.success) {
+    logger.geo('✅ BigDataCloud retornou endereço');
+    return bigDataResult;
+  }
+
+  // 2. Tentar OpenCage (melhor qualidade, 2.500 req/dia)
   const openCageKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
   if (openCageKey) {
     const openCageResult = await reverseGeocodeOpenCage(latitude, longitude, openCageKey);
@@ -314,13 +321,6 @@ export async function reverseGeocodeFree(
       logger.geo('✅ OpenCage retornou endereço');
       return openCageResult;
     }
-  }
-
-  // 2. Tentar BigDataCloud (ilimitado, boa qualidade)
-  const bigDataResult = await reverseGeocodeBigDataCloud(latitude, longitude);
-  if (bigDataResult.success) {
-    logger.geo('✅ BigDataCloud retornou endereço');
-    return bigDataResult;
   }
 
   // 3. Tentar Positionstack (10.000 req/dia, excelente qualidade)
@@ -354,11 +354,12 @@ export async function reverseGeocodeFree(
 export function getAvailableFreeAPIs(): string[] {
   const apis = [];
   
+  // BigDataCloud sempre disponível (ilimitado)
+  apis.push('BigDataCloud (ilimitado)');
+  
   if (process.env.NEXT_PUBLIC_OPENCAGE_API_KEY) {
     apis.push('OpenCage (2.500 req/dia)');
   }
-  
-  apis.push('BigDataCloud (ilimitado)');
   
   if (process.env.NEXT_PUBLIC_POSITIONSTACK_API_KEY) {
     apis.push('Positionstack (10.000 req/dia)');
